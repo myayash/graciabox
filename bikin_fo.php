@@ -14,7 +14,21 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam'])) {
+        die('Error: Nama Customer, Kode Pisau, Jenis Board, and Cover Dalam are required fields.');
+    }
+
     if (isset($_POST['kode_pisau'])) {
+        if ($_POST['kode_pisau'] === 'baru') {
+            if (empty($_POST['model_box_baru']) || empty($_POST['ukuran_baru']) || empty($_POST['dibuat_oleh'])) {
+                die('Error: Missing required fields for new kode pisau. Please go back and fill them.');
+            }
+        } else if ($_POST['kode_pisau'] === 'lama') {
+            if (empty($_POST['barang_lama']) || empty($_POST['dibuat_oleh'])) {
+                die('Error: Missing required fields for old kode pisau. Please go back and fill them.');
+            }
+        }
+
         $nama = $_POST['nama_customer'];
         $kode_pisau = $_POST['kode_pisau'];
         $jenis_board = $_POST['jenis_board'];
@@ -77,7 +91,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
     <form action="bikin_fo.php" method="post" class="bg-white p-8 shadow-lg">
         <div class="mb-4">
             <label for="nama_customer" class="block text-gray-800 text-sm font-semibold mb-2">Nama Customer:</label>
-            <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                 <option value="" disabled selected>Pilih Customer</option>
                 <?php foreach ($customers as $customer): ?>
                     <option value="<?= $customer['nama'] ?>"><?= $customer['nama'] ?></option>
@@ -89,11 +103,11 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             <label class="block text-gray-800 text-sm font-semibold mb-2">Kode Pisau:</label>
             <div class="mt-2">
                 <label class="inline-flex items-center">
-                    <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out">
+                    <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
                     <span class="ml-2 text-gray-800">Baru</span>
                 </label>
                 <label class="inline-flex items-center ml-6">
-                    <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out">
+                    <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
                     <span class="ml-2 text-gray-800">Lama</span>
                 </label>
             </div>
@@ -102,7 +116,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
         <div id="kode_pisau_baru_fields" style="display:none;" class="mb-4">
             <div class="mb-4">
                 <label for="model_box_baru" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
-                <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                     <option value="" disabled selected>Pilih Model Box</option>
                     <?php foreach ($model_boxes as $model_box): ?>
                         <option value="<?= $model_box['nama'] ?>"><?= $model_box['nama'] ?></option>
@@ -134,7 +148,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
         <div id="shared_fields" style="display:none;" class="mb-4">
             <div class="mb-4">
                 <label for="jenis_board" class="block text-gray-800 text-sm font-semibold mb-2">Jenis Board:</label>
-                <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                     <option value="" disabled selected>Pilih Jenis Board</option>
                     <?php foreach ($boards as $board): ?>
                         <option value="<?= $board['jenis'] ?>"><?= $board['jenis'] ?></option>
@@ -144,7 +158,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 
             <div class="mb-4">
                 <label for="cover_dalam" class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <select name="cover_dalam" id="cover_dalam" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <select name="cover_dalam" id="cover_dalam" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                     <option value="" disabled selected>Pilih Cover Dalam</option>
                     <?php foreach ($papers as $paper): ?>
                         <?php
@@ -182,14 +196,28 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 
     <script>
         function handleKodePisauChange(value) {
+            const modelBoxBaru = document.getElementById('model_box_baru');
+            const ukuranBaru = document.getElementById('ukuran_baru');
+            const dibuatOleh = document.getElementById('dibuat_oleh');
+            const barangLama = document.getElementById('barang_lama');
+
             if (value === 'baru') {
                 document.getElementById('kode_pisau_baru_fields').style.display = 'block';
                 document.getElementById('kode_pisau_lama_fields').style.display = 'none';
                 document.getElementById('shared_fields').style.display = 'block';
+                modelBoxBaru.required = true;
+                ukuranBaru.required = true;
+                dibuatOleh.required = true;
+                barangLama.required = false;
             } else if (value === 'lama') {
                 document.getElementById('kode_pisau_baru_fields').style.display = 'none';
                 document.getElementById('kode_pisau_lama_fields').style.display = 'block';
                 document.getElementById('shared_fields').style.display = 'block';
+                modelBoxBaru.required = false;
+                ukuranBaru.required = false;
+                dibuatOleh.required = false;
+                barangLama.required = true;
+                dibuatOleh.required = true;
             }
         }
     </script>

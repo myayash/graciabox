@@ -23,6 +23,14 @@
         <?php endif; ?>
     </h1>
 
+    <form action="daftar_fo.php" method="get" class="mb-4">
+        <input type="text" name="search" placeholder="Search orders..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
+        <?php if (isset($_GET['show_archived'])): ?>
+            <input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
+        <?php endif; ?>
+    </form>
+
     <?php
     require_once 'config.php';
 
@@ -64,12 +72,29 @@
 
     try {
         $sql = "SELECT * FROM orders";
+        $conditions = [];
+        $params = [];
+
+        // Add archived/active filter
         if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-            $sql .= " WHERE is_archived = 1"; // Show only archived
+            $conditions[] = "is_archived = 1";
         } else {
-            $sql .= " WHERE is_archived = 0"; // Show only active
+            $conditions[] = "is_archived = 0";
         }
-        $stmt = $pdo->query($sql);
+
+        // Add search filter
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ?)";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($orders) {

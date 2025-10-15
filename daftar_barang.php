@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar barang 
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar barang
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <div class="inline-flex ml-4">
             <a href="bikin_barang.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Barang</a>
@@ -22,6 +22,14 @@
         </div>
         <?php endif; ?>
     </h1>
+
+    <form action="daftar_barang.php" method="get" class="mb-4">
+        <input type="text" name="search" placeholder="cari data barang" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
+        <?php if (isset($_GET['show_archived'])): ?>
+            <input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
+        <?php endif; ?>
+    </form>
 
     <?php
     require_once 'config.php';
@@ -64,12 +72,29 @@
 
     try {
         $sql = "SELECT id, model_box, ukuran, nama, dibuat, is_archived FROM barang";
+        $conditions = [];
+        $params = [];
+
+        // Add archived/active filter
         if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-            $sql .= " WHERE is_archived = 1"; // Show only archived
+            $conditions[] = "is_archived = 1";
         } else {
-            $sql .= " WHERE is_archived = 0"; // Show only active
+            $conditions[] = "is_archived = 0";
         }
-        $stmt = $pdo->query($sql);
+
+        // Add search filter
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(model_box LIKE ? OR ukuran LIKE ? OR nama LIKE ?)";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($barangs) {

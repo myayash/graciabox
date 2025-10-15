@@ -23,6 +23,14 @@
         <?php endif; ?>
     </h1>
 
+    <form action="daftar_karyawan_sales.php" method="get" class="mb-4">
+        <input type="text" name="search" placeholder="cari data karyawan sales" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
+        <?php if (isset($_GET['show_archived'])): ?>
+            <input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
+        <?php endif; ?>
+    </form>
+
     <?php
     require_once 'config.php';
 
@@ -64,12 +72,29 @@
 
     try {
         $sql = "SELECT id, nama, dibuat, is_archived FROM empl_sales";
+        $conditions = [];
+        $params = [];
+
+        // Add archived/active filter
         if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-            $sql .= " WHERE is_archived = 1"; // Show only archived
+            $conditions[] = "is_archived = 1";
         } else {
-            $sql .= " WHERE is_archived = 0"; // Show only active
+            $conditions[] = "is_archived = 0";
         }
-        $stmt = $pdo->query($sql);
+
+        // Add search filter
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(nama LIKE ?)";
+            $params = array_merge($params, [$searchTerm]);
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $karyawan_sales_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($karyawan_sales_items) {
