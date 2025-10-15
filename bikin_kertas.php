@@ -40,14 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Kertas</title>
+    <title>tambah jenis kertas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Add New Kertas</h1>
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">tambah jenis kertas</h1>
 
     <form action="bikin_kertas.php" method="post" class="bg-white p-8 shadow-lg">
         <div class="mb-4">
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="flex items-center justify-start space-x-4">
-            <input type="submit" value="Add Kertas" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             <a href="daftar_kertas.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Cancel
             </a>

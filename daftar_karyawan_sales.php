@@ -4,20 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karyawan Sales List</title>
+    <title>daftar karyawan sales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Karyawan Sales Information
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar karyawan sales
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <div class="inline-flex ml-4">
-            <a href="bikin_karyawan_sales.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">Add New Karyawan Sales</a>
+            <a href="bikin_karyawan_sales.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Karyawan Sales</a>
             <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-                <a href="daftar_karyawan_sales.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Show Active Karyawan Sales</a>
+                <a href="daftar_karyawan_sales.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Karyawan Sales</a>
             <?php else: ?>
-                <a href="daftar_karyawan_sales.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Show Archived Karyawan Sales</a>
+                <a href="daftar_karyawan_sales.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Karyawan Sales</a>
             <?php endif; ?>
         </div>
         <?php endif; ?>
