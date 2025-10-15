@@ -19,6 +19,7 @@
             <?php else: ?>
                 <a href="daftar_fo.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Orders</a>
             <?php endif; ?>
+            <a href="export_fo_excel.php<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Export to Excel</a>
         </div>
         <?php endif; ?>
     </h1>
