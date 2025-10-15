@@ -17,6 +17,17 @@
     error_reporting(E_ALL);
     require_once 'config.php';
 
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to edit order data.');
+}
+
     // Fetch data for dropdowns
     $customers = $pdo->query("SELECT * FROM customer WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
     $model_boxes_data = $pdo->query("SELECT * FROM model_box WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);

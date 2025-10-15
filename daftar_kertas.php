@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +11,7 @@
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Kertas Information
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <div class="inline-flex ml-4">
             <a href="bikin_kertas.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">Add New Kertas</a>
             <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
@@ -18,13 +20,20 @@
                 <a href="daftar_kertas.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Show Archived Kertas</a>
             <?php endif; ?>
         </div>
+        <?php endif; ?>
     </h1>
 
     <?php
     require_once 'config.php';
 
+    $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
+
     // Handle archive action
     if (isset($_GET['archive_id']) && !empty($_GET['archive_id'])) {
+        if (!$is_admin) { // Only allow admin to archive
+            header("Location: daftar_kertas.php");
+            exit;
+        }
         $archive_id = $_GET['archive_id'];
         try {
             $stmt = $pdo->prepare("UPDATE kertas SET is_archived = 1 WHERE id = ?");
@@ -38,6 +47,10 @@
 
     // Handle unarchive action
     if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
+        if (!$is_admin) { // Only allow admin to unarchive
+            header("Location: daftar_kertas.php");
+            exit;
+        }
         $unarchive_id = $_GET['unarchive_id'];
         try {
             $stmt = $pdo->prepare("UPDATE kertas SET is_archived = 0 WHERE id = ?");
@@ -79,7 +92,9 @@
                 if ($columnName == 'is_archived') continue;
                 echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
             }
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
+            if ($is_admin) {
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
+            }
             echo "</tr></thead>";
             echo "<tbody class=\"bg-white divide-y divide-gray-200\">";
             // Populate table rows with data
@@ -89,12 +104,14 @@
                     if ($columnName == 'is_archived') continue;
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($value) . "</td>";
                 }
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                echo "<a href=\"edit_kertas.php?id=" . htmlspecialchars($kertas['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
-                if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-                    echo "<a href=\"daftar_kertas.php?unarchive_id=" . htmlspecialchars($kertas['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this kertas?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
-                } else {
-                    echo "<a href=\"daftar_kertas.php?archive_id=" . htmlspecialchars($kertas['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this kertas?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                if ($is_admin) {
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
+                    echo "<a href=\"edit_kertas.php?id=" . htmlspecialchars($kertas['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                    if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
+                        echo "<a href=\"daftar_kertas.php?unarchive_id=" . htmlspecialchars($kertas['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this kertas?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                    } else {
+                        echo "<a href=\"daftar_kertas.php?archive_id=" . htmlspecialchars($kertas['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this kertas?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                    }
                 }
                 echo "</td>";
                 echo "</tr>";

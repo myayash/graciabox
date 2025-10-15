@@ -1,5 +1,17 @@
 <?php
 include 'config.php';
+session_start();
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to add new barang.');
+}
 
 // Fetch data for dropdowns
 $model_boxes = $pdo->query("SELECT nama FROM model_box WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);

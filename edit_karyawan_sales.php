@@ -3,6 +3,18 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 require_once 'config.php';
+session_start();
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to edit karyawan sales data.');
+}
 
 $karyawan_sales = null;
 $message = '';

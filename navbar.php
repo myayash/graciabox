@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!-- Menu Bar (Top Navigation) -->
 <nav class="bg-white text-gray-800 p-4 shadow-lg fixed w-full top-0 left-0">
     <div class="container mx-auto flex items-center">
@@ -14,7 +15,13 @@
                     <li><a href="daftar_karyawan_sales.php" class="block px-4 py-2 hover:bg-gray-200">tabel karyawan sales</a></li>
                 </ul>
             </li>
-            
         </ul>
+        <div class="ml-auto">
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="logout.php" class="hover:bg-gray-200 px-3 py-2">Logout (<?php echo htmlspecialchars($_SESSION['username']); ?>)</a>
+            <?php else: ?>
+                <a href="login.php" class="hover:bg-gray-200 px-3 py-2">Login</a>
+            <?php endif; ?>
+        </div>
     </div>
 </nav>

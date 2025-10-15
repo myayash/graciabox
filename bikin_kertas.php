@@ -1,5 +1,17 @@
 <?php
 include 'config.php';
+session_start();
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to add new kertas.');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $supplier = trim($_POST['supplier']);

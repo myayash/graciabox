@@ -1,5 +1,17 @@
 <?php
 include 'config.php';
+session_start();
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to create new orders.');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['kode_pisau'])) {
@@ -53,14 +65,14 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buat Form Order</title>
+    <title>bikin form order</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Buat Form Order</h1>
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order</h1>
 
     <form action="bikin_fo.php" method="post" class="bg-white p-8 shadow-lg">
         <div class="mb-4">
@@ -152,7 +164,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             <div class="mb-4">
                 <label for="dibuat_oleh" class="block text-gray-800 text-sm font-semibold mb-2">Dibuat Oleh:</label>
                 <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <option value="" disabled selected>Pilih Sales</option>
+                    <option value="" disabled selected>Pilih Karyawan Sales</option>
                     <?php foreach ($sales_reps as $sales_rep): ?>
                         <option value="<?= $sales_rep['nama'] ?>"><?= $sales_rep['nama'] ?></option>
                     <?php endforeach; ?>
