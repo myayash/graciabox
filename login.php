@@ -44,13 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <div class="bg-white p-8 shadow-lg w-full max-w-md mx-auto mt-20">
-        <h3 class="text-2xl font-bold mb-6 text-gray-800 text-center">Login</h3>
+        <h3 class="text-2xl font-bold mb-6 text-gray-800 text-center">gracia box form login</h3>
         <?php if ($error): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 relative mb-4"><?php echo $error; ?></div>
         <?php endif; ?>
@@ -65,11 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="flex items-center justify-between">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline">Login</button>
+                <a href="index.php" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">Kembali ke Menu</a>
             </div>
         </form>
-        <div class="mt-4 text-center">
-            <a href="index.php" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">Return to Home</a>
-        </div>
     </div>
 </body>
 </html>
