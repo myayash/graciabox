@@ -10,22 +10,25 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar FO
+    <h1 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+        <span class="mr-4">daftar FO</span>
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-        <div class="inline-flex ml-4">
+        <div class="inline-flex">
             <a href="bikin_fo.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Order</a>
             <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
                 <a href="daftar_fo.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Orders</a>
             <?php else: ?>
                 <a href="daftar_fo.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Orders</a>
             <?php endif; ?>
-            <a href="export_fo_excel.php<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Export to Excel</a>
+        </div>
+        <div class="ml-auto">
+            <a href="export_fo_excel.php<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Export to Excel</a>
         </div>
         <?php endif; ?>
     </h1>
 
     <form action="daftar_fo.php" method="get" class="mb-4">
-        <input type="text" name="search" placeholder="Search orders..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" name="search" placeholder="cari FO" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
         <?php if (isset($_GET['show_archived'])): ?>
             <input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">

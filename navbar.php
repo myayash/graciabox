@@ -15,6 +15,7 @@
                     <li><a href="daftar_karyawan_sales.php" class="block px-4 py-2 hover:bg-gray-200">tabel karyawan sales</a></li>
                 </ul>
             </li>
+            <li><button onclick="window.location.href='daftar_fo.php'" class="hover:bg-gray-200 px-3 py-2">daftar fo</button></li>
         </ul>
         <div class="ml-auto">
             <?php if (isset($_SESSION['user_id'])): ?>
