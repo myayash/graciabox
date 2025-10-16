@@ -230,25 +230,32 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             const modelBoxBaru = document.getElementById('model_box_baru');
             const dibuatOleh = document.getElementById('dibuat_oleh');
             const barangLama = document.getElementById('barang_lama');
+            const sharedFields = document.getElementById('shared_fields');
+            const kodePisauBaruFields = document.getElementById('kode_pisau_baru_fields');
+            const kodePisauLamaFields = document.getElementById('kode_pisau_lama_fields');
+
+            // Hide all conditional fields initially
+            kodePisauBaruFields.style.display = 'none';
+            kodePisauLamaFields.style.display = 'none';
+            sharedFields.style.display = 'none';
+
+            // Disable all inputs within the conditional fields
+            modelBoxBaru.required = false;
+            barangLama.required = false;
+            dibuatOleh.required = false;
 
             if (value === 'baru') {
-                document.getElementById('kode_pisau_baru_fields').style.display = 'block';
-                document.getElementById('kode_pisau_lama_fields').style.display = 'none';
-                document.getElementById('shared_fields').style.display = 'block';
+                kodePisauBaruFields.style.display = 'block';
+                sharedFields.style.display = 'block';
                 modelBoxBaru.required = true;
                 dibuatOleh.required = true;
-                barangLama.required = false;
             } else if (value === 'lama') {
-                document.getElementById('kode_pisau_baru_fields').style.display = 'none';
-                document.getElementById('kode_pisau_lama_fields').style.display = 'block';
-                document.getElementById('shared_fields').style.display = 'block';
-                modelBoxBaru.required = false;
-                dibuatOleh.required = false;
+                kodePisauLamaFields.style.display = 'block';
+                sharedFields.style.display = 'block';
                 barangLama.required = true;
                 dibuatOleh.required = true;
             }
         }
     </script>
-
-</body>
+    </body>
 </html>

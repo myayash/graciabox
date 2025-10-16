@@ -3,53 +3,53 @@ include 'config.php';
 
 header('Content-Type: application/json');
 
-$response = [];
-$where_clauses = ["is_archived = 0"];
-$params = [];
+$response = [
+    'jenis' => [],
+    'warna' => [],
+    'gsm' => [],
+    'ukuran' => []
+];
 
-if (isset($_GET['field']) && isset($_GET['value'])) {
-    $field = $_GET['field'];
-    $value = $_GET['value'];
+try {
+    $supplier = $_GET['supplier'] ?? null;
 
-    // Add the current field and value to the where clause
-    $where_clauses[] = "$field = ?";
-    $params[] = $value;
-}
+    $base_where_clauses = ["is_archived = 0"];
+    $base_params = [];
 
-// Add previous selections to filter
-if (isset($_GET['supplier']) && $_GET['supplier'] !== '') {
-    $where_clauses[] = "supplier = ?";
-    $params[] = $_GET['supplier'];
-}
-if (isset($_GET['jenis']) && $_GET['jenis'] !== '') {
-    $where_clauses[] = "jenis = ?";
-    $params[] = $_GET['jenis'];
-}
-if (isset($_GET['warna']) && $_GET['warna'] !== '') {
-    $where_clauses[] = "warna = ?";
-    $params[] = $_GET['warna'];
-}
-if (isset($_GET['gsm']) && $_GET['gsm'] !== '') {
-    $where_clauses[] = "gsm = ?";
-    $params[] = $_GET['gsm'];
-}
-
-$target_field = $_GET['target_field'] ?? '';
-
-if ($target_field !== '') {
-    $query = "SELECT DISTINCT $target_field FROM kertas";
-    if (!empty($where_clauses)) {
-        $query .= " WHERE " . implode(" AND ", $where_clauses);
+    if ($supplier) {
+        $base_where_clauses[] = "supplier = ?";
+        $base_params[] = $supplier;
     }
-    $query .= " ORDER BY $target_field ASC";
 
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch distinct 'jenis' based only on supplier
+    $stmt = $pdo->prepare("SELECT DISTINCT jenis FROM kertas WHERE " . implode(" AND ", $base_where_clauses) . " ORDER BY jenis ASC");
+    $stmt->execute($base_params);
+    $response['jenis'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    foreach ($results as $row) {
-        $response[] = $row[$target_field];
-    }
+    // Fetch distinct 'warna' based only on supplier
+    $stmt = $pdo->prepare("SELECT DISTINCT warna FROM kertas WHERE " . implode(" AND ", $base_where_clauses) . " ORDER BY warna ASC");
+    $stmt->execute($base_params);
+    $response['warna'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    // Fetch distinct 'gsm' based only on supplier
+    $stmt = $pdo->prepare("SELECT DISTINCT gsm FROM kertas WHERE " . implode(" AND ", $base_where_clauses) . " ORDER BY gsm ASC");
+    $stmt->execute($base_params);
+    $response['gsm'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    // Fetch distinct 'ukuran' based only on supplier
+    $stmt = $pdo->prepare("SELECT DISTINCT ukuran FROM kertas WHERE " . implode(" AND " , $base_where_clauses) . " ORDER BY ukuran ASC");
+    $stmt->execute($base_params);
+    $response['ukuran'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+} catch (PDOException $e) {
+    error_log("Error fetching filtered kertas options: " . $e->getMessage());
+    // Return empty response on error
+    $response = [
+        'jenis' => [],
+        'warna' => [],
+        'gsm' => [],
+        'ukuran' => []
+    ];
 }
 
 echo json_encode($response);

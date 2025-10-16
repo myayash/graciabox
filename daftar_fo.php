@@ -96,6 +96,7 @@
         if (!empty($conditions)) {
             $sql .= " WHERE " . implode(" AND ", $conditions);
         }
+        $sql .= " ORDER BY dibuat DESC";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
