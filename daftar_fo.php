@@ -22,7 +22,7 @@
             <?php endif; ?>
         </div>
         <div class="ml-auto">
-            <a href="export_fo_excel.php<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Export to Excel</a>
+            <a href="export_fo_excel.php<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 transition duration-150 ease-in-out">Export to Excel</a>
         </div>
         <?php endif; ?>
     </h1>
@@ -75,7 +75,7 @@
     }
 
     try {
-        $sql = "SELECT id, lokasi, nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, dibuat, is_archived FROM orders";
+        $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, nama_box_lama, sales_pj, dibuat, is_archived FROM orders";
         $conditions = [];
         $params = [];
 
@@ -105,27 +105,18 @@
             echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
             echo "<table class=\"min-w-full divide-y divide-gray-200\">";
             echo "<thead><tr>";
-            // Define a mapping for column names to display names
-            $column_display_names = [
-                'id' => 'ID',
-                'lokasi' => 'Retail',
-                'nama' => 'Nama Customer',
-                'kode_pisau' => 'Kode Pisau',
-                'ukuran' => 'Ukuran (cm)',
-                'model_box' => 'Model Box',
-                'jenis_board' => 'Jenis Board',
-                'cover_dlm' => 'Cover Dalam',
-                'sales_pj' => 'PJ Sales',
-                'nama_box_lama' => 'Nama Box',
-                'dibuat' => 'Dibuat',
-                'is_archived' => 'Archived'
-            ];
-
-            // Dynamically create table headers from column names, using display names if available
-            foreach (array_keys($orders[0]) as $columnName) {
-                if ($columnName == 'is_archived') continue;
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
-            }
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">ID</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Retail</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nama Customer</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Ukuran (cm)</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Kode Pisau</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Quantity</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Model Box</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Jenis Board</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider\">Cover Dalam</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nama Box</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">PJ Sales</th>";
+            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Dibuat</th>";
             if ($is_admin) {
                 echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
             }
@@ -134,10 +125,18 @@
             // Populate table rows with data
             foreach ($orders as $order) {
                 echo "<tr>";
-                foreach ($order as $columnName => $value) {
-                    if ($columnName == 'is_archived') continue;
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($value) . "</td>";
-                }
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['id']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['lokasi']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['nama']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['ukuran']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['kode_pisau']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['quantity']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['model_box']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['jenis_board']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center\">" . htmlspecialchars($order['cover_dlm']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['nama_box_lama']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['sales_pj']) . "</td>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['dibuat']) . "</td>";
                 if ($is_admin) {
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
                     echo "<a href=\"edit_fo.php?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";

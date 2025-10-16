@@ -35,15 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cover_dlm = $_POST['cover_dalam'];
         $sales_pj = $_POST['dibuat_oleh'];
         $lokasi = $_POST['lokasi'];
+        $quantity = $_POST['quantity'] . ' pcs';
         $nama_box_lama_value = NULL;
 
         if ($kode_pisau === 'baru') {
             $ukuran = $_POST['length'] . ' x ' . $_POST['width'] . ' x ' . $_POST['height'];
             $model_box = $_POST['model_box_baru'];
-            $nama_box = $_POST['nama_box_baru'];
 
             $stmt = $pdo->prepare("INSERT INTO barang (model_box, ukuran, nama) VALUES (?, ?, ?)");
-            $stmt->execute([$model_box, $ukuran, $nama_box]);
+            $stmt->execute([$model_box, $ukuran, $nama]);
             $barang_id = $pdo->lastInsertId();
 
         } else { // lama
@@ -57,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity]);
 
         header("Location: index.php");
         exit;
@@ -101,6 +101,15 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
         </div>
 
         <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (cm):</label>
+            <div class="flex space-x-2">
+                <input type="text" name="length" placeholder="Length" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <input type="text" name="width" placeholder="Width" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <input type="text" name="height" placeholder="Height" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            </div>
+        </div>
+
+        <div class="mb-4">
             <label class="block text-gray-800 text-sm font-semibold mb-2">Kode Pisau:</label>
             <div class="mt-2">
                 <label class="inline-flex items-center">
@@ -114,6 +123,11 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
         </div>
 
+        <div class="mb-4">
+            <label for="quantity" class="block text-gray-800 text-sm font-semibold mb-2">Quantity:</label>
+            <input type="number" name="quantity" id="quantity" step="1" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
+
         <div id="kode_pisau_baru_fields" style="display:none;" class="mb-4">
             <div class="mb-4">
                 <label for="model_box_baru" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
@@ -125,19 +139,6 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                 </select>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (cm):</label>
-                <div class="flex space-x-2">
-                    <input type="number" step="0.01" name="length" placeholder="Length" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <input type="number" step="0.01" name="width" placeholder="Width" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <input type="number" step="0.01" name="height" placeholder="Height" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label for="nama_box_baru" class="block text-gray-800 text-sm font-semibold mb-2">Nama Box:</label>
-                <input type="text" name="nama_box_baru" id="nama_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-            </div>
         </div>
 
         <div id="kode_pisau_lama_fields" style="display:none;" class="mb-4">
@@ -216,7 +217,6 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
     <script>
         function handleKodePisauChange(value) {
             const modelBoxBaru = document.getElementById('model_box_baru');
-            const ukuranBaru = document.getElementById('ukuran_baru');
             const dibuatOleh = document.getElementById('dibuat_oleh');
             const barangLama = document.getElementById('barang_lama');
 
@@ -225,7 +225,6 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                 document.getElementById('kode_pisau_lama_fields').style.display = 'none';
                 document.getElementById('shared_fields').style.display = 'block';
                 modelBoxBaru.required = true;
-                ukuranBaru.required = true;
                 dibuatOleh.required = true;
                 barangLama.required = false;
             } else if (value === 'lama') {
@@ -233,7 +232,6 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                 document.getElementById('kode_pisau_lama_fields').style.display = 'block';
                 document.getElementById('shared_fields').style.display = 'block';
                 modelBoxBaru.required = false;
-                ukuranBaru.required = false;
                 dibuatOleh.required = false;
                 barangLama.required = true;
                 dibuatOleh.required = true;

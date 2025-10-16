@@ -57,6 +57,15 @@ try {
         $pdo->exec("ALTER TABLE orders ADD COLUMN lokasi VARCHAR(255) NOT NULL");
     }
 
+    // Check if 'quantity' column exists in 'orders' table, add if not
+    $stmt = $pdo->prepare("SHOW COLUMNS FROM orders LIKE 'quantity'");
+    $stmt->execute();
+    if ($stmt->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN quantity VARCHAR(255) NOT NULL");
+    } else {
+        $pdo->exec("ALTER TABLE orders MODIFY COLUMN quantity VARCHAR(255) NOT NULL");
+    }
+
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }

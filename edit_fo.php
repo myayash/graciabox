@@ -36,6 +36,13 @@ if ($_SESSION['role'] !== 'admin') {
     $sales_reps = $pdo->query("SELECT * FROM empl_sales WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
     $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch distinct values for kertas table columns
+    $suppliers = $pdo->query("SELECT DISTINCT supplier FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_COLUMN);
+    $jenis_kertas = $pdo->query("SELECT DISTINCT jenis FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_COLUMN);
+    $warnas = $pdo->query("SELECT DISTINCT warna FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_COLUMN);
+    $gsms = $pdo->query("SELECT DISTINCT gsm FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_COLUMN);
+    $ukurans = $pdo->query("SELECT DISTINCT ukuran FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_COLUMN);
+
     $order = null;
     $message = '';
     $message_type = '';
@@ -68,9 +75,13 @@ if ($_SESSION['role'] !== 'admin') {
         $nama = trim($_POST['nama']);
         $kode_pisau = trim($_POST['kode_pisau']);
         $jenis_board = trim($_POST['jenis_board']);
-        $cover_dlm = trim($_POST['cover_dlm']);
+        $cover_dlm = trim($_POST['supplier']) . ' - ' . trim($_POST['jenis_kertas']) . ' - ' . trim($_POST['warna']) . ' - ' . trim($_POST['gsm']) . ' - ' . trim($_POST['ukuran_kertas']);
         $sales_pj = trim($_POST['sales_pj']);
         $lokasi = trim($_POST['lokasi']);
+        $quantity = trim($_POST['quantity']);
+        if (!empty($quantity) && substr($quantity, -4) !== ' pcs') {
+            $quantity .= ' pcs';
+        }
 
         $ukuran = '';
         $model_box = '';
@@ -98,8 +109,8 @@ if ($_SESSION['role'] !== 'admin') {
 
         if (empty($message) && !empty($nama) && !empty($kode_pisau) && !empty($ukuran) && !empty($model_box) && !empty($jenis_board)) {
             try {
-                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, sales_pj = ?, nama_box_lama = ?, lokasi = ? WHERE id = ?");
-                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $order['id']]);
+                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, sales_pj = ?, nama_box_lama = ?, lokasi = ?, quantity = ? WHERE id = ?");
+                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $order['id']]);
                 $message = "Order updated successfully!";
                 $message_type = 'success';
                 header("Location: daftar_fo.php");
@@ -123,6 +134,13 @@ if ($_SESSION['role'] !== 'admin') {
         $length = $ukuran_parts[0] ?? '';
         $width = $ukuran_parts[1] ?? '';
         $height = $ukuran_parts[2] ?? '';
+
+        $cover_dlm_parts = explode(' - ', $order['cover_dlm']);
+        $supplier = $cover_dlm_parts[0] ?? '';
+        $jenis = $cover_dlm_parts[1] ?? '';
+        $warna = $cover_dlm_parts[2] ?? '';
+        $gsm = $cover_dlm_parts[3] ?? '';
+        $ukuran_kertas = $cover_dlm_parts[4] ?? '';
     ?>
         <form action="" method="POST" class="bg-white p-8 shadow-lg">
                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($order['id']); ?>">
@@ -149,16 +167,12 @@ if ($_SESSION['role'] !== 'admin') {
                 </div>
             </div>
 
-            <div id="kode_pisau_baru_fields" class="mb-4" style="display:none;">
-                <div class="mb-4">
-                    <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
-                    <div class="flex space-x-2">
-                        <input type="number" step="0.01" name="length" placeholder="Length" value="<?= htmlspecialchars($length) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <input type="number" step="0.01" name="width" placeholder="Width" value="<?= htmlspecialchars($width) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <input type="number" step="0.01" name="height" placeholder="Height" value="<?= htmlspecialchars($height) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    </div>
-                </div>
+            <div class="mb-4">
+                <label for="quantity" class="block text-gray-800 text-sm font-semibold mb-2">Quantity:</label>
+                <input type="number" name="quantity" id="quantity" step="1" value="<?= htmlspecialchars($order['quantity']) ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+            </div>
 
+            <div id="kode_pisau_baru_fields" class="mb-4" style="display:none;">
                 <div class="mb-4">
                     <label for="model_box" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
                     <select id="model_box" name="model_box" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
@@ -168,6 +182,7 @@ if ($_SESSION['role'] !== 'admin') {
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <input type="hidden" name="nama_box_baru" id="nama_box_baru">
             </div>
 
             <div id="kode_pisau_lama_fields" class="mb-4" style="display:none;">
@@ -190,21 +205,39 @@ if ($_SESSION['role'] !== 'admin') {
             </div>
 
             <div class="mb-4">
-                <label for="cover_dlm" class="block text-gray-800 text-sm font-semibold mb-2">Cover Dlm:</label>
-                <select id="cover_dlm" name="cover_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <?php foreach ($papers as $paper): ?>
-                        <?php
-                        $display_text = '';
-                        foreach ($paper as $key => $value) {
-                            if ($key != 'id') {
-                                $display_text .= $key . ': ' . $value . ', ';
-                            }
-                        }
-                        $display_text = rtrim($display_text, ', ');
-                        ?>
-                        <option value="<?= htmlspecialchars($paper['jenis']) ?>" <?= ($order['cover_dlm'] == $paper['jenis']) ? 'selected' : '' ?>><?= htmlspecialchars($display_text) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
+                <div class="grid grid-cols-5 gap-4">
+                    <select name="supplier" id="supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled>Supplier</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s ?>" <?= ($s == $supplier) ? 'selected' : '' ?>><?= $s ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="jenis_kertas" id="jenis_kertas" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled>Jenis</option>
+                        <?php foreach ($jenis_kertas as $j): ?>
+                            <option value="<?= $j ?>" <?= ($j == $jenis) ? 'selected' : '' ?>><?= $j ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="warna" id="warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled>Warna</option>
+                        <?php foreach ($warnas as $w): ?>
+                            <option value="<?= $w ?>" <?= ($w == $warna) ? 'selected' : '' ?>><?= $w ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="gsm" id="gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled>GSM</option>
+                        <?php foreach ($gsms as $g): ?>
+                            <option value="<?= $g ?>" <?= ($g == $gsm) ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="ukuran_kertas" id="ukuran_kertas" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled>Ukuran</option>
+                        <?php foreach ($ukurans as $u): ?>
+                            <option value="<?= $u ?>" <?= ($u == $ukuran_kertas) ? 'selected' : '' ?>><?= $u ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="mb-4">
@@ -254,14 +287,63 @@ if ($_SESSION['role'] !== 'admin') {
             }
         }
 
-        // Initial call to set visibility based on current order data
         document.addEventListener('DOMContentLoaded', function() {
+            const namaCustomerDropdown = document.getElementById('nama');
+            const namaBoxBaruInput = document.getElementById('nama_box_baru');
+
+            namaCustomerDropdown.addEventListener('change', function() {
+                namaBoxBaruInput.value = this.value;
+            });
+
             const kodePisauRadios = document.querySelectorAll('input[name="kode_pisau"]');
             kodePisauRadios.forEach(radio => {
                 if (radio.checked) {
                     handleKodePisauChange(radio.value);
                 }
             });
+
+            const supplierDropdown = document.getElementById('supplier');
+            const jenisKertasDropdown = document.getElementById('jenis_kertas');
+            const warnaDropdown = document.getElementById('warna');
+            const gsmDropdown = document.getElementById('gsm');
+            const ukuranKertasDropdown = document.getElementById('ukuran_kertas');
+
+            function updateDropdown(dropdown, options, selectedValue) {
+                dropdown.innerHTML = '<option value="" disabled>' + dropdown.firstElementChild.textContent + '</option>';
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    if (option === selectedValue) {
+                        optionElement.selected = true;
+                    }
+                    dropdown.appendChild(optionElement);
+                });
+            }
+
+            function fetchAndUpdateOptions() {
+                const supplier = supplierDropdown.value;
+                const jenis = jenisKertasDropdown.value;
+                const warna = warnaDropdown.value;
+                const gsm = gsmDropdown.value;
+
+                fetch(`get_kertas_options.php?supplier=${supplier}&jenis=${jenis}&warna=${warna}&gsm=${gsm}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateDropdown(jenisKertasDropdown, data.jenis, jenis);
+                        updateDropdown(warnaDropdown, data.warna, warna);
+                        updateDropdown(gsmDropdown, data.gsm, gsm);
+                        updateDropdown(ukuranKertasDropdown, data.ukuran, ukuran_kertas.value);
+                    });
+            }
+
+            supplierDropdown.addEventListener('change', fetchAndUpdateOptions);
+            jenisKertasDropdown.addEventListener('change', fetchAndUpdateOptions);
+            warnaDropdown.addEventListener('change', fetchAndUpdateOptions);
+            gsmDropdown.addEventListener('change', fetchAndUpdateOptions);
+
+            // Initial population of dropdowns
+            fetchAndUpdateOptions();
         });
     </script>
 

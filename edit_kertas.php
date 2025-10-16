@@ -49,6 +49,9 @@ if (isset($_POST['update_kertas']) && $kertas) {
     $jenis = trim($_POST['jenis']);
     $warna = trim($_POST['warna']);
     $gsm = trim($_POST['gsm']);
+    if (!empty($gsm) && substr($gsm, -4) !== ' gsm') {
+        $gsm .= ' gsm';
+    }
     $ukuran = trim($_POST['ukuran']);
 
     if (!empty($supplier) && !empty($jenis) && !empty($warna)) {

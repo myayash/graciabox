@@ -9,7 +9,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 try {
-    $sql = "SELECT id, lokasi, nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, dibuat FROM orders";
+    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, nama_box_lama, sales_pj, dibuat FROM orders";
     $conditions = [];
     $params = [];
 
@@ -52,13 +52,14 @@ try {
             'id' => 'ID',
             'lokasi' => 'Lokasi',
             'nama' => 'Nama Customer',
-            'kode_pisau' => 'Kode Pisau',
             'ukuran' => 'Ukuran (cm)',
+            'kode_pisau' => 'Kode Pisau',
+            'quantity' => 'Quantity (pcs)',
             'model_box' => 'Model Box',
             'jenis_board' => 'Jenis Board',
             'cover_dlm' => 'Cover Dalam',
-            'sales_pj' => 'PJ Sales',
             'nama_box_lama' => 'Nama Box',
+            'sales_pj' => 'PJ Sales',
             'dibuat' => 'Dibuat'
         ];
 

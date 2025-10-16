@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jenis = trim($_POST['jenis']);
     $warna = trim($_POST['warna']);
     $gsm = trim($_POST['gsm']);
+    if (!empty($gsm)) {
+        $gsm .= ' gsm';
+    }
     $ukuran = trim($_POST['ukuran']);
 
     if (!empty($supplier) && !empty($jenis) && !empty($warna)) {
