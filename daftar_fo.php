@@ -118,7 +118,7 @@
                 'model_box' => 'Model Box',
                 'jenis_board' => 'Jenis Board',
                 'cover_dlm' => 'Cover Dalam',
-                'cover_lr' => 'Cover LR',
+                'cover_lr' => 'Cover Luar',
                 'keterangan' => 'Keterangan',
                 'sales_pj' => 'PJ Sales',
                 'dibuat' => 'Dibuat',

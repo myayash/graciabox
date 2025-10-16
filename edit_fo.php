@@ -75,14 +75,22 @@ if ($_SESSION['role'] !== 'admin') {
         $nama = trim($_POST['nama']);
         $kode_pisau = trim($_POST['kode_pisau']);
         $jenis_board = trim($_POST['jenis_board']);
-        $cover_dlm = trim($_POST['cover_dlm']);
-        $cover_lr = trim($_POST['cover_lr']);
         $sales_pj = trim($_POST['sales_pj']);
         $lokasi = trim($_POST['lokasi']);
         $quantity = trim($_POST['quantity']);
         if (!empty($quantity) && substr($quantity, -4) !== ' pcs') {
             $quantity .= ' pcs';
         }
+
+        // Construct cover_dlm string
+        $cover_dlm = "supplier:" . trim($_POST['cover_dalam_supplier']) . " - jenis:" . trim($_POST['cover_dalam_jenis']) . " - warna:" . trim($_POST['cover_dalam_warna']) . " - gsm:" . trim($_POST['cover_dalam_gsm']) . " - ukuran:" . trim($_POST['cover_dalam_ukuran']);
+
+        // Construct cover_lr string
+        $cover_luar_radio = $_POST['cover_luar_radio'];
+        $cover_luar_str = "({$cover_luar_radio}) " . trim($_POST['cover_luar_supplier']) . " - " . trim($_POST['cover_luar_jenis']) . " - " . trim($_POST['cover_luar_warna']) . " - " . trim($_POST['cover_luar_gsm']) . " gsm - " . trim($_POST['cover_luar_ukuran']);
+        $box_str = "(box) " . trim($_POST['box_supplier']) . " - " . trim($_POST['box_jenis']) . " - " . trim($_POST['box_warna']) . " - " . trim($_POST['box_gsm']) . " gsm - " . trim($_POST['box_ukuran']);
+        $dudukan_str = "(dudukan) " . trim($_POST['dudukan_supplier']) . " - " . trim($_POST['dudukan_jenis']) . " - " . trim($_POST['dudukan_warna']) . " - " . trim($_POST['dudukan_gsm']) . " gsm - " . trim($_POST['dudukan_ukuran']);
+        $cover_lr = $cover_luar_str . "\n" . $box_str . "\n" . $dudukan_str;
 
         $ukuran = '';
         $model_box = '';
@@ -136,7 +144,48 @@ if ($_SESSION['role'] !== 'admin') {
         $width = $ukuran_parts[1] ?? '';
         $height = $ukuran_parts[2] ?? '';
 
-        $cover_dlm_parts = explode(' - ', $order['cover_dlm']);
+        // Parse cover_dlm
+        $cover_dlm_parts = [];
+        preg_match('/supplier:(.*?)\s*-\s*jenis:(.*?)\s*-\s*warna:(.*?)\s*-\s*gsm:(.*?)\s*-\s*ukuran:(.*)/i', $order['cover_dlm'], $cover_dlm_parts);
+        $cover_dalam_supplier = trim($cover_dlm_parts[1] ?? '');
+        $cover_dalam_jenis = trim($cover_dlm_parts[2] ?? '');
+        $cover_dalam_warna = trim($cover_dlm_parts[3] ?? '');
+        $cover_dalam_gsm = trim($cover_dlm_parts[4] ?? '');
+        $cover_dalam_ukuran = trim($cover_dlm_parts[5] ?? '');
+
+        // Parse cover_lr
+        $cover_lr_lines = explode("\n", $order['cover_lr']);
+        $cover_luar_str = $cover_lr_lines[0] ?? '';
+        $box_str = $cover_lr_lines[1] ?? '';
+        $dudukan_str = $cover_lr_lines[2] ?? '';
+
+        // Parse cover_luar_str
+        $cover_luar_parts = [];
+        preg_match('/\((.*?)\)\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?) gsm\s*-\s*(.*)/i', $cover_luar_str, $cover_luar_parts);
+        $cover_luar_radio = trim($cover_luar_parts[1] ?? '');
+        $cover_luar_supplier = trim($cover_luar_parts[2] ?? '');
+        $cover_luar_jenis = trim($cover_luar_parts[3] ?? '');
+        $cover_luar_warna = trim($cover_luar_parts[4] ?? '');
+        $cover_luar_gsm = trim($cover_luar_parts[5] ?? '');
+        $cover_luar_ukuran = trim($cover_luar_parts[6] ?? '');
+
+        // Parse box_str
+        $box_parts = [];
+        preg_match('/\(box\)\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?) gsm\s*-\s*(.*)/i', $box_str, $box_parts);
+        $box_supplier = trim($box_parts[1] ?? '');
+        $box_jenis = trim($box_parts[2] ?? '');
+        $box_warna = trim($box_parts[3] ?? '');
+        $box_gsm = trim($box_parts[4] ?? '');
+        $box_ukuran = trim($box_parts[5] ?? '');
+
+        // Parse dudukan_str
+        $dudukan_parts = [];
+        preg_match('/\(dudukan\)\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?)\s*-\s*(.*?) gsm\s*-\s*(.*)/i', $dudukan_str, $dudukan_parts);
+        $dudukan_supplier = trim($dudukan_parts[1] ?? '');
+        $dudukan_jenis = trim($dudukan_parts[2] ?? '');
+        $dudukan_warna = trim($dudukan_parts[3] ?? '');
+        $dudukan_gsm = trim($dudukan_parts[4] ?? '');
+        $dudukan_ukuran = trim($dudukan_parts[5] ?? '');
 
     ?>
         <form action="" method="POST" class="bg-white p-8 shadow-lg">
@@ -202,13 +251,165 @@ if ($_SESSION['role'] !== 'admin') {
             </div>
 
             <div class="mb-4">
-                <label for="cover_dlm" class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <input type="text" name="cover_dlm" id="cover_dlm" value="<?= htmlspecialchars($order['cover_dlm']) ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
+                <div class="flex space-x-2">
+                    <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Supplier</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s ?>" <?= ($s == $cover_dalam_supplier) ? 'selected' : '' ?>><?= $s ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_dalam_jenis" id="cover_dalam_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Jenis</option>
+                        <?php foreach ($jenis_kertas as $j): ?>
+                            <option value="<?= $j ?>" <?= ($j == $cover_dalam_jenis) ? 'selected' : '' ?>><?= $j ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Warna</option>
+                        <?php foreach ($warnas as $w): ?>
+                            <option value="<?= $w ?>" <?= ($w == $cover_dalam_warna) ? 'selected' : '' ?>><?= $w ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_dalam_gsm" id="cover_dalam_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>GSM</option>
+                        <?php foreach ($gsms as $g): ?>
+                            <option value="<?= $g ?>" <?= ($g == $cover_dalam_gsm) ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_dalam_ukuran" id="cover_dalam_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Ukuran</option>
+                        <?php foreach ($ukurans as $u): ?>
+                            <option value="<?= $u ?>" <?= ($u == $cover_dalam_ukuran) ? 'selected' : '' ?>><?= $u ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="mb-4">
-                <label for="cover_lr" class="block text-gray-800 text-sm font-semibold mb-2">Cover LR:</label>
-                <textarea name="cover_lr" id="cover_lr" rows="4" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?= htmlspecialchars($order['cover_lr']) ?></textarea>
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Luar:</label>
+                <div class="mt-2 pl-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="cover_luar_radio" value="lidah" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($cover_luar_radio == 'lidah') ? 'checked' : '' ?> required>
+                        <span class="ml-2 text-gray-800">Lidah</span>
+                    </label>
+                    <label class="inline-flex items-center ml-6">
+                        <input type="radio" name="cover_luar_radio" value="selongsong" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($cover_luar_radio == 'selongsong') ? 'checked' : '' ?> required>
+                        <span class="ml-2 text-gray-800">Selongsong</span>
+                    </label>
+                    <label class="inline-flex items-center ml-6">
+                        <input type="radio" name="cover_luar_radio" value="kuping" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($cover_luar_radio == 'kuping') ? 'checked' : '' ?> required>
+                        <span class="ml-2 text-gray-800">Kuping</span>
+                    </label>
+                    <label class="inline-flex items-center ml-6">
+                        <input type="radio" name="cover_luar_radio" value="tutup_atas" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($cover_luar_radio == 'tutup_atas') ? 'checked' : '' ?> required>
+                        <span class="ml-2 text-gray-800">Tutup atas</span>
+                    </label>
+                </div>
+                <div class="flex space-x-2 mt-2 pl-4">
+                    <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Supplier</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s ?>" <?= ($s == $cover_luar_supplier) ? 'selected' : '' ?>><?= $s ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_luar_jenis" id="cover_luar_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Jenis</option>
+                        <?php foreach ($jenis_kertas as $j): ?>
+                            <option value="<?= $j ?>" <?= ($j == $cover_luar_jenis) ? 'selected' : '' ?>><?= $j ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Warna</option>
+                        <?php foreach ($warnas as $w): ?>
+                            <option value="<?= $w ?>" <?= ($w == $cover_luar_warna) ? 'selected' : '' ?>><?= $w ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_luar_gsm" id="cover_luar_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>GSM</option>
+                        <?php foreach ($gsms as $g): ?>
+                            <option value="<?= $g ?>" <?= ($g == $cover_luar_gsm) ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_luar_ukuran" id="cover_luar_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Ukuran</option>
+                        <?php foreach ($ukurans as $u): ?>
+                            <option value="<?= $u ?>" <?= ($u == $cover_luar_ukuran) ? 'selected' : '' ?>><?= $u ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Box</label>
+                <div class="flex space-x-2 pl-4">
+                    <select name="box_supplier" id="box_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Supplier</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s ?>" <?= ($s == $box_supplier) ? 'selected' : '' ?>><?= $s ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="box_jenis" id="box_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Jenis</option>
+                        <?php foreach ($jenis_kertas as $j): ?>
+                            <option value="<?= $j ?>" <?= ($j == $box_jenis) ? 'selected' : '' ?>><?= $j ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="box_warna" id="box_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Warna</option>
+                        <?php foreach ($warnas as $w): ?>
+                            <option value="<?= $w ?>" <?= ($w == $box_warna) ? 'selected' : '' ?>><?= $w ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="box_gsm" id="box_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>GSM</option>
+                        <?php foreach ($gsms as $g): ?>
+                            <option value="<?= $g ?>" <?= ($g == $box_gsm) ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="box_ukuran" id="box_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Ukuran</option>
+                        <?php foreach ($ukurans as $u): ?>
+                            <option value="<?= $u ?>" <?= ($u == $box_ukuran) ? 'selected' : '' ?>><?= $u ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Dudukan</label>
+                <div class="flex space-x-2 pl-4">
+                    <select name="dudukan_supplier" id="dudukan_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Supplier</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s ?>" <?= ($s == $dudukan_supplier) ? 'selected' : '' ?>><?= $s ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="dudukan_jenis" id="dudukan_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Jenis</option>
+                        <?php foreach ($jenis_kertas as $j): ?>
+                            <option value="<?= $j ?>" <?= ($j == $dudukan_jenis) ? 'selected' : '' ?>><?= $j ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="dudukan_warna" id="dudukan_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Warna</option>
+                        <?php foreach ($warnas as $w): ?>
+                            <option value="<?= $w ?>" <?= ($w == $dudukan_warna) ? 'selected' : '' ?>><?= $w ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="dudukan_gsm" id="dudukan_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>GSM</option>
+                        <?php foreach ($gsms as $g): ?>
+                            <option value="<?= $g ?>" <?= ($g == $dudukan_gsm) ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="dudukan_ukuran" id="dudukan_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled>Ukuran</option>
+                        <?php foreach ($ukurans as $u): ?>
+                            <option value="<?= $u ?>" <?= ($u == $dudukan_ukuran) ? 'selected' : '' ?>><?= $u ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="mb-4">
