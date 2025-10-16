@@ -75,7 +75,8 @@ if ($_SESSION['role'] !== 'admin') {
         $nama = trim($_POST['nama']);
         $kode_pisau = trim($_POST['kode_pisau']);
         $jenis_board = trim($_POST['jenis_board']);
-        $cover_dlm = trim($_POST['supplier']) . ' - ' . trim($_POST['jenis_kertas']) . ' - ' . trim($_POST['warna']) . ' - ' . trim($_POST['gsm']) . ' - ' . trim($_POST['ukuran_kertas']);
+        $cover_dlm = trim($_POST['cover_dlm']);
+        $cover_lr = trim($_POST['cover_lr']);
         $sales_pj = trim($_POST['sales_pj']);
         $lokasi = trim($_POST['lokasi']);
         $quantity = trim($_POST['quantity']);
@@ -109,8 +110,8 @@ if ($_SESSION['role'] !== 'admin') {
 
         if (empty($message) && !empty($nama) && !empty($kode_pisau) && !empty($ukuran) && !empty($model_box) && !empty($jenis_board)) {
             try {
-                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, sales_pj = ?, nama_box_lama = ?, lokasi = ?, quantity = ? WHERE id = ?");
-                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $order['id']]);
+                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, cover_lr = ?, sales_pj = ?, nama_box_lama = ?, lokasi = ?, quantity = ? WHERE id = ?");
+                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $cover_lr, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $order['id']]);
                 $message = "Order updated successfully!";
                 $message_type = 'success';
                 header("Location: daftar_fo.php");
@@ -136,11 +137,7 @@ if ($_SESSION['role'] !== 'admin') {
         $height = $ukuran_parts[2] ?? '';
 
         $cover_dlm_parts = explode(' - ', $order['cover_dlm']);
-        $supplier = $cover_dlm_parts[0] ?? '';
-        $jenis = $cover_dlm_parts[1] ?? '';
-        $warna = $cover_dlm_parts[2] ?? '';
-        $gsm = $cover_dlm_parts[3] ?? '';
-        $ukuran_kertas = $cover_dlm_parts[4] ?? '';
+
     ?>
         <form action="" method="POST" class="bg-white p-8 shadow-lg">
                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($order['id']); ?>">
@@ -205,39 +202,13 @@ if ($_SESSION['role'] !== 'admin') {
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <div class="grid grid-cols-5 gap-4">
-                    <select name="supplier" id="supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled>Supplier</option>
-                        <?php foreach ($suppliers as $s): ?>
-                            <option value="<?= $s ?>" <?= ($s == $supplier) ? 'selected' : '' ?>><?= $s ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="jenis_kertas" id="jenis_kertas" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled>Jenis</option>
-                        <?php foreach ($jenis_kertas as $j): ?>
-                            <option value="<?= $j ?>" <?= ($j == $jenis) ? 'selected' : '' ?>><?= $j ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="warna" id="warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled>Warna</option>
-                        <?php foreach ($warnas as $w): ?>
-                            <option value="<?= $w ?>" <?= ($w == $warna) ? 'selected' : '' ?>><?= $w ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="gsm" id="gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled>GSM</option>
-                        <?php foreach ($gsms as $g): ?>
-                            <option value="<?= $g ?>" <?= ($g == $gsm) ? 'selected' : '' ?>><?= $g ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="ukuran_kertas" id="ukuran_kertas" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled>Ukuran</option>
-                        <?php foreach ($ukurans as $u): ?>
-                            <option value="<?= $u ?>" <?= ($u == $ukuran_kertas) ? 'selected' : '' ?>><?= $u ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <label for="cover_dlm" class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
+                <input type="text" name="cover_dlm" id="cover_dlm" value="<?= htmlspecialchars($order['cover_dlm']) ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            </div>
+
+            <div class="mb-4">
+                <label for="cover_lr" class="block text-gray-800 text-sm font-semibold mb-2">Cover LR:</label>
+                <textarea name="cover_lr" id="cover_lr" rows="4" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?= htmlspecialchars($order['cover_lr']) ?></textarea>
             </div>
 
             <div class="mb-4">

@@ -14,8 +14,9 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam_supplier']) || empty($_POST['cover_dalam_jenis']) || empty($_POST['cover_dalam_warna']) || empty($_POST['cover_dalam_gsm']) || empty($_POST['cover_dalam_ukuran']) || empty($_POST['cover_luar_supplier']) || empty($_POST['cover_luar_jenis']) || empty($_POST['cover_luar_warna']) || empty($_POST['cover_luar_gsm']) || empty($_POST['cover_luar_ukuran']) || empty($_POST['box_supplier']) || empty($_POST['box_jenis']) || empty($_POST['box_warna']) || empty($_POST['box_gsm']) || empty($_POST['box_ukuran']) || empty($_POST['dudukan_supplier']) || empty($_POST['dudukan_jenis']) || empty($_POST['dudukan_warna']) || empty($_POST['dudukan_gsm']) || empty($_POST['dudukan_ukuran'])) {
-        die('Error: Nama Customer, Kode Pisau, Jenis Board, and all Cover Dalam, Cover Luar, Box, and Dudukan fields are required.');
+    // Updated validation to check for essential fields.
+    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam_supplier']) || empty($_POST['cover_dalam_jenis']) || empty($_POST['cover_dalam_warna']) || empty($_POST['cover_dalam_gsm']) || empty($_POST['cover_dalam_ukuran'])) {
+        die('Error: Nama Customer, Kode Pisau, Jenis Board, and all Cover Dalam fields are required.');
     }
 
     if (isset($_POST['kode_pisau'])) {
@@ -39,28 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cover_dlm_ukuran = $_POST['cover_dalam_ukuran'];
 
         $cover_dlm = "supplier:{$cover_dlm_supplier} - jenis:{$cover_dlm_jenis} - warna:{$cover_dlm_warna} - gsm:{$cover_dlm_gsm} - ukuran:{$cover_dlm_ukuran}";
-        $cover_luar_supplier = $_POST['cover_luar_supplier'];
-        $cover_luar_jenis = $_POST['cover_luar_jenis'];
-        $cover_luar_warna = $_POST['cover_luar_warna'];
-        $cover_luar_gsm = $_POST['cover_luar_gsm'];
-        $cover_luar_ukuran = $_POST['cover_luar_ukuran'];
-        $cover_luar_radio = $_POST['cover_luar']; // Get the radio button value
+        
+        // New combined field
+        $cover_lr = $_POST['cover_lr'] ?? NULL;
 
-        $box_supplier = $_POST['box_supplier'];
-        $box_jenis = $_POST['box_jenis'];
-        $box_warna = $_POST['box_warna'];
-        $box_gsm = $_POST['box_gsm'];
-        $box_ukuran = $_POST['box_ukuran'];
-
-        $dudukan_supplier = $_POST['dudukan_supplier'];
-        $dudukan_jenis = $_POST['dudukan_jenis'];
-        $dudukan_warna = $_POST['dudukan_warna'];
-        $dudukan_gsm = $_POST['dudukan_gsm'];
-        $dudukan_ukuran = $_POST['dudukan_ukuran'];
-
-        $cover_luar = "({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} - {$cover_luar_ukuran}";
-        $box = "(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} - {$box_ukuran}";
-        $dudukan = "(dudukan) {$dudukan_supplier} - {$dudukan_jenis} - {$dudukan_warna} - {$dudukan_gsm} - {$dudukan_ukuran}";
         $sales_pj = $_POST['dibuat_oleh'];
         $lokasi = $_POST['lokasi'];
         $quantity = $_POST['quantity'] . ' pcs';
@@ -86,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_luar, box, dudukan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_luar, $box, $dudukan]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr]);
 
         header("Location: index.php");
         exit;
@@ -218,93 +201,8 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Luar:</label>
-                <div class="mt-2 pl-4">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="cover_luar" value="lidah" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">Lidah</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar" value="selongsong" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">Selongsong</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar" value="kuping" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">Kuping</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar" value="tutup_atas" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">Tutup atas</span>
-                    </label>
-                </div>
-                <div class="flex space-x-2 mt-2 pl-4">
-                    <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                        <option value="" disabled selected>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>"><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_luar_jenis" id="cover_luar_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Jenis</option>
-                    </select>
-                    <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Warna</option>
-                    </select>
-                    <select name="cover_luar_gsm" id="cover_luar_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>GSM</option>
-                    </select>
-                    <select name="cover_luar_ukuran" id="cover_luar_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Ukuran</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Box</label>
-                <div class="flex space-x-2 pl-4">
-                    <select name="box_supplier" id="box_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                        <option value="" disabled selected>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>"><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="box_jenis" id="box_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Jenis</option>
-                    </select>
-                    <select name="box_warna" id="box_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Warna</option>
-                    </select>
-                    <select name="box_gsm" id="box_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>GSM</option>
-                    </select>
-                    <select name="box_ukuran" id="box_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Ukuran</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Dudukan</label>
-                <div class="flex space-x-2 pl-4">
-                    <select name="dudukan_supplier" id="dudukan_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                        <option value="" disabled selected>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>"><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="dudukan_jenis" id="dudukan_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Jenis</option>
-                    </select>
-                    <select name="dudukan_warna" id="dudukan_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Warna</option>
-                    </select>
-                    <select name="dudukan_gsm" id="dudukan_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>GSM</option>
-                    </select>
-                    <select name="dudukan_ukuran" id="dudukan_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
-                        <option value="" disabled selected>Ukuran</option>
-                    </select>
-                </div>
+                <label for="cover_lr" class="block text-gray-800 text-sm font-semibold mb-2">Cover LR:</label>
+                <textarea name="cover_lr" id="cover_lr" rows="4" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"></textarea>
             </div>
 
             <div class="mb-4">

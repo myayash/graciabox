@@ -9,7 +9,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 try {
-    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, nama_box_lama, sales_pj, dibuat FROM orders";
+    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, cover_lr, nama_box_lama, sales_pj, dibuat FROM orders";
     $conditions = [];
     $params = [];
 
@@ -27,8 +27,8 @@ try {
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR cover_lr LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ?)";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
     }
 
@@ -58,6 +58,7 @@ try {
             'model_box' => 'Model Box',
             'jenis_board' => 'Jenis Board',
             'cover_dlm' => 'Cover Dalam',
+            'cover_lr' => 'Cover LR',
             'nama_box_lama' => 'Nama Box',
             'sales_pj' => 'PJ Sales',
             'dibuat' => 'Dibuat'
