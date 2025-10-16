@@ -75,7 +75,7 @@
     }
 
     try {
-        $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, nama_box_lama, sales_pj, dibuat, is_archived FROM orders";
+        $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, cover_luar, box, dudukan, keterangan, nama_box_lama, sales_pj, dibuat, is_archived FROM orders";
         $conditions = [];
         $params = [];
 
@@ -89,8 +89,8 @@
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ? OR cover_luar LIKE ? OR box LIKE ? OR dudukan LIKE ? OR keterangan LIKE ?)";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
         if (!empty($conditions)) {
@@ -117,6 +117,10 @@
                 'model_box' => 'Model Box',
                 'jenis_board' => 'Jenis Board',
                 'cover_dlm' => 'Cover Dalam',
+                'cover_luar' => 'Cover Luar',
+                'box' => 'Box',
+                'dudukan' => 'Dudukan',
+                'keterangan' => 'Keterangan',
                 'nama_box_lama' => 'Nama Box',
                 'sales_pj' => 'PJ Sales',
                 'dibuat' => 'Dibuat',
@@ -127,7 +131,7 @@
             foreach (array_keys($orders[0]) as $columnName) {
                 if ($columnName == 'is_archived') continue;
                 $thClasses = "px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
-                if ($columnName == 'cover_dlm') {
+                if ($columnName == 'cover_dlm' || $columnName == 'cover_luar' || $columnName == 'box' || $columnName == 'dudukan' || $columnName == 'keterangan') {
                     $thClasses .= " text-center";
                 }
                 echo "<th class=\"" . $thClasses . "\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
@@ -143,11 +147,11 @@
                 foreach ($order as $columnName => $value) {
                     if ($columnName == 'is_archived') continue;
                     $displayValue = htmlspecialchars($value);
-                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar') {
+                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar' || $columnName == 'box' || $columnName == 'dudukan') {
                         $displayValue = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $displayValue);
                     }
                     $tdClasses = "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
-                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar') {
+                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar' || $columnName == 'box' || $columnName == 'dudukan' || $columnName == 'keterangan') {
                         $tdClasses .= " text-center";
                     }
                     echo "<td class=\"" . $tdClasses . "\">" . $displayValue . "</td>";

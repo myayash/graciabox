@@ -58,11 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dudukan_gsm = $_POST['dudukan_gsm'];
         $dudukan_ukuran = $_POST['dudukan_ukuran'];
 
-        $cover_luar_data = "Cover Luar Type:{$cover_luar_radio} - Supplier:{$cover_luar_supplier} - Jenis:{$cover_luar_jenis} - Warna:{$cover_luar_warna} - GSM:{$cover_luar_gsm} - Ukuran:{$cover_luar_ukuran}";
-        $box_data = "Box Supplier:{$box_supplier} - Jenis:{$box_jenis} - Warna:{$box_warna} - GSM:{$box_gsm} - Ukuran:{$box_ukuran}";
-        $dudukan_data = "Dudukan Supplier:{$dudukan_supplier} - Jenis:{$dudukan_jenis} - Warna:{$dudukan_warna} - GSM:{$dudukan_gsm} - Ukuran:{$dudukan_ukuran}";
-
-        $cover_luar = $cover_luar_data . " | " . $box_data . " | " . $dudukan_data;
+        $cover_luar = "({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} - {$cover_luar_ukuran}";
+        $box = "(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} - {$box_ukuran}";
+        $dudukan = "(dudukan) {$dudukan_supplier} - {$dudukan_jenis} - {$dudukan_warna} - {$dudukan_gsm} - {$dudukan_ukuran}";
         $sales_pj = $_POST['dibuat_oleh'];
         $lokasi = $_POST['lokasi'];
         $quantity = $_POST['quantity'] . ' pcs';
@@ -88,8 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, cover_luar, sales_pj, nama_box_lama, lokasi, quantity, keterangan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $cover_luar, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_luar, box, dudukan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_luar, $box, $dudukan]);
 
         header("Location: index.php");
         exit;
