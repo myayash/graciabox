@@ -157,11 +157,11 @@ if ($_SESSION['role'] !== 'admin') {
                 <label class="block text-gray-800 text-sm font-semibold mb-2">Kode Pisau:</label>
                 <div class="mt-2">
                     <label class="inline-flex items-center">
-                        <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['kode_pisau'] == 'baru') ? 'checked' : '' ?>>
+                        <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['kode_pisau'] == 'baru') ? 'checked' : '' ?>> 
                         <span class="ml-2 text-gray-800">Baru</span>
                     </label>
                     <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['kode_pisau'] == 'lama') ? 'checked' : '' ?>>
+                        <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['kode_pisau'] == 'lama') ? 'checked' : '' ?>> 
                         <span class="ml-2 text-gray-800">Lama</span>
                     </label>
                 </div>
@@ -244,11 +244,11 @@ if ($_SESSION['role'] !== 'admin') {
                 <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
                 <div class="mt-2">
                     <label class="inline-flex items-center">
-                        <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'BSD') ? 'checked' : '' ?>>
+                        <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'BSD') ? 'checked' : '' ?>> 
                         <span class="ml-2 text-gray-800">BSD</span>
                     </label>
                     <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'Pondok Aren') ? 'checked' : '' ?>>
+                        <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'Pondok Aren') ? 'checked' : '' ?>> 
                         <span class="ml-2 text-gray-800">Pondok Aren</span>
                     </label>
                 </div>

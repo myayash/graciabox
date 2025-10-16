@@ -38,13 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cover_dlm_gsm = $_POST['cover_dalam_gsm'];
         $cover_dlm_ukuran = $_POST['cover_dalam_ukuran'];
 
-        $cover_dlm = "supplier:{$cover_dlm_supplier}, jenis:{$cover_dlm_jenis}, warna:{$cover_dlm_warna}, gsm:{$cover_dlm_gsm}, ukuran:{$cover_dlm_ukuran}";
+        $cover_dlm = "supplier:{$cover_dlm_supplier} - jenis:{$cover_dlm_jenis} - warna:{$cover_dlm_warna} - gsm:{$cover_dlm_gsm} - ukuran:{$cover_dlm_ukuran}";
         $cover_luar_supplier = $_POST['cover_luar_supplier'];
         $cover_luar_jenis = $_POST['cover_luar_jenis'];
         $cover_luar_warna = $_POST['cover_luar_warna'];
         $cover_luar_gsm = $_POST['cover_luar_gsm'];
         $cover_luar_ukuran = $_POST['cover_luar_ukuran'];
-        $cover_luar = "supplier:{$cover_luar_supplier}, jenis:{$cover_luar_jenis}, warna:{$cover_luar_warna}, gsm:{$cover_luar_gsm}, ukuran:{$cover_luar_ukuran}";
+        $cover_luar_radio = $_POST['cover_luar']; // Get the radio button value
 
         $box_supplier = $_POST['box_supplier'];
         $box_jenis = $_POST['box_jenis'];
@@ -58,11 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dudukan_gsm = $_POST['dudukan_gsm'];
         $dudukan_ukuran = $_POST['dudukan_ukuran'];
 
-        $box = "supplier:{$box_supplier}, jenis:{$box_jenis}, warna:{$box_warna}, gsm:{$box_gsm}, ukuran:{$box_ukuran}";
-        $dudukan = "supplier:{$dudukan_supplier}, jenis:{$dudukan_jenis}, warna:{$dudukan_warna}, gsm:{$dudukan_gsm}, ukuran:{$dudukan_ukuran}";
+        $cover_luar_data = "Cover Luar Type:{$cover_luar_radio} - Supplier:{$cover_luar_supplier} - Jenis:{$cover_luar_jenis} - Warna:{$cover_luar_warna} - GSM:{$cover_luar_gsm} - Ukuran:{$cover_luar_ukuran}";
+        $box_data = "Box Supplier:{$box_supplier} - Jenis:{$box_jenis} - Warna:{$box_warna} - GSM:{$box_gsm} - Ukuran:{$box_ukuran}";
+        $dudukan_data = "Dudukan Supplier:{$dudukan_supplier} - Jenis:{$dudukan_jenis} - Warna:{$dudukan_warna} - GSM:{$dudukan_gsm} - Ukuran:{$dudukan_ukuran}";
+
+        $cover_luar = $cover_luar_data . " | " . $box_data . " | " . $dudukan_data;
         $sales_pj = $_POST['dibuat_oleh'];
         $lokasi = $_POST['lokasi'];
         $quantity = $_POST['quantity'] . ' pcs';
+        $keterangan = $_POST['keterangan'] ?? NULL;
         $nama_box_lama_value = NULL;
 
         if ($kode_pisau === 'baru') {
@@ -84,8 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, cover_luar, box, dudukan, sales_pj, nama_box_lama, lokasi, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $cover_luar, $box, $dudukan, $sales_pj, $nama_box_lama_value, $lokasi, $quantity]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, cover_luar, sales_pj, nama_box_lama, lokasi, quantity, keterangan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $cover_luar, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan]);
 
         header("Location: index.php");
         exit;
@@ -193,7 +197,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 
             <div class="mb-4">
                 <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <div class="flex space-x-2">
+                <div class="flex space-x-2 pl-4">
                     <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                         <option value="" disabled selected>Supplier</option>
                         <?php foreach ($distinct_suppliers as $supplier): ?>

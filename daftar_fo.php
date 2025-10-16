@@ -30,8 +30,8 @@
     <form action="daftar_fo.php" method="get" class="mb-4">
         <input type="text" name="search" placeholder="cari FO" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
-        <?php if (isset($_GET['show_archived'])): ?>
-            <input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
+        <?php if (isset($_GET['show_archived'])):
+            ?><input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
         <?php endif; ?>
     </form>
 
@@ -143,11 +143,11 @@
                 foreach ($order as $columnName => $value) {
                     if ($columnName == 'is_archived') continue;
                     $displayValue = htmlspecialchars($value);
-                    if ($columnName == 'cover_dlm') {
+                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar') {
                         $displayValue = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $displayValue);
                     }
                     $tdClasses = "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
-                    if ($columnName == 'cover_dlm') {
+                    if ($columnName == 'cover_dlm' || $columnName == 'cover_luar') {
                         $tdClasses .= " text-center";
                     }
                     echo "<td class=\"" . $tdClasses . "\">" . $displayValue . "</td>";
