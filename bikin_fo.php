@@ -117,6 +117,8 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
     <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order</h1>
 
     <form action="bikin_fo.php" method="post" class="bg-white p-8 shadow-lg">
+        <h2 class="text-xl font-bold mb-4 text-gray-400">BOX</h2>
+        <div class="border-b-2 border-gray-300 mb-6"></div>
         <div class="mb-4">
             <label for="nama_customer" class="block text-gray-800 text-sm font-semibold mb-2">Nama Customer:</label>
             <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
@@ -215,7 +217,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 
             <div class="mb-4">
                 <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Luar:</label>
-                <div class="mt-2">
+                <div class="mt-2 pl-4">
                     <label class="inline-flex items-center">
                         <input type="radio" name="cover_luar" value="lidah" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
                         <span class="ml-2 text-gray-800">Lidah</span>
@@ -233,7 +235,7 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                         <span class="ml-2 text-gray-800">Tutup atas</span>
                     </label>
                 </div>
-                <div class="flex space-x-2 mt-2">
+                <div class="flex space-x-2 mt-2 pl-4">
                     <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
                         <option value="" disabled selected>Supplier</option>
                         <?php foreach ($distinct_suppliers as $supplier): ?>
@@ -256,8 +258,8 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Box:</label>
-                <div class="flex space-x-2">
+                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Box</label>
+                <div class="flex space-x-2 pl-4">
                     <select name="box_supplier" id="box_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                         <option value="" disabled selected>Supplier</option>
                         <?php foreach ($distinct_suppliers as $supplier): ?>
@@ -280,8 +282,8 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Dudukan:</label>
-                <div class="flex space-x-2">
+                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Dudukan</label>
+                <div class="flex space-x-2 pl-4">
                     <select name="dudukan_supplier" id="dudukan_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                         <option value="" disabled selected>Supplier</option>
                         <?php foreach ($distinct_suppliers as $supplier): ?>
@@ -325,6 +327,11 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                         <option value="<?= $sales_rep['nama'] ?>"><?= $sales_rep['nama'] ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan:</label>
+                <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"></textarea>
             </div>
         </div>
 
