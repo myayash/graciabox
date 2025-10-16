@@ -1,9 +1,8 @@
-function toggleDropdown(id) {
+function toggleDropdown(event, id) {
+    event.stopPropagation();
     const dropdown = document.getElementById(id);
-    if (dropdown.style.display === 'none') {
-        dropdown.style.display = 'block';
-    } else {
-        dropdown.style.display = 'none';
+    if (dropdown) {
+        dropdown.style.display = 'block'; // Always set to block for debugging
     }
 }
 
@@ -82,4 +81,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (coverDalamSupplier && coverDalamSupplier.value) {
         updateCoverDalamOptions();
     }
+});
+
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.dropdown-menu');
+    dropdowns.forEach(dropdown => {
+        const toggleButton = dropdown.previousElementSibling; // Assuming the toggle button is the previous sibling
+        if (dropdown.style.display === 'block' && !dropdown.contains(event.target) && (!toggleButton || !toggleButton.contains(event.target))) {
+            dropdown.style.display = 'none';
+        }
+    });
 });
