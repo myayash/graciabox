@@ -14,8 +14,8 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam'])) {
-        die('Error: Nama Customer, Kode Pisau, Jenis Board, and Cover Dalam are required fields.');
+    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam_supplier']) || empty($_POST['cover_dalam_jenis']) || empty($_POST['cover_dalam_warna']) || empty($_POST['cover_dalam_gsm']) || empty($_POST['cover_dalam_ukuran'])) {
+        die('Error: Nama Customer, Kode Pisau, Jenis Board, and all Cover Dalam fields are required.');
     }
 
     if (isset($_POST['kode_pisau'])) {
@@ -32,7 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama = $_POST['nama_customer'];
         $kode_pisau = $_POST['kode_pisau'];
         $jenis_board = $_POST['jenis_board'];
-        $cover_dlm = $_POST['cover_dalam'];
+        $cover_dlm_supplier = $_POST['cover_dalam_supplier'];
+        $cover_dlm_jenis = $_POST['cover_dalam_jenis'];
+        $cover_dlm_warna = $_POST['cover_dalam_warna'];
+        $cover_dlm_gsm = $_POST['cover_dalam_gsm'];
+        $cover_dlm_ukuran = $_POST['cover_dalam_ukuran'];
+
+        $cover_dlm = "supplier:{$cover_dlm_supplier}, jenis:{$cover_dlm_jenis}, warna:{$cover_dlm_warna}, gsm:{$cover_dlm_gsm}, ukuran:{$cover_dlm_ukuran}";
         $sales_pj = $_POST['dibuat_oleh'];
         $lokasi = $_POST['lokasi'];
         $quantity = $_POST['quantity'] . ' pcs';
@@ -69,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $customers = $pdo->query("SELECT * FROM customer WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $model_boxes = $pdo->query("SELECT * FROM model_box WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $boards = $pdo->query("SELECT * FROM board WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
-$papers = $pdo->query("SELECT * FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
+$distinct_suppliers = $pdo->query("SELECT DISTINCT supplier FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $sales_reps = $pdo->query("SELECT * FROM empl_sales WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -163,22 +169,27 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
 
             <div class="mb-4">
-                <label for="cover_dalam" class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <select name="cover_dalam" id="cover_dalam" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                    <option value="" disabled selected>Pilih Cover Dalam</option>
-                    <?php foreach ($papers as $paper): ?>
-                        <?php
-                        $display_text = '';
-                        foreach ($paper as $key => $value) {
-                            if ($key != 'id') {
-                                $display_text .= $key . ': ' . $value . ', ';
-                            }
-                        }
-                        $display_text = rtrim($display_text, ', ');
-                        ?>
-                        <option value="<?= $paper['jenis'] ?>"><?= $display_text ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
+                <div class="flex space-x-2">
+                    <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <option value="" disabled selected>Supplier</option>
+                        <?php foreach ($distinct_suppliers as $supplier): ?>
+                            <option value="<?= $supplier['supplier'] ?>"><?= $supplier['supplier'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="cover_dalam_jenis" id="cover_dalam_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
+                        <option value="" disabled selected>Jenis</option>
+                    </select>
+                    <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
+                        <option value="" disabled selected>Warna</option>
+                    </select>
+                    <select name="cover_dalam_gsm" id="cover_dalam_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
+                        <option value="" disabled selected>GSM</option>
+                    </select>
+                    <select name="cover_dalam_ukuran" id="cover_dalam_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required disabled>
+                        <option value="" disabled selected>Ukuran</option>
+                    </select>
+                </div>
             </div>
 
             <div class="mb-4">

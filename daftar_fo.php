@@ -105,18 +105,32 @@
             echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
             echo "<table class=\"min-w-full divide-y divide-gray-200\">";
             echo "<thead><tr>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">ID</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Retail</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nama Customer</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Ukuran (cm)</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Kode Pisau</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Quantity</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Model Box</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Jenis Board</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider\">Cover Dalam</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nama Box</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">PJ Sales</th>";
-            echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Dibuat</th>";
+            // Define a mapping for column names to display names
+            $column_display_names = [
+                'id' => 'ID',
+                'lokasi' => 'Retail',
+                'nama' => 'Nama Customer',
+                'ukuran' => 'Ukuran (cm)',
+                'kode_pisau' => 'Kode Pisau',
+                'quantity' => 'Quantity',
+                'model_box' => 'Model Box',
+                'jenis_board' => 'Jenis Board',
+                'cover_dlm' => 'Cover Dalam',
+                'nama_box_lama' => 'Nama Box',
+                'sales_pj' => 'PJ Sales',
+                'dibuat' => 'Dibuat',
+                'is_archived' => 'Archived'
+            ];
+
+            // Dynamically create table headers from column names, using display names if available
+            foreach (array_keys($orders[0]) as $columnName) {
+                if ($columnName == 'is_archived') continue;
+                $thClasses = "px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+                if ($columnName == 'cover_dlm') {
+                    $thClasses .= " text-center";
+                }
+                echo "<th class=\"" . $thClasses . "\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
+            }
             if ($is_admin) {
                 echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
             }
@@ -125,18 +139,18 @@
             // Populate table rows with data
             foreach ($orders as $order) {
                 echo "<tr>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['id']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['lokasi']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['nama']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['ukuran']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['kode_pisau']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['quantity']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['model_box']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['jenis_board']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center\">" . htmlspecialchars($order['cover_dlm']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['nama_box_lama']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['sales_pj']) . "</td>";
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($order['dibuat']) . "</td>";
+                foreach ($order as $columnName => $value) {
+                    if ($columnName == 'is_archived') continue;
+                    $displayValue = htmlspecialchars($value);
+                    if ($columnName == 'cover_dlm') {
+                        $displayValue = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $displayValue);
+                    }
+                    $tdClasses = "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
+                    if ($columnName == 'cover_dlm') {
+                        $tdClasses .= " text-center";
+                    }
+                    echo "<td class=\"" . $tdClasses . "\">" . $displayValue . "</td>";
+                }
                 if ($is_admin) {
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
                     echo "<a href=\"edit_fo.php?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
