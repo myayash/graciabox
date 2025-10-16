@@ -71,6 +71,10 @@ try {
 
         // Output data rows
         foreach ($orders as $row) {
+            // Remove prefixes from 'cover_dlm' before exporting
+            if (isset($row['cover_dlm'])) {
+                $row['cover_dlm'] = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $row['cover_dlm']);
+            }
             fputcsv($output, $row);
         }
 
