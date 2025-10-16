@@ -50,6 +50,13 @@ try {
         $pdo->exec("ALTER TABLE empl_sales ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0");
     }
 
+    // Check if 'lokasi' column exists in 'orders' table, add if not
+    $stmt = $pdo->prepare("SHOW COLUMNS FROM orders LIKE 'lokasi'");
+    $stmt->execute();
+    if ($stmt->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN lokasi VARCHAR(255) NOT NULL");
+    }
+
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }

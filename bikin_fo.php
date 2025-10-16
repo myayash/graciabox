@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (isset($_POST['kode_pisau'])) {
         if ($_POST['kode_pisau'] === 'baru') {
-            if (empty($_POST['model_box_baru']) || empty($_POST['ukuran_baru']) || empty($_POST['dibuat_oleh'])) {
+            if (empty($_POST['model_box_baru']) || empty($_POST['length']) || empty($_POST['width']) || empty($_POST['height']) || empty($_POST['dibuat_oleh'])) {
                 die('Error: Missing required fields for new kode pisau. Please go back and fill them.');
             }
         } else if ($_POST['kode_pisau'] === 'lama') {
@@ -34,10 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jenis_board = $_POST['jenis_board'];
         $cover_dlm = $_POST['cover_dalam'];
         $sales_pj = $_POST['dibuat_oleh'];
+        $lokasi = $_POST['lokasi'];
         $nama_box_lama_value = NULL;
 
         if ($kode_pisau === 'baru') {
-            $ukuran = $_POST['ukuran_baru'];
+            $ukuran = $_POST['length'] . ' x ' . $_POST['width'] . ' x ' . $_POST['height'];
             $model_box = $_POST['model_box_baru'];
             $nama_box = $_POST['nama_box_baru'];
 
@@ -56,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi]);
 
         header("Location: index.php");
         exit;
@@ -125,8 +126,12 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
             </div>
 
             <div class="mb-4">
-                <label for="ukuran_baru" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
-                <input type="text" name="ukuran_baru" id="ukuran_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (cm):</label>
+                <div class="flex space-x-2">
+                    <input type="number" step="0.01" name="length" placeholder="Length" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="number" step="0.01" name="width" placeholder="Width" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="number" step="0.01" name="height" placeholder="Height" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                </div>
             </div>
 
             <div class="mb-4">
@@ -173,6 +178,20 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                         <option value="<?= $paper['jenis'] ?>"><?= $display_text ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
+                <div class="mt-2">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                        <span class="ml-2 text-gray-800">BSD</span>
+                    </label>
+                    <label class="inline-flex items-center ml-6">
+                        <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                        <span class="ml-2 text-gray-800">Pondok Aren</span>
+                    </label>
+                </div>
             </div>
 
             <div class="mb-4">

@@ -49,11 +49,14 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 // Handle form submission for updating barang
 if (isset($_POST['update_barang']) && $barang) {
     $model_box = trim($_POST['model_box']);
-    $ukuran = trim($_POST['ukuran']);
+    $length = trim($_POST['length']);
+    $width = trim($_POST['width']);
+    $height = trim($_POST['height']);
     $nama = trim($_POST['nama']);
 
-    if (!empty($model_box) && !empty($ukuran)) {
+    if (!empty($model_box) && !empty($length) && !empty($width) && !empty($height)) {
         try {
+            $ukuran = $length . ' x ' . $width . ' x ' . $height;
             $stmt = $pdo->prepare("UPDATE barang SET model_box = ?, ukuran = ?, nama = ? WHERE id = ?");
             $stmt->execute([$model_box, $ukuran, $nama, $barang['id']]);
             $message = "Barang updated successfully!";
@@ -92,6 +95,10 @@ if (isset($_POST['update_barang']) && $barang) {
     }
 
     if ($barang) {
+        $ukuran_parts = explode(' x ', $barang['ukuran']);
+        $length = $ukuran_parts[0] ?? '';
+        $width = $ukuran_parts[1] ?? '';
+        $height = $ukuran_parts[2] ?? '';
     ?>
         <form action="" method="POST" class="bg-white p-8 shadow-lg">
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($barang['id']); ?>">
@@ -106,8 +113,12 @@ if (isset($_POST['update_barang']) && $barang) {
             </div>
 
             <div class="mb-4">
-                <label for="ukuran" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
-                <input type="text" name="ukuran" id="ukuran" value="<?php echo htmlspecialchars($barang['ukuran']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
+                <div class="flex space-x-2">
+                    <input type="number" step="0.01" name="length" placeholder="Length" value="<?= htmlspecialchars($length) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                    <input type="number" step="0.01" name="width" placeholder="Width" value="<?= htmlspecialchars($width) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                    <input type="number" step="0.01" name="height" placeholder="Height" value="<?= htmlspecialchars($height) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                </div>
             </div>
 
             <div class="mb-4">

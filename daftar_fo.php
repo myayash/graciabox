@@ -75,7 +75,7 @@
     }
 
     try {
-        $sql = "SELECT * FROM orders";
+        $sql = "SELECT id, lokasi, nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, dibuat, is_archived FROM orders";
         $conditions = [];
         $params = [];
 
@@ -89,8 +89,8 @@
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ?)";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
         if (!empty($conditions)) {
@@ -108,9 +108,10 @@
             // Define a mapping for column names to display names
             $column_display_names = [
                 'id' => 'ID',
+                'lokasi' => 'Retail',
                 'nama' => 'Nama Customer',
                 'kode_pisau' => 'Kode Pisau',
-                'ukuran' => 'Ukuran',
+                'ukuran' => 'Ukuran (cm)',
                 'model_box' => 'Model Box',
                 'jenis_board' => 'Jenis Board',
                 'cover_dlm' => 'Cover Dalam',

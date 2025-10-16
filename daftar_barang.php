@@ -105,7 +105,7 @@
             $column_display_names = [
                 'id' => 'ID',
                 'model_box' => 'Model Box',
-                'ukuran' => 'Ukuran',
+                'ukuran' => 'Ukuran (cm)',
                 'nama' => 'Nama Barang',
                 'dibuat' => 'Dibuat',
                 'is_archived' => 'Archived'

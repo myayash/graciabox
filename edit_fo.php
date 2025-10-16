@@ -70,13 +70,14 @@ if ($_SESSION['role'] !== 'admin') {
         $jenis_board = trim($_POST['jenis_board']);
         $cover_dlm = trim($_POST['cover_dlm']);
         $sales_pj = trim($_POST['sales_pj']);
+        $lokasi = trim($_POST['lokasi']);
 
         $ukuran = '';
         $model_box = '';
         $nama_box_lama_value = NULL;
 
         if ($kode_pisau === 'baru') {
-            $ukuran = trim($_POST['ukuran']);
+            $ukuran = trim($_POST['length']) . ' x ' . trim($_POST['width']) . ' x ' . trim($_POST['height']);
             $model_box = trim($_POST['model_box']);
             // For 'baru', nama_box_lama is not directly set, it's a new item
         } else if ($kode_pisau === 'lama') {
@@ -97,8 +98,8 @@ if ($_SESSION['role'] !== 'admin') {
 
         if (empty($message) && !empty($nama) && !empty($kode_pisau) && !empty($ukuran) && !empty($model_box) && !empty($jenis_board)) {
             try {
-                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, sales_pj = ?, nama_box_lama = ? WHERE id = ?");
-                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $order['id']]);
+                $stmt = $pdo->prepare("UPDATE orders SET nama = ?, kode_pisau = ?, ukuran = ?, model_box = ?, jenis_board = ?, cover_dlm = ?, sales_pj = ?, nama_box_lama = ?, lokasi = ? WHERE id = ?");
+                $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $order['id']]);
                 $message = "Order updated successfully!";
                 $message_type = 'success';
                 header("Location: daftar_fo.php");
@@ -118,6 +119,10 @@ if ($_SESSION['role'] !== 'admin') {
     }
 
     if ($order) {
+        $ukuran_parts = explode(' x ', $order['ukuran']);
+        $length = $ukuran_parts[0] ?? '';
+        $width = $ukuran_parts[1] ?? '';
+        $height = $ukuran_parts[2] ?? '';
     ?>
         <form action="" method="POST" class="bg-white p-8 shadow-lg">
                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($order['id']); ?>">
@@ -146,8 +151,12 @@ if ($_SESSION['role'] !== 'admin') {
 
             <div id="kode_pisau_baru_fields" class="mb-4" style="display:none;">
                 <div class="mb-4">
-                    <label for="ukuran" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
-                    <input type="text" id="ukuran" name="ukuran" value="<?php echo htmlspecialchars($order['ukuran']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
+                    <div class="flex space-x-2">
+                        <input type="number" step="0.01" name="length" placeholder="Length" value="<?= htmlspecialchars($length) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <input type="number" step="0.01" name="width" placeholder="Width" value="<?= htmlspecialchars($width) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <input type="number" step="0.01" name="height" placeholder="Height" value="<?= htmlspecialchars($height) ?>" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -196,6 +205,20 @@ if ($_SESSION['role'] !== 'admin') {
                         <option value="<?= htmlspecialchars($paper['jenis']) ?>" <?= ($order['cover_dlm'] == $paper['jenis']) ? 'selected' : '' ?>><?= htmlspecialchars($display_text) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
+                <div class="mt-2">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'BSD') ? 'checked' : '' ?>>
+                        <span class="ml-2 text-gray-800">BSD</span>
+                    </label>
+                    <label class="inline-flex items-center ml-6">
+                        <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?= ($order['lokasi'] == 'Pondok Aren') ? 'checked' : '' ?>>
+                        <span class="ml-2 text-gray-800">Pondok Aren</span>
+                    </label>
+                </div>
             </div>
 
             <div class="mb-6">
