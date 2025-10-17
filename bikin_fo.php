@@ -91,8 +91,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_box_lama_value = $barang['nama'];
         }
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr]);
+        $aksesoris_jenis = $_POST['aksesoris_jenis'] ?? NULL;
+        $aksesoris_ukuran = $_POST['aksesoris_ukuran'] ?? NULL;
+        $aksesoris_warna = $_POST['aksesoris_warna'] ?? NULL;
+        $aksesoris = "jenis:{$aksesoris_jenis} - ukuran:{$aksesoris_ukuran} - warna:{$aksesoris_warna}";
+
+        $dudukan_id = $_POST['dudukan'] ?? NULL;
+        $dudukan_jenis = NULL;
+        if ($dudukan_id) {
+            $stmt = $pdo->prepare("SELECT jenis FROM dudukan WHERE id = ?");
+            $stmt->execute([$dudukan_id]);
+            $dudukan_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $dudukan_jenis = $dudukan_row['jenis'];
+        }
+
+        $jumlah_layer = $_POST['jumlah_layer'] ?? NULL;
+        $logo = $_POST['logo'] ?? NULL;
+        $ukuran_poly = $_POST['ukuran_poly'] ?? NULL;
+        $lokasi_poly = $_POST['lokasi_poly'] ?? NULL;
+        $klise = $_POST['klise'] ?? NULL;
+
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise]);
 
         header("Location: index.php");
         exit;
@@ -106,6 +126,12 @@ $boards = $pdo->query("SELECT * FROM board WHERE is_archived = 0")->fetchAll(PDO
 $distinct_suppliers = $pdo->query("SELECT DISTINCT supplier FROM kertas WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $sales_reps = $pdo->query("SELECT * FROM empl_sales WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
+$aksesoris_jenis = $pdo->query("SELECT DISTINCT jenis FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
+$aksesoris_ukuran = $pdo->query("SELECT DISTINCT ukuran FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
+$aksesoris_warna = $pdo->query("SELECT DISTINCT warna FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
+$dudukan_options = $pdo->query("SELECT * FROM dudukan")->fetchAll(PDO::FETCH_ASSOC);
+$logo_options = $pdo->query("SELECT DISTINCT jenis FROM logo")->fetchAll(PDO::FETCH_ASSOC);
+$logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -311,34 +337,133 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
                     </select>
                 </div>
             </div>
+        </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
-                <div class="mt-2">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">BSD</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
-                        <span class="ml-2 text-gray-800">Pondok Aren</span>
-                    </label>
-                </div>
-            </div>
+        <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
+        <div class="border-b-2 border-gray-300 mb-6"></div>
 
-            <div class="mb-4">
-                <label for="dibuat_oleh" class="block text-gray-800 text-sm font-semibold mb-2">Dibuat Oleh:</label>
-                <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <option value="" disabled selected>Pilih Karyawan Sales</option>
-                    <?php foreach ($sales_reps as $sales_rep): ?>
-                        <option value="<?= $sales_rep['nama'] ?>"><?= $sales_rep['nama'] ?></option>
+        <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Aksesoris:</label>
+            <div class="flex space-x-2">
+                <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <option value="" disabled selected>Pilih Jenis</option>
+                    <?php foreach ($aksesoris_jenis as $jenis): ?>
+                        <option value="<?= $jenis['jenis'] ?>"><?= $jenis['jenis'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <option value="" disabled selected>Pilih Ukuran</option>
+                    <?php foreach ($aksesoris_ukuran as $ukuran): ?>
+                        <option value="<?= $ukuran['ukuran'] ?>"><?= $ukuran['ukuran'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <option value="" disabled selected>Pilih Warna</option>
+                    <?php foreach ($aksesoris_warna as $warna): ?>
+                        <option value="<?= $warna['warna'] ?>"><?= $warna['warna'] ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
+        </div>
 
-            <div class="mb-4">
-                <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan:</label>
-                <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"></textarea>
+        <div class="mb-4">
+            <div class="flex space-x-4">
+                <div class="w-1/2">
+                    <label for="dudukan" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan:</label>
+                    <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Pilih Dudukan</option>
+                        <?php foreach ($dudukan_options as $dudukan): ?>
+                            <option value="<?= $dudukan['id'] ?>"><?= $dudukan['jenis'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="w-1/2">
+                    <label for="jumlah_layer" class="block text-gray-800 text-sm font-semibold mb-2">Jumlah layer</label>
+                    <input type="number" name="jumlah_layer" id="jumlah_layer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" min="0" step="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="flex space-x-4">
+                <div class="w-1/2">
+                    <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo:</label>
+                    <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Pilih Logo</option>
+                        <?php foreach ($logo_options as $logo): ?>
+                            <option value="<?= $logo['jenis'] ?>"><?= $logo['jenis'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="w-1/2">
+                    <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly:</label>
+                    <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Pilih Ukuran Poly</option>
+                        <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
+                            <option value="<?= $uk_poly['uk_poly'] ?>"><?= $uk_poly['uk_poly'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="flex space-x-4">
+                <div class="w-1/2">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly:</label>
+                    <div class="mt-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                            <span class="ml-2 text-gray-800">Pabrik</span>
+                        </label>
+                        <label class="inline-flex items-center ml-6">
+                            <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                            <span class="ml-2 text-gray-800">Luar</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Klise:</label>
+                    <div class="mt-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                            <span class="ml-2 text-gray-800">In Stock</span>
+                        </label>
+                        <label class="inline-flex items-center ml-6">
+                            <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                            <span class="ml-2 text-gray-800">Bikin baru</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan:</label>
+            <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"></textarea>
+        </div>
+
+        <div class="mb-4">
+            <label for="dibuat_oleh" class="block text-gray-800 text-sm font-semibold mb-2">Dibuat Oleh:</label>
+            <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <option value="" disabled selected>Pilih Karyawan Sales</option>
+                <?php foreach ($sales_reps as $sales_rep): ?>
+                    <option value="<?= $sales_rep['nama'] ?>"><?= $sales_rep['nama'] ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
+            <div class="mt-2">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                    <span class="ml-2 text-gray-800">BSD</span>
+                </label>
+                <label class="inline-flex items-center ml-6">
+                    <input type="radio" name="lokasi" value="Pondok Aren" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required>
+                    <span class="ml-2 text-gray-800">Pondok Aren</span>
+                </label>
             </div>
         </div>
 
