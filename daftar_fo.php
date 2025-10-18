@@ -75,7 +75,7 @@
     }
 
     try {
-        $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, nama_box_lama, quantity, model_box, jenis_board, cover_dlm, cover_lr, keterangan, sales_pj, dibuat, is_archived FROM orders";
+        $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, nama_box_lama, quantity, model_box, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, keterangan, sales_pj, dibuat, is_archived FROM orders";
         $conditions = [];
         $params = [];
 
@@ -116,9 +116,10 @@
                 'nama_box_lama' => 'Nama Box',
                 'quantity' => 'Quantity',
                 'model_box' => 'Model Box',
-                'jenis_board' => 'Jenis Board',
-                'cover_dlm' => 'Cover Dalam',
-                'cover_lr' => 'Cover Luar',
+                'tanggal_kirim' => 'Tanggal Kirim',
+                'jam_kirim' => 'Jam Kirim',
+                'dikirim_dari' => 'Dikirim Dari',
+                'tujuan_kirim' => 'Tujuan Kirim',
                 'keterangan' => 'Keterangan',
                 'sales_pj' => 'PJ Sales',
                 'dibuat' => 'Dibuat',
