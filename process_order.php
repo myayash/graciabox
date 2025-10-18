@@ -14,11 +14,8 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Retrieve the first form's data from the session
-    $form_data = $_SESSION['form_data'];
-
-    // Retrieve the second form's data from the POST request
-    $shipping_data = $_POST;
+    // Merge the latest POST data (shipping) with session data (fo + previous shipping if any)
+    $form_data = array_merge($_SESSION['order_form'] ?? [], $_POST);
 
     // Updated validation to check for essential fields.
     if (empty($form_data['nama_customer']) || empty($form_data['kode_pisau']) || empty($form_data['jenis_board']) || empty($form_data['cover_dalam_supplier']) || empty($form_data['cover_dalam_jenis']) || empty($form_data['cover_dalam_warna']) || empty($form_data['cover_dalam_gsm']) || empty($form_data['cover_dalam_ukuran']) || empty($form_data['cover_luar_supplier']) || empty($form_data['cover_luar_jenis']) || empty($form_data['cover_luar_warna']) || empty($form_data['cover_luar_gsm']) || empty($form_data['cover_luar_ukuran']) || empty($form_data['box_supplier']) || empty($form_data['box_jenis']) || empty($form_data['box_warna']) || empty($form_data['box_gsm']) || empty($form_data['box_ukuran']) || empty($form_data['dudukan_supplier']) || empty($form_data['dudukan_jenis']) || empty($form_data['dudukan_warna']) || empty($form_data['dudukan_gsm']) || empty($form_data['dudukan_ukuran'])) {
@@ -118,19 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $klise = $form_data['klise'] ?? NULL;
 
         // Shipping data
-        $tanggal_kirim = $shipping_data['tanggal_kirim'];
-        $jam_kirim = $shipping_data['jam_kirim'];
-        $dikirim_dari = $shipping_data['dikirim_dari'];
-        $tujuan_kirim = $shipping_data['tujuan_kirim'];
+        $tanggal_kirim = $form_data['tanggal_kirim'];
+        $jam_kirim = $form_data['jam_kirim'];
+        $dikirim_dari = $form_data['dikirim_dari'];
+        $tujuan_kirim = $form_data['tujuan_kirim'];
 
         $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim]);
 
         // Unset the session data
-        unset($_SESSION['form_data']);
+        unset($_SESSION['order_form']);
 
         header("Location: index.php");
         exit;
     }
 }
-
