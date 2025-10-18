@@ -9,7 +9,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 try {
-    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, cover_lr, nama_box_lama, sales_pj, dibuat FROM orders";
+    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, cover_lr, nama_box_lama, sales_pj, dibuat, keterangan, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, is_archived FROM orders";
     $conditions = [];
     $params = [];
 
@@ -17,11 +17,13 @@ try {
         $conditions[] = "id = ?";
         $params[] = $_GET['id'];
     } else {
-        // Add archived/active filter
-        if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
+        // Default to showing non-archived records if no specific filter is set
+        if (!isset($_GET['show_archived'])) {
+            $conditions[] = "is_archived = 0";
+        } else if ($_GET['show_archived'] == 'true') {
             $conditions[] = "is_archived = 1";
         } else {
-            $conditions[] = "is_archived = 0";
+            $conditions[] = "is_archived = 0"; // Explicitly show active if show_archived is false or other value
         }
 
         // Add search filter
@@ -47,7 +49,15 @@ try {
 
         $output = fopen('php://output', 'w');
 
-        // Get column headers from the first row
+        // Define the explicit order of columns for export
+        $export_columns = [
+            'id', 'lokasi', 'nama', 'ukuran', 'kode_pisau', 'quantity', 'model_box', 'jenis_board', 
+            'cover_dlm', 'cover_lr', 'nama_box_lama', 'sales_pj', 'dibuat', 'keterangan', 
+            'aksesoris', 'dudukan', 'jumlah_layer', 'logo', 'ukuran_poly', 'lokasi_poly', 
+            'klise', 'tanggal_kirim', 'jam_kirim', 'dikirim_dari', 'tujuan_kirim', 'is_archived'
+        ];
+
+        // Get column headers from the explicit list
         $column_display_names = [
             'id' => 'ID',
             'lokasi' => 'Lokasi',
@@ -59,24 +69,45 @@ try {
             'jenis_board' => 'Jenis Board',
             'cover_dlm' => 'Cover Dalam',
             'cover_lr' => 'Cover LR',
-            'nama_box_lama' => 'Nama Box',
+            'nama_box_lama' => 'Nama Box Lama',
             'sales_pj' => 'PJ Sales',
-            'dibuat' => 'Dibuat'
+            'dibuat' => 'Dibuat',
+            'keterangan' => 'Keterangan',
+            'aksesoris' => 'Aksesoris',
+            'dudukan' => 'Dudukan',
+            'jumlah_layer' => 'Jumlah Layer',
+            'logo' => 'Logo',
+            'ukuran_poly' => 'Ukuran Poly',
+            'lokasi_poly' => 'Lokasi Poly',
+            'klise' => 'Klise',
+            'tanggal_kirim' => 'Tanggal Kirim',
+            'jam_kirim' => 'Jam Kirim',
+            'dikirim_dari' => 'Dikirim Dari',
+            'tujuan_kirim' => 'Tujuan Kirim',
+            'is_archived' => 'Archived'
         ];
 
         $headers = [];
-        foreach (array_keys($orders[0]) as $columnName) {
+        foreach ($export_columns as $columnName) {
             $headers[] = $column_display_names[$columnName] ?? $columnName;
         }
         fputcsv($output, $headers);
 
         // Output data rows
         foreach ($orders as $row) {
-            // Remove prefixes from 'cover_dlm' before exporting
-            if (isset($row['cover_dlm'])) {
-                $row['cover_dlm'] = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $row['cover_dlm']);
+            $output_row = [];
+            foreach ($export_columns as $columnName) {
+                $value = $row[$columnName] ?? ''; // Get value, default to empty string if null
+
+                // Apply specific formatting
+                if ($columnName === 'cover_dlm') {
+                    $value = preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value);
+                } else if ($columnName === 'cover_lr') {
+                    $value = str_replace("\n", "; ", $value);
+                }
+                $output_row[] = $value;
             }
-            fputcsv($output, $row);
+            fputcsv($output, $output_row);
         }
 
         fclose($output);
