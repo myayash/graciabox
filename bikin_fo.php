@@ -13,111 +13,7 @@ if ($_SESSION['role'] !== 'admin') {
     die('Access Denied: You do not have permission to create new orders.');
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Updated validation to check for essential fields.
-    if (empty($_POST['nama_customer']) || empty($_POST['kode_pisau']) || empty($_POST['jenis_board']) || empty($_POST['cover_dalam_supplier']) || empty($_POST['cover_dalam_jenis']) || empty($_POST['cover_dalam_warna']) || empty($_POST['cover_dalam_gsm']) || empty($_POST['cover_dalam_ukuran']) || empty($_POST['cover_luar_supplier']) || empty($_POST['cover_luar_jenis']) || empty($_POST['cover_luar_warna']) || empty($_POST['cover_luar_gsm']) || empty($_POST['cover_luar_ukuran']) || empty($_POST['box_supplier']) || empty($_POST['box_jenis']) || empty($_POST['box_warna']) || empty($_POST['box_gsm']) || empty($_POST['box_ukuran']) || empty($_POST['dudukan_supplier']) || empty($_POST['dudukan_jenis']) || empty($_POST['dudukan_warna']) || empty($_POST['dudukan_gsm']) || empty($_POST['dudukan_ukuran'])) {
-        die('Error: Nama Customer, Kode Pisau, Jenis Board, and all Cover Dalam, Cover Luar, Box, and Dudukan fields are required.');
-    }
 
-    if (isset($_POST['kode_pisau'])) {
-        if ($_POST['kode_pisau'] === 'baru') {
-            if (empty($_POST['model_box_baru']) || empty($_POST['length']) || empty($_POST['width']) || empty($_POST['height']) || empty($_POST['dibuat_oleh'])) {
-                die('Error: Missing required fields for new kode pisau. Please go back and fill them.');
-            }
-        } else if ($_POST['kode_pisau'] === 'lama') {
-            if (empty($_POST['barang_lama']) || empty($_POST['dibuat_oleh'])) {
-                die('Error: Missing required fields for old kode pisau. Please go back and fill them.');
-            }
-        }
-
-        $nama = $_POST['nama_customer'];
-        $kode_pisau = $_POST['kode_pisau'];
-        $jenis_board = $_POST['jenis_board'];
-        $cover_dlm_supplier = $_POST['cover_dalam_supplier'];
-        $cover_dlm_jenis = $_POST['cover_dalam_jenis'];
-        $cover_dlm_warna = $_POST['cover_dalam_warna'];
-        $cover_dlm_gsm = $_POST['cover_dalam_gsm'];
-        $cover_dlm_ukuran = $_POST['cover_dalam_ukuran'];
-
-        $cover_dlm = "supplier:{$cover_dlm_supplier} - jenis:{$cover_dlm_jenis} - warna:{$cover_dlm_warna} - gsm:{$cover_dlm_gsm} - ukuran:{$cover_dlm_ukuran}";
-        
-        // Handle Cover Luar, Box, Dudukan
-        $cover_luar_radio = $_POST['cover_luar_radio'];
-        $cover_luar_supplier = $_POST['cover_luar_supplier'];
-        $cover_luar_jenis = $_POST['cover_luar_jenis'];
-        $cover_luar_warna = $_POST['cover_luar_warna'];
-        $cover_luar_gsm = $_POST['cover_luar_gsm'];
-        $cover_luar_ukuran = $_POST['cover_luar_ukuran'];
-        $cover_luar_str = "({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} gsm - {$cover_luar_ukuran}";
-
-        $box_supplier = $_POST['box_supplier'];
-        $box_jenis = $_POST['box_jenis'];
-        $box_warna = $_POST['box_warna'];
-        $box_gsm = $_POST['box_gsm'];
-        $box_ukuran = $_POST['box_ukuran'];
-        $box_str = "(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} gsm - {$box_ukuran}";
-
-        $dudukan_supplier = $_POST['dudukan_supplier'];
-        $dudukan_jenis = $_POST['dudukan_jenis'];
-        $dudukan_warna = $_POST['dudukan_warna'];
-        $dudukan_gsm = $_POST['dudukan_gsm'];
-        $dudukan_ukuran = $_POST['dudukan_ukuran'];
-        $dudukan_str = "(dudukan) {$dudukan_supplier} - {$dudukan_jenis} - {$dudukan_warna} - {$dudukan_gsm} gsm - {$dudukan_ukuran}";
-
-        $cover_lr = $cover_luar_str . "\n" . $box_str . "\n" . $dudukan_str;
-
-        $sales_pj = $_POST['dibuat_oleh'];
-        $lokasi = $_POST['lokasi'];
-        $quantity = $_POST['quantity'] . ' pcs';
-        $keterangan = $_POST['keterangan'] ?? NULL;
-        $nama_box_lama_value = NULL;
-
-        if ($kode_pisau === 'baru') {
-            $ukuran = $_POST['length'] . ' x ' . $_POST['width'] . ' x ' . $_POST['height'];
-            $model_box = $_POST['model_box_baru'];
-
-            $stmt = $pdo->prepare("INSERT INTO barang (model_box, ukuran, nama) VALUES (?, ?, ?)");
-            $stmt->execute([$model_box, $ukuran, $nama]);
-            $barang_id = $pdo->lastInsertId();
-
-        } else { // lama
-            $barang_id = $_POST['barang_lama'];
-            $stmt = $pdo->prepare("SELECT * FROM barang WHERE id = ?");
-            $stmt->execute([$barang_id]);
-            $barang = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $ukuran = $barang['ukuran'];
-            $model_box = $barang['model_box'];
-            $nama_box_lama_value = $barang['nama'];
-        }
-
-        $aksesoris_jenis = $_POST['aksesoris_jenis'] ?? NULL;
-        $aksesoris_ukuran = $_POST['aksesoris_ukuran'] ?? NULL;
-        $aksesoris_warna = $_POST['aksesoris_warna'] ?? NULL;
-        $aksesoris = "jenis:{$aksesoris_jenis} - ukuran:{$aksesoris_ukuran} - warna:{$aksesoris_warna}";
-
-        $dudukan_id = $_POST['dudukan'] ?? NULL;
-        $dudukan_jenis = NULL;
-        if ($dudukan_id) {
-            $stmt = $pdo->prepare("SELECT jenis FROM dudukan WHERE id = ?");
-            $stmt->execute([$dudukan_id]);
-            $dudukan_row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $dudukan_jenis = $dudukan_row['jenis'];
-        }
-
-        $jumlah_layer = $_POST['jumlah_layer'] ?? NULL;
-        $logo = $_POST['logo'] ?? NULL;
-        $ukuran_poly = $_POST['ukuran_poly'] ?? NULL;
-        $lokasi_poly = $_POST['lokasi_poly'] ?? NULL;
-        $klise = $_POST['klise'] ?? NULL;
-
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise]);
-
-        header("Location: index.php");
-        exit;
-    }
-}
 
 // Fetch data for dropdowns
 $customers = $pdo->query("SELECT * FROM customer WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
@@ -149,7 +45,7 @@ $logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchA
     <?php include 'navbar.php'; ?>
     <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order</h1>
 
-    <form action="bikin_fo.php" method="post" class="bg-white p-8 shadow-lg">
+    <form action="bikin_shipping.php" method="post" class="bg-white p-8 shadow-lg">
         <h2 class="text-xl font-bold mb-4 text-gray-400">BOX</h2>
         <div class="border-b-2 border-gray-300 mb-6"></div>
         <div class="mb-4">
@@ -468,7 +364,7 @@ $logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchA
         </div>
 
         <div class="flex items-center justify-start space-x-4">
-            <input type="submit" value="Submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="submit" value="Next" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             <a href="daftar_fo.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Back
             </a>
