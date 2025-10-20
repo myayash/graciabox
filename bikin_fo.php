@@ -101,9 +101,9 @@ foreach ($prefixes as $prefix) {
         <div class="mb-4">
             <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (cm):</label>
             <div class="flex space-x-2">
-                <input type="text" name="length" placeholder="Length" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <input type="text" name="width" placeholder="Width" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <input type="text" name="height" placeholder="Height" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <input type="text" name="length" placeholder="panjang" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <input type="text" name="width" placeholder="lebar" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                <input type="text" name="height" placeholder="tinggi" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             </div>
         </div>
 
@@ -371,7 +371,7 @@ foreach ($prefixes as $prefix) {
         <div class="mb-4">
             <div class="flex space-x-4">
                 <div class="w-1/2">
-                    <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo:</label>
+                    <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
                     <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                         <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
                         <?php foreach ($logo_options as $logo): ?>
@@ -380,7 +380,7 @@ foreach ($prefixes as $prefix) {
                     </select>
                 </div>
                 <div class="w-1/2">
-                    <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly:</label>
+                    <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
                     <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                         <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
                         <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
@@ -394,7 +394,7 @@ foreach ($prefixes as $prefix) {
         <div class="mb-4">
             <div class="flex space-x-4">
                 <div class="w-1/2">
-                    <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly:</label>
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
                             <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
@@ -407,7 +407,7 @@ foreach ($prefixes as $prefix) {
                     </div>
                 </div>
                 <div class="w-1/2">
-                    <label class="block text-gray-800 text-sm font-semibold mb-2">Klise:</label>
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
                             <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>

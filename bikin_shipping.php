@@ -30,17 +30,17 @@ $alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::F
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bikin form order - shipping</title>
+    <title>bikin form order - pengiriman</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order - shipping</h1>
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order</h1>
 
     <form action="process_order.php" method="post" class="bg-white p-8 shadow-lg">
         <input type="hidden" name="from_shipping" value="1">
-        <h2 class="text-xl font-bold mb-4 text-gray-400">SHIPPING DETAILS</h2>
+        <h2 class="text-xl font-bold mb-4 text-gray-400">PENGIRIMAN</h2>
         <div class="border-b-2 border-gray-300 mb-6"></div>
 
         <div class="mb-4">
@@ -68,6 +68,8 @@ $alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::F
             <input type="text" name="tujuan_kirim" id="tujuan_kirim" value="<?php echo htmlspecialchars($order_form['tujuan_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
         </div>
 
+        <h2 class="text-xl font-bold mb-4 text-gray-400">PEMBAYARAN</h2>
+        <div class="border-b-2 border-gray-300 mb-6"></div>
         <div class="mb-4">
             <label for="tanggal_dp" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal DP:</label>
             <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
