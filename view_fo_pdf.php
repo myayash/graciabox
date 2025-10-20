@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
+use Dompdf\Dompdf;
+use Dompdf\Options;
+error_reporting(E_ALL); ini_set('display_errors', 1);
 require_once 'config.php';
 session_start();
 
@@ -26,50 +30,257 @@ $stmt->execute([$order_id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
+
     die('Error: Order not found.');
+
 }
 
-// Load Composer's autoloader
-require_once __DIR__ . '/vendor/autoload.php';
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
 
-// Instantiate and use the dompdf class
-$options = new Options();
-$options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true);
-$dompdf = new Dompdf($options);
+// Helper function to format display key and value
 
-// Generate HTML content for the PDF
-$html = '<h1 style="text-align: center;">Order Details (ID: ' . htmlspecialchars($order['id']) . ')</h1>';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-foreach ($order as $key => $value) {
-    // Skip is_archived for display
-    if ($key === 'is_archived') {
-        continue;
-    }
+function formatField($key, $value) {
 
     $display_key = ucwords(str_replace(['_', 'dlm', 'lr', 'pj'], [' ', 'Dalam', 'Luar', 'PJ'], $key));
+
     $display_value = htmlspecialchars($value);
 
-    // Special formatting for specific fields
+
+
     if ($key === 'cover_dlm') {
+
         $display_value = nl2br(htmlspecialchars(preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value)));
+
     } else if ($key === 'cover_lr') {
-        $display_value = nl2br(htmlspecialchars(str_replace("\n", "; ", $value)));
+
+        $display_value = nl2br(htmlspecialchars(str_replace("\\n", "; ", $value)));
+
     } else if ($key === 'quantity') {
+
         $display_value = htmlspecialchars(str_replace(' pcs', '', $value));
+
+    } else if ($key === 'aksesoris') {
+
+        $display_value = nl2br(htmlspecialchars(preg_replace('/(jenis|ukuran|warna):\s*/i', '', $value)));
+
     }
 
-    $html .= '<tr>';
-    $html .= '<td width="30%"><strong>' . $display_key . ':</strong></td>';
-    $html .= '<td width="70%">' . $display_value . '</td>';
-    $html .= '</tr>';
+    return ['display_key' => $display_key, 'display_value' => $display_value];
+
+}
+
+
+
+// Instantiate and use the dompdf class
+
+$options = new Options();
+
+$options->set('isHtml5ParserEnabled', true);
+
+$options->set('isRemoteEnabled', true);
+
+$dompdf = new Dompdf($options);
+
+
+
+// Generate HTML content for the PDF
+
+$html = '<style>body { font-family: helvetica, sans-serif; }</style><h1 style="text-align: center;">SALES CUSTOM ORDER (NO. ' . htmlspecialchars($order['id']) . ')</h1>';
+$html .= '<p style="text-align: center;">' . htmlspecialchars($order['dibuat']) . '</p>';
+
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">'; // Main table for 2 columns
+
+$html .= '<tr>'; // Row for the two columns
+
+
+
+// Column 1
+
+$html .= '<td width="50%" valign="top">';
+
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+
+
+
+// Column 1, Group 1
+
+$group1_col1_fields = [
+
+    'Nama' => 'nama',
+
+    'Ukuran (cm)' => 'ukuran',
+
+    'Kode Pisau' => 'kode_pisau',
+
+    'Quantity' => 'quantity'
+
+];
+
+foreach ($group1_col1_fields as $display_name => $db_key) {
+
+    if (isset($order[$db_key])) {
+
+        $formatted = formatField($db_key, $order[$db_key]);
+
+        $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+
+    }
+
+}
+
+$html .= '</table><br/>'; // End Group 1, add a break
+
+
+
+// Column 1, Group 2
+
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+
+$group2_col1_fields = [
+
+    'Model Box' => 'model_box',
+
+    'Nama Box Lama' => 'nama_box_lama',
+
+    'Jenis Board' => 'jenis_board',
+
+    'Cover Dalam' => 'cover_dlm',
+
+    'Cover Luar' => 'cover_lr'
+
+];
+
+foreach ($group2_col1_fields as $display_name => $db_key) {
+
+    if (isset($order[$db_key])) {
+
+        $formatted = formatField($db_key, $order[$db_key]);
+
+        $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+
+    }
+
+}
+
+$html .= '</table><br/>'; // End Group 2, add a break
+
+
+
+// Column 1, Group 3
+
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+
+$group3_col1_fields = [
+
+    'Aksesoris' => 'aksesoris',
+
+    'Dudukan' => 'dudukan',
+
+    'Logo' => 'logo',
+
+    'Ukuran Poly' => 'ukuran_poly',
+
+    'Lokasi Poly' => 'lokasi_poly',
+
+    'Klise' => 'klise'
+
+];
+
+        foreach ($group3_col1_fields as $display_name => $db_key) {
+
+            if (isset($order[$db_key])) {
+
+                $formatted = formatField($db_key, $order[$db_key]);
+
+                $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+
+            }
+
+        }
+
+$html .= '</table>'; // End Group 3
+
+$html .= '</td>'; // End Column 1
+
+
+
+// Column 2
+
+$html .= '<td width="50%" valign="top">';
+
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+
+
+
+// Column 2, Group 1
+
+$group1_col2_fields = [
+
+    'Tanggal Kirim' => 'tanggal_kirim',
+
+    'Jam Kirim' => 'jam_kirim',
+
+    'Dikirim Dari' => 'dikirim_dari',
+
+    'Tujuan Kirim' => 'tujuan_kirim'
+
+];
+
+foreach ($group1_col2_fields as $display_name => $db_key) {
+
+    if (isset($order[$db_key])) {
+
+        $formatted = formatField($db_key, $order[$db_key]);
+
+        $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+
+    }
+
+}
+
+$html .= '</table>'; // End Group 1
+
+$html .= '</td>'; // End Column 2
+
+$html .= '</tr>'; // End Row for the two columns
+
+
+
+// Bottom Group (spanning both columns)
+
+$html .= '<tr><td colspan="2">';
+
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+
+$bottom_group_fields = [
+
+    'Keterangan' => 'keterangan',
+
+    'Sales PJ' => 'sales_pj',
+
+    'Lokasi' => 'lokasi'
+
+];
+
+foreach ($bottom_group_fields as $display_name => $db_key) {
+
+    if (isset($order[$db_key])) {
+
+        $formatted = formatField($db_key, $order[$db_key]);
+
+        $html .= '<tr><td width="15%"><strong>' . $display_name . ':</strong></td><td width="85%">' . $formatted['display_value'] . '</td></tr>';
+
+    }
+
 }
 
 $html .= '</table>';
+
+$html .= '</td></tr>'; // End Bottom Group
+
+$html .= '</table>'; // End Main table
+
+
 
 $dompdf->loadHtml($html);
 

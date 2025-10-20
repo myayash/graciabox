@@ -1,5 +1,5 @@
 <?php
-$host = 'localhost';
+$host = '127.0.0.1';
 $dbname = 'project_form'; // Create this in phpMyAdmin if needed
 $username = 'root';
 $password = ''; // Default for XAMPP
