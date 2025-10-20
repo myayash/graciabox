@@ -68,6 +68,53 @@ $alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::F
             <input type="text" name="tujuan_kirim" id="tujuan_kirim" value="<?php echo htmlspecialchars($order_form['tujuan_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
         </div>
 
+        <div class="mb-4">
+            <label for="tanggal_dp" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal DP:</label>
+            <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Pelunasan:</label>
+            <div class="mt-2">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Harus lunas') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Harus lunas</span>
+                </label>
+                <label class="inline-flex items-center ml-6">
+                    <input type="radio" name="pelunasan" value="Setelah dikirim" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Setelah dikirim') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Setelah dikirim</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Ongkir:</label>
+            <div class="mt-2">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="ongkir" value="Gracia" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['ongkir']) && $order_form['ongkir'] === 'Gracia') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Gracia</span>
+                </label>
+                <label class="inline-flex items-center ml-6">
+                    <input type="radio" name="ongkir" value="Customer" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['ongkir']) && $order_form['ongkir'] === 'Customer') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Customer</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Packing:</label>
+            <div class="mt-2">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="packing" value="Luar kota (Ekspedisi)" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['packing']) && $order_form['packing'] === 'Luar kota (Ekspedisi)') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Luar kota (Ekspedisi)</span>
+                </label>
+                <label class="inline-flex items-center ml-6">
+                    <input type="radio" name="packing" value="Dalam kota" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['packing']) && $order_form['packing'] === 'Dalam kota') ? 'checked' : ''; ?>>
+                    <span class="ml-2 text-gray-800">Dalam kota</span>
+                </label>
+            </div>
+        </div>
+
         <div class="flex items-center justify-start space-x-4">
             <input type="submit" value="Submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             <button type="button" onclick="goBack()" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">

@@ -119,9 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jam_kirim = $form_data['jam_kirim'];
         $dikirim_dari = $form_data['dikirim_dari'];
         $tujuan_kirim = $form_data['tujuan_kirim'];
+        $tanggal_dp = $form_data['tanggal_dp'] ?? NULL;
+        $pelunasan = $form_data['pelunasan'] ?? NULL;
+        $ongkir = $form_data['ongkir'] ?? NULL;
+        $packing = $form_data['packing'] ?? NULL;
 
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $ukuran, $model_box, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing]);
 
         // Unset the session data
         unset($_SESSION['order_form']);

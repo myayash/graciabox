@@ -85,8 +85,17 @@ $dompdf = new Dompdf($options);
 
 // Generate HTML content for the PDF
 
-$html = '<style>body { font-family: helvetica, sans-serif; }</style><h1 style="text-align: center;">SALES CUSTOM ORDER (NO. ' . htmlspecialchars($order['id']) . ')</h1>';
-$html .= '<p style="text-align: center;">' . htmlspecialchars($order['dibuat']) . '</p>';
+$html = '<style>body { font-family: helvetica, sans-serif; }</style>';
+$html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
+$html .= '<div style="float: left;">';
+$html .= '<img src="' . __DIR__ . '/Applications/XAMPP/xamppfiles/htdocs/graciabox-form/graciabox_logo_gray.jpeg" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SALES CUSTOM ORDER (NO. ' . htmlspecialchars($order['id']) . ')</h2>';
+$html .= '</div>';
+$html .= '<div style="float: right;">';
+$html .= '<p style="text-align: right; display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . htmlspecialchars($order['dibuat']) . '</p>';
+$html .= '</div>';
+$html .= '<div style="clear: both;"></div>'; // Clear floats
+$html .= '</div>'; // End container
 
 $html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">'; // Main table for 2 columns
 
@@ -96,10 +105,10 @@ $html .= '<tr>'; // Row for the two columns
 
 // Column 1
 
-$html .= '<td width="50%" valign="top">';
+        $html .= '<td width="60%" valign="top">';
 
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
+        $html .= '<div style="height: 6px;"></div>'; // Placeholder for alignment
+        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
 
 // Column 1, Group 1
@@ -130,7 +139,7 @@ foreach ($group1_col1_fields as $display_name => $db_key) {
 
 $html .= '</table><br/>'; // End Group 1, add a break
 
-
+$html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">BOX</h3>'; // Added heading for Column 1, Group 2
 
 // Column 1, Group 2
 
@@ -164,7 +173,7 @@ foreach ($group2_col1_fields as $display_name => $db_key) {
 
 $html .= '</table><br/>'; // End Group 2, add a break
 
-
+$html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">SPK</h3>'; // Added heading for Column 1, Group 3
 
 // Column 1, Group 3
 
@@ -206,10 +215,10 @@ $html .= '</td>'; // End Column 1
 
 // Column 2
 
-$html .= '<td width="50%" valign="top">';
+        $html .= '<td width="40%" valign="top">';
 
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
+        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">PENGIRIMAN</h3>'; // Added heading for Column 2, Group 1
+        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
 
 // Column 2, Group 1
@@ -238,48 +247,74 @@ foreach ($group1_col2_fields as $display_name => $db_key) {
 
 }
 
-$html .= '</table>'; // End Group 1
+        $html .= '</table>'; // End Group 1
 
-$html .= '</td>'; // End Column 2
+        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">PEMBAYARAN</h3>'; // Added heading for Column 2, Group 2
+        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
+        // Column 2, Group 2
+        $group2_col2_fields = [
+            'Tanggal DP' => 'tanggal_dp',
+            'Pelunasan' => 'pelunasan',
+            'Ongkir' => 'ongkir',
+            'Packing' => 'packing'
+        ];
+
+        foreach ($group2_col2_fields as $display_name => $db_key) {
+            if (isset($order[$db_key])) {
+                $formatted = formatField($db_key, $order[$db_key]);
+                $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+            }
+        }
+
+        $html .= '</table>'; // End Group 2
+
+        $html .= '</td>'; // End Column 2
 $html .= '</tr>'; // End Row for the two columns
 
 
 
-// Bottom Group (spanning both columns)
+
+// Keterangan (separated)
 
 $html .= '<tr><td colspan="2">';
 
 $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
-$bottom_group_fields = [
+if (isset($order['keterangan'])) {
 
-    'Keterangan' => 'keterangan',
+    $formatted = formatField('keterangan', $order['keterangan']);
 
-    'Sales PJ' => 'sales_pj',
-
-    'Lokasi' => 'lokasi'
-
-];
-
-foreach ($bottom_group_fields as $display_name => $db_key) {
-
-    if (isset($order[$db_key])) {
-
-        $formatted = formatField($db_key, $order[$db_key]);
-
-        $html .= '<tr><td width="15%"><strong>' . $display_name . ':</strong></td><td width="85%">' . $formatted['display_value'] . '</td></tr>';
-
-    }
+    $html .= '<tr><td colspan="2" style="text-align: center;"><strong>Keterangan:</strong><br/>' . $formatted['display_value'] . '</td></tr>';
 
 }
 
 $html .= '</table>';
 
+$html .= '</td></tr>';
+
+$html .= '<tr><td><br/></td></tr>'; // Add a break between tables
+
+
+// Bottom Group (spanning both columns) - Formatted like 'dibuat'
+$html .= '<tr><td colspan="2" style="text-align: right;">'; // Container for right-aligned paragraphs
+if (isset($order['sales_pj'])) {
+    $formatted = formatField('sales_pj', $order['sales_pj']);
+    $html .= '<p style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . $formatted['display_value'] . ',</p><br/>';
+}
+if (isset($order['lokasi'])) {
+    $formatted = formatField('lokasi', $order['lokasi']);
+    $html .= '<p style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . $formatted['display_value'] . '</p>';
+}
 $html .= '</td></tr>'; // End Bottom Group
 
-$html .= '</table>'; // End Main table
 
+
+
+
+
+
+$html .= '</table>'; // End Main table
 
 
 $dompdf->loadHtml($html);
