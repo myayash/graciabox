@@ -51,21 +51,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cover_luar_warna = $form_data['cover_luar_warna'];
         $cover_luar_gsm = $form_data['cover_luar_gsm'];
         $cover_luar_ukuran = $form_data['cover_luar_ukuran'];
-        $cover_luar_str = "({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} gsm - {$cover_luar_ukuran}";
+        $cover_luar_str = "({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} - {$cover_luar_ukuran}";
 
         $box_supplier = $form_data['box_supplier'];
         $box_jenis = $form_data['box_jenis'];
         $box_warna = $form_data['box_warna'];
         $box_gsm = $form_data['box_gsm'];
         $box_ukuran = $form_data['box_ukuran'];
-        $box_str = "(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} gsm - {$box_ukuran}";
+        $box_str = "(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} - {$box_ukuran}";
 
         $dudukan_supplier = $form_data['dudukan_supplier'];
         $dudukan_jenis = $form_data['dudukan_jenis'];
         $dudukan_warna = $form_data['dudukan_warna'];
         $dudukan_gsm = $form_data['dudukan_gsm'];
         $dudukan_ukuran = $form_data['dudukan_ukuran'];
-        $dudukan_str = "(dudukan) {$dudukan_supplier} - {$dudukan_jenis} - {$dudukan_warna} - {$dudukan_gsm} gsm - {$dudukan_ukuran}";
+        $dudukan_str = "(dudukan) {$dudukan_supplier} - {$dudukan_jenis} - {$dudukan_warna} - {$dudukan_gsm} - {$dudukan_ukuran}";
 
         $cover_lr = $cover_luar_str . "\n" . $box_str . "\n" . $dudukan_str;
 
