@@ -107,7 +107,7 @@ $html .= '<tr>'; // Row for the two columns
 
         $html .= '<td width="60%" valign="top">';
 
-        $html .= '<div style="height: 6px;"></div>'; // Placeholder for alignment
+        $html .= '<div style="height: 5px;"></div>'; // Placeholder for alignment
         $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
 
@@ -249,7 +249,7 @@ foreach ($group1_col2_fields as $display_name => $db_key) {
 
         $html .= '</table>'; // End Group 1
 
-        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">PEMBAYARAN</h3>'; // Added heading for Column 2, Group 2
+        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 20px 0 5px 0;">PEMBAYARAN</h3>'; // Added heading for Column 2, Group 2
         $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
 
         // Column 2, Group 2
