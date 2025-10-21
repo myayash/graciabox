@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
 
     // Basic required checks
     if (empty($post['nama_customer'])) {
-        $form_errors['nama_customer'] = 'Nama Customer is required.';
+        $form_errors['nama_customer'] = 'Nama Customer is requi/cover red.';
     }
     if (empty($post['kode_pisau'])) {
         $form_errors['kode_pisau'] = 'Kode Pisau is required.';
@@ -64,13 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $kode_pisau = $post['kode_pisau'];
     $jenis_board = $post['jenis_board'];
 
-    // Build cover_dlm
+    // Build cover_dlm: store only supplier and warna per table requirement
+    // (Cover Dalam field below Jenis Board should populate these)
     $cover_dlm_supplier = $post['cover_dalam_supplier'] ?? '';
-    $cover_dlm_jenis = $post['cover_dalam_jenis'] ?? ($post['cover_dalam_warna'] ?? '');
     $cover_dlm_warna = $post['cover_dalam_warna'] ?? '';
-    $cover_dlm_gsm = $post['cover_dalam_gsm'] ?? '';
-    $cover_dlm_ukuran = $post['cover_dalam_ukuran'] ?? '';
-    $cover_dlm = trim("supplier:{$cover_dlm_supplier} - jenis:{$cover_dlm_jenis} - warna:{$cover_dlm_warna} - gsm:{$cover_dlm_gsm} - ukuran:{$cover_dlm_ukuran}", " -");
+    // store only supplier and warna (e.g. "SupplierName - WarnaName")
+    $cover_dlm = trim("{$cover_dlm_supplier} - {$cover_dlm_warna}", " -");
 
     // Build cover_luar + box + dudukan strings (tolerant)
     $cover_luar_radio = $post['cover_luar_radio'] ?? '';
@@ -79,7 +78,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $cover_luar_warna = $post['cover_luar_warna'] ?? '';
     $cover_luar_gsm = $post['cover_luar_gsm'] ?? '';
     $cover_luar_ukuran = $post['cover_luar_ukuran'] ?? '';
-    $cover_luar_str = trim("({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} - {$cover_luar_ukuran}", " -");
+
+    // Determine label for cover luar based on selected model box (the dropdown labels change per model)
+    $box_luar_label = 'Box Luar';
+    $box_dlm_label = 'Box Dalam';
+    if (!empty($model_box)) {
+        // Try to lookup the model_box row to get the labels (box_luar / box_dlm)
+        $stmt = $pdo->prepare("SELECT box_luar, box_dlm FROM model_box WHERE nama = ? LIMIT 1");
+        $stmt->execute([$model_box]);
+        $mbRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($mbRow) {
+            if (!empty($mbRow['box_luar'])) $box_luar_label = $mbRow['box_luar'];
+            if (!empty($mbRow['box_dlm'])) $box_dlm_label = $mbRow['box_dlm'];
+        }
+    }
+
+    // Compose the cover_luar string: store only the chosen dropdown values (supplier and warna)
+    // Prefix with the model-specific label so it is clear which UI label was used
+    $cover_luar_selected_supplier = $cover_luar_supplier;
+    $cover_luar_selected_warna = $cover_luar_warna;
+    $cover_luar_str = trim("{$box_luar_label}: {$cover_luar_selected_supplier} - {$cover_luar_selected_warna}", " -");
 
     if ($kode_pisau === 'baru') {
         // insert into barang
@@ -149,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
 
     // Optionally clear session order form
     unset($_SESSION['order_form']);
-    $_SESSION['flash_success'] = 'Order saved successfully.';
+    $_SESSION['flash_success'] = 'FO SUKSES disimpan';
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit();
 }
@@ -248,9 +266,11 @@ foreach ($prefixes as $prefix) {
     <?php endif; ?>
 
     <?php if (!empty($_SESSION['flash_success'])): ?>
-        <div class="mb-4 p-3 bg-green-100 border border-green-300 text-green-800">
-            <?= htmlspecialchars($_SESSION['flash_success']) ?>
+        <?php $flash_msg = $_SESSION['flash_success']; ?>
+        <div id="server_flash_success" class="mb-4 p-3 bg-green-100 border border-green-300 text-green-800">
+            <?= htmlspecialchars($flash_msg) ?>
         </div>
+        <script>window.__flashSuccess = <?= json_encode($flash_msg) ?>;</script>
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
 
@@ -520,8 +540,7 @@ foreach ($prefixes as $prefix) {
                 </div>
                     
                 
-                <!-- Insert PENGIRIMAN fields from bikin_shipping.php -->
-                 <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
                 <div class="border-b-2 border-gray-300 mb-6"></div>
                 <div class="mb-4">
                     <div class="flex space-x-4">
@@ -639,6 +658,20 @@ foreach ($prefixes as $prefix) {
         </div>
     </form>
 
+    <!-- Client-side error container -->
+    <div id="client_errors" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-800"></div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
+            <h3 class="text-lg font-semibold mb-2">notif</h3>
+            <p id="successModalMessage" class="mb-4 text-gray-700"></p>
+            <div class="flex justify-end">
+                <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function handleKodePisauChange(value) {
             const modelBoxBaru = document.getElementById('model_box_baru');
@@ -699,6 +732,107 @@ foreach ($prefixes as $prefix) {
                 updateCoverLuarLabelsFromModel();
             }
         });
+    </script>
+    <script>
+        // Simple client-side validation before submit
+        (function(){
+            const form = document.querySelector('form');
+            const clientErrors = document.getElementById('client_errors');
+            const successModal = document.getElementById('successModal');
+            const successModalMessage = document.getElementById('successModalMessage');
+            const successModalClose = document.getElementById('successModalClose');
+
+            function showErrors(errors) {
+                clientErrors.innerHTML = errors.map(e => '<div>' + e.msg + '</div>').join('');
+                clientErrors.classList.remove('hidden');
+                clientErrors.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+                // highlight invalid fields
+                errors.forEach(function(err){
+                    if (!err.field) return;
+                    const el = form.querySelector('[name="' + err.field + '"]');
+                    if (el) {
+                        el.classList.add('border-red-600', 'ring-1', 'ring-red-400');
+                    }
+                });
+            }
+
+            function clearErrors() {
+                clientErrors.innerHTML = '';
+                clientErrors.classList.add('hidden');
+                // remove highlighting
+                const invalidMarked = form.querySelectorAll('.border-red-600');
+                invalidMarked.forEach(function(el){
+                    el.classList.remove('border-red-600', 'ring-1', 'ring-red-400');
+                });
+            }
+
+            form.addEventListener('submit', function(ev){
+                clearErrors();
+                const data = new FormData(form);
+                const errors = [];
+                const mappedErrors = []; // {msg, field}
+
+                const nama = data.get('nama_customer') || '';
+                const kode_pisau = data.get('kode_pisau') || '';
+                const jenis_board = data.get('jenis_board') || '';
+                const dibuat_oleh = data.get('dibuat_oleh') || '';
+
+                if (!nama.trim()) mappedErrors.push({msg: 'Nama Customer is required.', field: 'nama_customer'});
+                if (!kode_pisau) mappedErrors.push({msg: 'Kode Pisau is required.', field: 'kode_pisau'});
+                if (!jenis_board) mappedErrors.push({msg: 'Jenis Board is required.', field: 'jenis_board'});
+
+                if (kode_pisau === 'baru') {
+                    const mb = data.get('model_box_baru') || '';
+                    const length = data.get('length') || '';
+                    const width = data.get('width') || '';
+                    const height = data.get('height') || '';
+                    if (!mb) mappedErrors.push({msg: 'Model Box is required for new kode pisau.', field: 'model_box_baru'});
+                    if (!length || !width || !height) mappedErrors.push({msg: 'Lenght, Width and Height are required for new kode pisau.', field: 'length'});
+                    if (!dibuat_oleh) mappedErrors.push({msg: 'Dibuat Oleh is required.', field: 'dibuat_oleh'});
+                }
+                if (kode_pisau === 'lama') {
+                    const barangLama = data.get('barang_lama') || '';
+                    if (!barangLama) mappedErrors.push({msg: 'Please select an existing Barang for kode pisau lama.', field: 'barang_lama'});
+                    if (!dibuat_oleh) mappedErrors.push({msg: 'Dibuat Oleh is required.', field: 'dibuat_oleh'});
+                }
+
+                const qty = data.get('quantity');
+                if (qty && qty.trim() !== '') {
+                    const n = parseInt(qty, 10);
+                    if (isNaN(n) || n <= 0) mappedErrors.push({msg: 'Quantity must be a positive integer.', field: 'quantity'});
+                }
+
+                if (mappedErrors.length) {
+                    ev.preventDefault();
+                    // Focus first field if possible
+                    showErrors(mappedErrors);
+                    const firstFieldName = mappedErrors[0].field;
+                    const firstEl = form.querySelector('[name="' + firstFieldName + '"]');
+                    if (firstEl) {
+                        firstEl.focus({preventScroll: false});
+                        // scroll more smoothly
+                        setTimeout(function(){ firstEl.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 80);
+                    }
+                    return false;
+                }
+
+                // let the form submit
+            });
+
+            // Show success modal if server told us so
+            if (window.__flashSuccess) {
+                // hide native server flash box if present
+                const serverFlash = document.getElementById('server_flash_success');
+                if (serverFlash) serverFlash.style.display = 'none';
+                successModalMessage.textContent = window.__flashSuccess;
+                successModal.classList.remove('hidden');
+            }
+
+            successModalClose && successModalClose.addEventListener('click', function(){
+                successModal.classList.add('hidden');
+            });
+        })();
     </script>
     </body>
 </html>

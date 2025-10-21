@@ -150,8 +150,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Attach change listeners to every supplier select on the page so the matching
   // 'Warna' (and other) dropdowns in the same row are populated/enabled.
+  // Match any name that contains '_supplier' to support row-specific suffixes.
   const allSupplierSelects = document.querySelectorAll(
-    'select[name$="_supplier"]'
+    'select[name*="_supplier"]'
   );
   allSupplierSelects.forEach((s) => {
     s.addEventListener("change", function () {
@@ -159,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const row = s.closest("div.flex");
       if (row) {
         const clears = row.querySelectorAll(
-          'select[name$="_jenis"], select[name$="_warna"], select[name$="_gsm"], select[name$="_ukuran"]'
+          'select[name*="_jenis"], select[name*="_warna"], select[name*="_gsm"], select[name*="_ukuran"]'
         );
         clears.forEach((c) => (c.value = ""));
       }
@@ -167,6 +168,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // The code supports two styles:
+  // 1) legacy single selects with IDs like cover_luar_supplier (kept for backward-compat)
+  // 2) row-specific selects that include suffixes, e.g. cover_luar_supplier_luar, cover_luar_supplier_dlm
+  // If the legacy ID exists, keep its handler. Otherwise, ensure any select whose name contains
+  // the prefix '_supplier' will trigger the row-aware updater.
   if (coverLuarSupplier) {
     coverLuarSupplier.addEventListener("change", function () {
       if (coverLuarJenis) coverLuarJenis.value = "";
@@ -174,6 +180,28 @@ document.addEventListener("DOMContentLoaded", function () {
       if (coverLuarGsm) coverLuarGsm.value = "";
       if (coverLuarUkuran) coverLuarUkuran.value = "";
       updateKertasOptions("cover_luar");
+    });
+  } else {
+    // No single ID; attach handlers to any supplier selects that belong to cover_luar rows
+    const coverLuarRowSuppliers = document.querySelectorAll(
+      'select[name^="cover_luar_supplier"]'
+    );
+    coverLuarRowSuppliers.forEach((s) => {
+      s.addEventListener("change", function () {
+        // clear the row's selects first
+        const row = s.closest("div.flex");
+        if (row) {
+          const clears = row.querySelectorAll(
+            'select[name*="_jenis"], select[name*="_warna"], select[name*="_gsm"], select[name*="_ukuran"]'
+          );
+          clears.forEach((c) => {
+            c.value = "";
+            c.disabled = true;
+          });
+        }
+        // Use the row-aware updater
+        updateKertasOptionsForRow(s);
+      });
     });
   }
 
