@@ -103,15 +103,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedSupplier = supplierEl.value;
     // Find the closest row that contains the supplier and related selects
     const row = supplierEl.closest("div.flex");
+    // Use contains selectors so names with suffixes (e.g. _warna_luar) are matched
     const jenisDropdown = row
-      ? row.querySelector('select[name$="_jenis"]')
+      ? row.querySelector('select[name*="_jenis"]')
       : null;
     const warnaDropdown = row
-      ? row.querySelector('select[name$="_warna"]')
+      ? row.querySelector('select[name*="_warna"]')
       : null;
-    const gsmDropdown = row ? row.querySelector('select[name$="_gsm"]') : null;
+    const gsmDropdown = row ? row.querySelector('select[name*="_gsm"]') : null;
     const ukuranDropdown = row
-      ? row.querySelector('select[name$="_ukuran"]')
+      ? row.querySelector('select[name*="_ukuran"]')
       : null;
 
     if (!selectedSupplier) {

@@ -71,15 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // store only supplier and warna (e.g. "SupplierName - WarnaName")
     $cover_dlm = trim("{$cover_dlm_supplier} - {$cover_dlm_warna}", " -");
 
-    // Build cover_luar + box + dudukan strings (tolerant)
+    // Build cover_luar values. Support row-specific inputs (Box Luar / Box Dalam)
     $cover_luar_radio = $post['cover_luar_radio'] ?? '';
-    $cover_luar_supplier = $post['cover_luar_supplier'] ?? '';
-    $cover_luar_jenis = $post['cover_luar_jenis'] ?? ($post['cover_luar_warna'] ?? '');
-    $cover_luar_warna = $post['cover_luar_warna'] ?? '';
+    // row-specific (preferred)
+    $cover_luar_supplier_luar = $post['cover_luar_supplier_luar'] ?? $post['cover_luar_supplier'] ?? '';
+    $cover_luar_warna_luar = $post['cover_luar_warna_luar'] ?? $post['cover_luar_warna'] ?? '';
+    $cover_luar_supplier_dlm = $post['cover_luar_supplier_dlm'] ?? '';
+    $cover_luar_warna_dlm = $post['cover_luar_warna_dlm'] ?? '';
+    // legacy/generic fields (kept for tolerance)
+    $cover_luar_jenis = $post['cover_luar_jenis'] ?? '';
     $cover_luar_gsm = $post['cover_luar_gsm'] ?? '';
     $cover_luar_ukuran = $post['cover_luar_ukuran'] ?? '';
 
     // Determine label for cover luar based on selected model box (the dropdown labels change per model)
+    // Resolve $model_box early so server can use model-specific labels when composing cover_lr
+    $model_box = '';
+    if (isset($post['kode_pisau']) && $post['kode_pisau'] === 'baru') {
+        $model_box = $post['model_box_baru'] ?? '';
+    } elseif (isset($post['kode_pisau']) && $post['kode_pisau'] === 'lama') {
+        $barang_id_temp = $post['barang_lama'] ?? null;
+        if ($barang_id_temp) {
+            $stmtTmp = $pdo->prepare("SELECT model_box, ukuran, nama FROM barang WHERE id = ? LIMIT 1");
+            $stmtTmp->execute([$barang_id_temp]);
+            $brTmp = $stmtTmp->fetch(PDO::FETCH_ASSOC);
+            if ($brTmp) {
+                $model_box = $brTmp['model_box'] ?? '';
+                // preload ukuran/nama_box_lama if available so later logic can reuse
+                $ukuran = $brTmp['ukuran'] ?? ($ukuran ?? '');
+                $nama_box_lama_value = $brTmp['nama'] ?? ($nama_box_lama_value ?? null);
+            }
+        }
+    }
+
     $box_luar_label = 'Box Luar';
     $box_dlm_label = 'Box Dalam';
     if (!empty($model_box)) {
@@ -93,11 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         }
     }
 
-    // Compose the cover_luar string: store only the chosen dropdown values (supplier and warna)
-    // Prefix with the model-specific label so it is clear which UI label was used
-    $cover_luar_selected_supplier = $cover_luar_supplier;
-    $cover_luar_selected_warna = $cover_luar_warna;
-    $cover_luar_str = trim("{$box_luar_label}: {$cover_luar_selected_supplier} - {$cover_luar_selected_warna}", " -");
+    // Compose the cover_luar string using both rows (Box Luar and Box Dalam)
+    $part_luar = trim("{$box_luar_label}: {$cover_luar_supplier_luar} - {$cover_luar_warna_luar}", " -");
+    $part_dlm = trim("{$box_dlm_label}: {$cover_luar_supplier_dlm} - {$cover_luar_warna_dlm}", " -");
+    $cover_luar_str = trim($part_luar . "\n" . $part_dlm, "\n ");
 
     if ($kode_pisau === 'baru') {
         // insert into barang
@@ -158,8 +180,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $ongkir = $post['ongkir'] ?? null;
     $packing = $post['packing'] ?? null;
 
-    // Combine cover_luar + box + dudukan into cover_lr for orders.cover_lr
-    $cover_lr = $cover_luar_str . "\n" . $box_str . "\n" . ($dudukan_jenis ?? '');
+    // Store only the cover luar lines (Box Luar and Box Dalam) in cover_lr as requested
+    $cover_lr = $cover_luar_str;
 
     // Insert into orders
     $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -396,36 +418,36 @@ foreach ($prefixes as $prefix) {
                         <div class="flex space-x-2 mt-1 pl-4">
                             <label id="cover_luar_row1_label" class="w-1/2 text-gray-700">Box Luar</label>
                         </div>
-                        <div class="flex space-x-2 mt-2 pl-4">
-                          <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                            <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier']) ? 'selected' : ''; ?>>Supplier</option>
-                            <?php foreach ($distinct_suppliers as $supplier): ?>
-                              <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier']) && $order_form['cover_luar_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                              <?php endforeach; ?>
-                            </select>
+                                                <div class="flex space-x-2 mt-2 pl-4">
+                                                    <select name="cover_luar_supplier_luar" id="cover_luar_supplier_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
+                                                        <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_luar']) ? 'selected' : ''; ?>>Supplier</option>
+                                                        <?php foreach ($distinct_suppliers as $supplier): ?>
+                                                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_luar']) && $order_form['cover_luar_supplier_luar'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
                             
-                            <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna']) ? 'selected' : ''; ?>>Warna</option>
-                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
-                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna']) && $order_form['cover_luar_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                                                        <select name="cover_luar_warna_luar" id="cover_luar_warna_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
+                                                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_luar']) ? 'selected' : ''; ?>>Warna</option>
+                                                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
+                                                                        <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_luar']) && $order_form['cover_luar_warna_luar'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                                                <?php endforeach; ?>
+                                                        </select>
                             
-                        </div>
+                                                </div>
                         <div class="flex space-x-2 mt-1 pl-4">
                             <label id="cover_luar_row2_label" class="w-1/2 text-gray-700">Box Dalam</label>
                         </div>
                         <div class="flex space-x-2 mt-2 pl-4">
-                            <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                                <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier']) ? 'selected' : ''; ?>>Supplier</option>
+                            <select name="cover_luar_supplier_dlm" id="cover_luar_supplier_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
+                                <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_dlm']) ? 'selected' : ''; ?>>Supplier</option>
                                 <?php foreach ($distinct_suppliers as $supplier): ?>
-                                    <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier']) && $order_form['cover_luar_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                    <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_dlm']) && $order_form['cover_luar_supplier_dlm'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna']) ? 'selected' : ''; ?>>Warna</option>
+                            <select name="cover_luar_warna_dlm" id="cover_luar_warna_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
+                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_dlm']) ? 'selected' : ''; ?>>Warna</option>
                                 <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
-                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna']) && $order_form['cover_luar_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_dlm']) && $order_form['cover_luar_warna_dlm'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
                                 <?php endforeach; ?>
                             </select>
                             
