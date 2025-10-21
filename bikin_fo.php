@@ -181,13 +181,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $pelunasan = $post['pelunasan'] ?? null;
     $ongkir = $post['ongkir'] ?? null;
     $packing = $post['packing'] ?? null;
+    // biaya
+    $biaya = $post['biaya'] ?? null;
 
     // Store only the cover luar lines (Box Luar and Box Dalam) in cover_lr as requested
     $cover_lr = $cover_luar_str;
 
     // Insert into orders (include feedback_cust before keterangan)
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing]);
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
 
     // Optionally clear session order form
     unset($_SESSION['order_form']);
@@ -561,6 +563,11 @@ foreach ($prefixes as $prefix) {
                             <span class="ml-2 text-gray-800">Dalam kota</span>
                         </label>
                     </div>
+                </div>
+                <!-- Biaya field -->
+                <div class="mb-4">
+                    <label for="biaya" class="block text-gray-800 text-sm font-semibold mb-2">Biaya</label>
+                    <input type="text" name="biaya" id="biaya" value="<?php echo htmlspecialchars($order_form['biaya'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" placeholder="0">
                 </div>
                     
                 
