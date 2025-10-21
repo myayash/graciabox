@@ -163,6 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $lokasi = $post['lokasi'] ?? null;
     $quantity = (isset($post['quantity']) && $post['quantity'] !== '') ? ($post['quantity'] . ' pcs') : null;
     $keterangan = $post['keterangan'] ?? null;
+    // feedback customer
+    $feedback_cust = $post['feedback_cust'] ?? null;
     $aksesoris = 'jenis:' . ($post['aksesoris_jenis'] ?? '') . ' - ukuran:' . ($post['aksesoris_ukuran'] ?? '') . ' - warna:' . ($post['aksesoris_warna'] ?? '');
     $jumlah_layer = $post['jumlah_layer'] ?? null;
     $logo = $post['logo'] ?? null;
@@ -183,9 +185,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Store only the cover luar lines (Box Luar and Box Dalam) in cover_lr as requested
     $cover_lr = $cover_luar_str;
 
-    // Insert into orders
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing]);
+    // Insert into orders (include feedback_cust before keterangan)
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing]);
 
     // Optionally clear session order form
     unset($_SESSION['order_form']);
@@ -640,6 +642,11 @@ foreach ($prefixes as $prefix) {
         </div>
 
         <div class="border-b-2 border-gray-300 mt-6 mb-6"></div>
+        <div class="mb-4">
+            <label for="feedback_cust" class="block text-gray-800 text-sm font-semibold mb-2">Feedback Customer</label>
+            <input type="text" name="feedback_cust" id="feedback_cust" value="<?php echo htmlspecialchars($order_form['feedback_cust'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+        </div>
+
         <div class="mb-4">
             <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan</label>
             <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['keterangan'] ?? ''); ?></textarea>
