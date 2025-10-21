@@ -26,7 +26,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 
     try {
         // Fetch existing model box data
-        $stmt = $pdo->prepare("SELECT id, nama FROM model_box WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, nama, box_luar, box_dlm FROM model_box WHERE id = ?");
         $stmt->execute([$id]);
         $model_box = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -46,11 +46,13 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 // Handle form submission for updating model box
 if (isset($_POST['update_model_box']) && $model_box) {
     $nama = trim($_POST['nama']);
+    $box_luar = trim($_POST['box_luar']);
+    $box_dlm = trim($_POST['box_dlm']);
 
     if (!empty($nama)) {
         try {
-            $stmt = $pdo->prepare("UPDATE model_box SET nama = ? WHERE id = ?");
-            $stmt->execute([$nama, $model_box['id']]);
+            $stmt = $pdo->prepare("UPDATE model_box SET nama = ?, box_luar = ?, box_dlm = ? WHERE id = ?");
+            $stmt->execute([$nama, $box_luar, $box_dlm, $model_box['id']]);
             $message = "Model Box updated successfully!";
             $message_type = 'success';
             header("Location: daftar_model_box.php");
@@ -93,6 +95,16 @@ if (isset($_POST['update_model_box']) && $model_box) {
             <div class="mb-4">
                 <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Model Box:</label>
                 <input type="text" name="nama" id="nama" value="<?php echo htmlspecialchars($model_box['nama']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="box_luar" class="block text-gray-800 text-sm font-semibold mb-2">Box Luar:</label>
+                <input type="text" name="box_luar" id="box_luar" value="<?php echo htmlspecialchars($model_box['box_luar']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            </div>
+
+            <div class="mb-4">
+                <label for="box_dlm" class="block text-gray-800 text-sm font-semibold mb-2">Box Dalam:</label>
+                <input type="text" name="box_dlm" id="box_dlm" value="<?php echo htmlspecialchars($model_box['box_dlm']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             </div>
 
             <div class="flex items-center justify-start space-x-4">

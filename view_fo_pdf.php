@@ -131,7 +131,7 @@ foreach ($group1_col1_fields as $display_name => $db_key) {
 
         $formatted = formatField($db_key, $order[$db_key]);
 
-        $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+        $html .= '<tr><td width="30%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 
     }
 
@@ -165,7 +165,7 @@ foreach ($group2_col1_fields as $display_name => $db_key) {
 
         $formatted = formatField($db_key, $order[$db_key]);
 
-        $html .= '<tr><td width="30%" style="vertical-align: top;"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+        $html .= '<tr><td width="30%" style="vertical-align: top;"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 
     }
 
@@ -201,7 +201,7 @@ $group3_col1_fields = [
 
                 $formatted = formatField($db_key, $order[$db_key]);
 
-                $html .= '<tr><td width="30%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+                $html .= '<tr><td width="30%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 
             }
 
@@ -241,7 +241,7 @@ foreach ($group1_col2_fields as $display_name => $db_key) {
 
         $formatted = formatField($db_key, $order[$db_key]);
 
-        $html .= '<tr><td width="70%"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+        $html .= '<tr><td width="70%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 
     }
 
@@ -263,7 +263,7 @@ foreach ($group1_col2_fields as $display_name => $db_key) {
         foreach ($group2_col2_fields as $display_name => $db_key) {
             if (isset($order[$db_key])) {
                 $formatted = formatField($db_key, $order[$db_key]);
-                $html .= '<tr><td width="70%" style="vertical-align: top;"><strong>' . $display_name . ':</strong></td><td width="70%">' . $formatted['display_value'] . '</td></tr>';
+                $html .= '<tr><td width="70%" style="vertical-align: top;"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
             }
         }
 

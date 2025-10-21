@@ -111,7 +111,7 @@
 
         try {
 
-            $sql = "SELECT id, nama, dibuat, is_archived FROM model_box";
+            $sql = "SELECT id, nama, box_luar, box_dlm, dibuat, is_archived FROM model_box";
             $conditions = [];
             $params = [];
 
@@ -155,6 +155,10 @@
 
                     'nama' => 'Nama Model Box',
 
+                    'box_luar' => 'Box Luar',
+
+                    'box_dlm' => 'Box Dalam',
+
                     'dibuat' => 'Dibuat',
 
                     'is_archived' => 'Archived'
@@ -165,13 +169,11 @@
 
                 // Dynamically create table headers from column names, using display names if available
 
-                foreach (array_keys($model_boxes[0]) as $columnName) {
-
-                    if ($columnName == 'is_archived') continue;
-
-                    echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
-
-                }
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['id'] ?? 'ID') . "</th>";
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['nama'] ?? 'Nama Model Box') . "</th>";
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['box_luar'] ?? 'Box Luar') . "</th>";
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['box_dlm'] ?? 'Box Dalam') . "</th>";
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['dibuat'] ?? 'Dibuat') . "</th>";
 
                 if ($is_admin) {
 
@@ -189,13 +191,11 @@
 
                     echo "<tr>";
 
-                    foreach ($model_box as $columnName => $value) {
-
-                        if ($columnName == 'is_archived') continue;
-
-                        echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($value) . "</td>";
-
-                    }
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['id']) . "</td>";
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['nama']) . "</td>";
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['box_luar']) . "</td>";
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['box_dlm']) . "</td>";
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['dibuat']) . "</td>";
 
                     if ($is_admin) {
 

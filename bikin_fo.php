@@ -2,6 +2,158 @@
 include 'config.php';
 session_start();
 
+// Ensure CSRF token exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
+}
+
+// Handle direct save: if form posted without from_shipping flag, process and save to DB
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
+    // CSRF validation
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $_SESSION['flash_error'] = 'Invalid CSRF token. Please refresh the page and try again.';
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+    }
+    
+    $form_errors = [];
+    // merge POST into a local array
+    $post = $_POST;
+
+    // Basic required checks
+    if (empty($post['nama_customer'])) {
+        $form_errors['nama_customer'] = 'Nama Customer is required.';
+    }
+    if (empty($post['kode_pisau'])) {
+        $form_errors['kode_pisau'] = 'Kode Pisau is required.';
+    }
+    if (empty($post['jenis_board'])) {
+        $form_errors['jenis_board'] = 'Jenis Board is required.';
+    }
+
+    // Kode pisau specific validation
+    if (isset($post['kode_pisau']) && $post['kode_pisau'] === 'baru') {
+        if (empty($post['model_box_baru'])) {
+            $form_errors['model_box_baru'] = 'Model Box is required for new kode pisau.';
+        }
+        if (empty($post['length']) || empty($post['width']) || empty($post['height'])) {
+            $form_errors['ukuran'] = 'Lenght, Width and Height are required for new kode pisau.';
+        }
+        if (empty($post['dibuat_oleh'])) {
+            $form_errors['dibuat_oleh'] = 'Dibuat Oleh is required.';
+        }
+    } elseif (isset($post['kode_pisau']) && $post['kode_pisau'] === 'lama') {
+        if (empty($post['barang_lama'])) {
+            $form_errors['barang_lama'] = 'Barang must be selected for existing kode pisau.';
+        }
+        if (empty($post['dibuat_oleh'])) {
+            $form_errors['dibuat_oleh'] = 'Dibuat Oleh is required.';
+        }
+    }
+
+    // If there are validation errors, save and redirect back to form
+    if (!empty($form_errors)) {
+        $_SESSION['form_errors'] = $form_errors;
+        $_SESSION['order_form'] = $post;
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+    }
+
+    // Prepare values
+    $nama = $post['nama_customer'];
+    $kode_pisau = $post['kode_pisau'];
+    $jenis_board = $post['jenis_board'];
+
+    // Build cover_dlm
+    $cover_dlm_supplier = $post['cover_dalam_supplier'] ?? '';
+    $cover_dlm_jenis = $post['cover_dalam_jenis'] ?? ($post['cover_dalam_warna'] ?? '');
+    $cover_dlm_warna = $post['cover_dalam_warna'] ?? '';
+    $cover_dlm_gsm = $post['cover_dalam_gsm'] ?? '';
+    $cover_dlm_ukuran = $post['cover_dalam_ukuran'] ?? '';
+    $cover_dlm = trim("supplier:{$cover_dlm_supplier} - jenis:{$cover_dlm_jenis} - warna:{$cover_dlm_warna} - gsm:{$cover_dlm_gsm} - ukuran:{$cover_dlm_ukuran}", " -");
+
+    // Build cover_luar + box + dudukan strings (tolerant)
+    $cover_luar_radio = $post['cover_luar_radio'] ?? '';
+    $cover_luar_supplier = $post['cover_luar_supplier'] ?? '';
+    $cover_luar_jenis = $post['cover_luar_jenis'] ?? ($post['cover_luar_warna'] ?? '');
+    $cover_luar_warna = $post['cover_luar_warna'] ?? '';
+    $cover_luar_gsm = $post['cover_luar_gsm'] ?? '';
+    $cover_luar_ukuran = $post['cover_luar_ukuran'] ?? '';
+    $cover_luar_str = trim("({$cover_luar_radio}) {$cover_luar_supplier} - {$cover_luar_jenis} - {$cover_luar_warna} - {$cover_luar_gsm} - {$cover_luar_ukuran}", " -");
+
+    if ($kode_pisau === 'baru') {
+        // insert into barang
+        $model_box = $post['model_box_baru'] ?? '';
+        $ukuran = trim((($post['length'] ?? '') . ' x ' . ($post['width'] ?? '') . ' x ' . ($post['height'] ?? '')), ' x ');
+        $stmt = $pdo->prepare("INSERT INTO barang (model_box, ukuran, nama) VALUES (?, ?, ?)");
+        $stmt->execute([$model_box, $ukuran, $nama]);
+        $barang_id = $pdo->lastInsertId();
+    } else {
+        $barang_id = $post['barang_lama'] ?? null;
+        if ($barang_id) {
+            $stmt = $pdo->prepare("SELECT * FROM barang WHERE id = ?");
+            $stmt->execute([$barang_id]);
+            $barang_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $ukuran = $barang_row['ukuran'] ?? '';
+            $model_box = $barang_row['model_box'] ?? '';
+            $nama_box_lama_value = $barang_row['nama'] ?? null;
+        }
+    }
+
+    // box string
+    $box_supplier = $post['box_supplier'] ?? '';
+    $box_jenis = $post['box_jenis'] ?? ($post['model_box_baru'] ?? '');
+    $box_warna = $post['box_warna'] ?? '';
+    $box_gsm = $post['box_gsm'] ?? '';
+    $box_ukuran = $post['box_ukuran'] ?? ($ukuran ?? '');
+    $box_str = trim("(box) {$box_supplier} - {$box_jenis} - {$box_warna} - {$box_gsm} - {$box_ukuran}", " -");
+
+    // dudukan
+    $dudukan_id = $post['dudukan'] ?? null;
+    $dudukan_jenis = null;
+    if ($dudukan_id) {
+        $stmt = $pdo->prepare("SELECT jenis FROM dudukan WHERE id = ?");
+        $stmt->execute([$dudukan_id]);
+        $drow = $stmt->fetch(PDO::FETCH_ASSOC);
+        $dudukan_jenis = $drow['jenis'] ?? null;
+    }
+
+    // other fields
+    $sales_pj = $post['dibuat_oleh'] ?? null;
+    $lokasi = $post['lokasi'] ?? null;
+    $quantity = (isset($post['quantity']) && $post['quantity'] !== '') ? ($post['quantity'] . ' pcs') : null;
+    $keterangan = $post['keterangan'] ?? null;
+    $aksesoris = 'jenis:' . ($post['aksesoris_jenis'] ?? '') . ' - ukuran:' . ($post['aksesoris_ukuran'] ?? '') . ' - warna:' . ($post['aksesoris_warna'] ?? '');
+    $jumlah_layer = $post['jumlah_layer'] ?? null;
+    $logo = $post['logo'] ?? null;
+    $ukuran_poly = $post['ukuran_poly'] ?? null;
+    $lokasi_poly = $post['lokasi_poly'] ?? null;
+    $klise = $post['klise'] ?? null;
+
+    // shipping/payment fields (optional)
+    $tanggal_kirim = $post['tanggal_kirim'] ?? null;
+    $jam_kirim = $post['jam_kirim'] ?? null;
+    $dikirim_dari = $post['dikirim_dari'] ?? null;
+    $tujuan_kirim = $post['tujuan_kirim'] ?? null;
+    $tanggal_dp = $post['tanggal_dp'] ?? null;
+    $pelunasan = $post['pelunasan'] ?? null;
+    $ongkir = $post['ongkir'] ?? null;
+    $packing = $post['packing'] ?? null;
+
+    // Combine cover_luar + box + dudukan into cover_lr for orders.cover_lr
+    $cover_lr = $cover_luar_str . "\n" . $box_str . "\n" . ($dudukan_jenis ?? '');
+
+    // Insert into orders
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing]);
+
+    // Optionally clear session order form
+    unset($_SESSION['order_form']);
+    $_SESSION['flash_success'] = 'Order saved successfully.';
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit();
+}
+
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -33,6 +185,9 @@ $logo_options = $pdo->query("SELECT DISTINCT jenis FROM logo")->fetchAll(PDO::FE
 $logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchAll(PDO::FETCH_ASSOC);
 
 $order_form = $_SESSION['order_form'] ?? [];
+
+// Fetch alamat_pengirim for shipping select (used when embedding shipping fields)
+$alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::FETCH_ASSOC);
 
 // Prepare options for each prefix
 $prefixes = ['cover_dalam', 'cover_luar', 'box', 'dudukan'];
@@ -83,362 +238,387 @@ foreach ($prefixes as $prefix) {
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
     <?php include 'navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">bikin form order</h1>
+    <h1 class="text-sm font-bold mb-6 text-gray-800">> bikin FO</h1>
 
-    <form action="bikin_shipping.php" method="post" class="bg-white p-8 shadow-lg">
-        <h2 class="text-xl font-bold mb-4 text-gray-400">BOX</h2>
-        <div class="border-b-2 border-gray-300 mb-6"></div>
-        <div class="mb-4">
-            <label for="nama_customer" class="block text-gray-800 text-sm font-semibold mb-2">Nama Customer:</label>
-            <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                <option value="" disabled <?php echo !isset($order_form['nama_customer']) ? 'selected' : ''; ?>>Pilih Customer</option>
-                <?php foreach ($customers as $customer): ?>
-                    <option value="<?= $customer['nama'] ?>" <?php echo (isset($order_form['nama_customer']) && $order_form['nama_customer'] === $customer['nama']) ? 'selected' : ''; ?>><?= $customer['nama'] ?></option>
-                <?php endforeach; ?>
-            </select>
+    <?php if (!empty($_SESSION['flash_error'])): ?>
+        <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800">
+            <?= htmlspecialchars($_SESSION['flash_error']) ?>
         </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
 
-        <div class="mb-4">
-            <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (cm):</label>
+    <?php if (!empty($_SESSION['flash_success'])): ?>
+        <div class="mb-4 p-3 bg-green-100 border border-green-300 text-green-800">
+            <?= htmlspecialchars($_SESSION['flash_success']) ?>
+        </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+
+    <form action="" method="post" class="bg-white p-8 shadow-lg">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+    <?php $order_form = $_SESSION['order_form'] ?? []; ?>
+      
+      <!-- Two-column layout: left = BOX fields, right = SPK fields -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left column: BOX fields (lines 89-225) -->
+        <div>
+          <div class="mb-8">
+              <label for="nama_customer" class="block text-gray-800 text-xl font-semibold mb-2">Nama Customer</label>
+              <?php $errors = $_SESSION['form_errors'] ?? []; unset($_SESSION['form_errors']); ?>
+              <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                  <option value="" disabled <?php echo !isset($order_form['nama_customer']) ? 'selected' : ''; ?>>Pilih Customer</option>
+                  <?php foreach ($customers as $customer): ?>
+                      <option value="<?= $customer['nama'] ?>" <?php echo (isset($order_form['nama_customer']) && $order_form['nama_customer'] === $customer['nama']) ? 'selected' : ''; ?>><?= $customer['nama'] ?></option>
+                  <?php endforeach; ?>
+              </select>
+              <?php if (!empty($errors['nama_customer'])): ?>
+                  <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['nama_customer']) ?></div>
+              <?php endif; ?>
+          </div>
+          <h2 class="text-xl font-bold mb-4 text-gray-400">BOX</h2>
+          <div class="border-b-2 border-gray-300 mb-6"></div>
+          <div class="mb-4">
+            <label class="block text-gray-800 text-xl font-semibold mb-2">Ukuran (cm)</label>
             <div class="flex space-x-2">
-                <input type="text" name="length" placeholder="panjang" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <input type="text" name="width" placeholder="lebar" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <input type="text" name="height" placeholder="tinggi" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+              <input type="text" name="length" placeholder="panjang" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+              <input type="text" name="width" placeholder="lebar" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+              <input type="text" name="height" placeholder="tinggi" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
             </div>
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-gray-800 text-sm font-semibold mb-2">Kode Pisau:</label>
-            <div class="mt-2">
-                <label class="inline-flex items-center">
-                    <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['kode_pisau']) && $order_form['kode_pisau'] === 'baru') ? 'checked' : ''; ?>>
-                    <span class="ml-2 text-gray-800">Baru</span>
-                </label>
-                <label class="inline-flex items-center ml-6">
-                    <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['kode_pisau']) && $order_form['kode_pisau'] === 'lama') ? 'checked' : ''; ?>>
-                    <span class="ml-2 text-gray-800">Lama</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <label for="quantity" class="block text-gray-800 text-sm font-semibold mb-2">Quantity:</label>
-            <input type="number" name="quantity" id="quantity" step="1" value="<?php echo htmlspecialchars($order_form['quantity'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-        </div>
-
-        <div id="kode_pisau_baru_fields" style="display:none;" class="mb-4">
-            <div class="mb-4">
-                <label for="model_box_baru" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
-                <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                    <option value="" disabled <?php echo !isset($order_form['model_box_baru']) ? 'selected' : ''; ?>>Pilih Model Box</option>
-                    <?php foreach ($model_boxes as $model_box): ?>
-                        <option value="<?= $model_box['nama'] ?>" <?php echo (isset($order_form['model_box_baru']) && $order_form['model_box_baru'] === $model_box['nama']) ? 'selected' : ''; ?>><?= $model_box['nama'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-        </div>
-
-        <div id="kode_pisau_lama_fields" style="display:none;" class="mb-4">
-            <label for="barang_lama" class="block text-gray-800 text-sm font-semibold mb-2">Barang:</label>
-            <select name="barang_lama" id="barang_lama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <option value="" disabled <?php echo !isset($order_form['barang_lama']) ? 'selected' : ''; ?>>Pilih Barang</option>
-                <?php foreach ($barangs as $barang): ?>
-                    <option value="<?= $barang['id'] ?>" <?php echo (isset($order_form['barang_lama']) && $order_form['barang_lama'] == $barang['id']) ? 'selected' : ''; ?>><?= $barang['model_box'] . ' - ' . $barang['ukuran'] . ' - ' . $barang['nama'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <div id="shared_fields" style="display:none;" class="mb-4">
-            <div class="mb-4">
-                <label for="jenis_board" class="block text-gray-800 text-sm font-semibold mb-2">Jenis Board:</label>
-                <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                    <option value="" disabled <?php echo !isset($order_form['jenis_board']) ? 'selected' : ''; ?>>Pilih Jenis Board</option>
-                    <?php foreach ($boards as $board): ?>
-                        <option value="<?= $board['jenis'] ?>" <?php echo (isset($order_form['jenis_board']) && $order_form['jenis_board'] === $board['jenis']) ? 'selected' : ''; ?>><?= $board['jenis'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam:</label>
-                <div class="flex space-x-2">
-                    <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_dalam')">
-                        <option value="" disabled <?php echo !isset($order_form['cover_dalam_supplier']) ? 'selected' : ''; ?>>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_dalam_supplier']) && $order_form['cover_dalam_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_dalam_jenis" id="cover_dalam_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_dalam_jenis']) ? 'selected' : ''; ?>>Jenis</option>
-                        <?php foreach ($options['cover_dalam']['jenis'] as $jenis): ?>
-                            <option value="<?= $jenis ?>" <?php echo (isset($order_form['cover_dalam_jenis']) && $order_form['cover_dalam_jenis'] === $jenis) ? 'selected' : ''; ?>><?= $jenis ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_dalam_warna']) ? 'selected' : ''; ?>>Warna</option>
-                        <?php foreach ($options['cover_dalam']['warna'] as $warna): ?>
-                            <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_dalam_warna']) && $order_form['cover_dalam_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_dalam_gsm" id="cover_dalam_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_dalam_gsm']) ? 'selected' : ''; ?>>GSM</option>
-                        <?php foreach ($options['cover_dalam']['gsm'] as $gsm): ?>
-                            <option value="<?= $gsm ?>" <?php echo (isset($order_form['cover_dalam_gsm']) && $order_form['cover_dalam_gsm'] === $gsm) ? 'selected' : ''; ?>><?= $gsm ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_dalam_ukuran" id="cover_dalam_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_dalam_ukuran']) ? 'selected' : ''; ?>>Ukuran</option>
-                        <?php foreach ($options['cover_dalam']['ukuran'] as $ukuran): ?>
-                            <option value="<?= $ukuran ?>" <?php echo (isset($order_form['cover_dalam_ukuran']) && $order_form['cover_dalam_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Luar:</label>
-                <div class="mt-2 pl-4">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="cover_luar_radio" value="lidah" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['cover_luar_radio']) && $order_form['cover_luar_radio'] === 'lidah') ? 'checked' : ''; ?>>
-                        <span class="ml-2 text-gray-800">Lidah</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar_radio" value="selongsong" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['cover_luar_radio']) && $order_form['cover_luar_radio'] === 'selongsong') ? 'checked' : ''; ?>>
-                        <span class="ml-2 text-gray-800">Selongsong</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar_radio" value="kuping" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['cover_luar_radio']) && $order_form['cover_luar_radio'] === 'kuping') ? 'checked' : ''; ?>>
-                        <span class="ml-2 text-gray-800">Kuping</span>
-                    </label>
-                    <label class="inline-flex items-center ml-6">
-                        <input type="radio" name="cover_luar_radio" value="tutup_atas" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['cover_luar_radio']) && $order_form['cover_luar_radio'] === 'tutup_atas') ? 'checked' : ''; ?>>
-                        <span class="ml-2 text-gray-800">Tutup atas</span>
-                    </label>
-                </div>
-                <div class="flex space-x-2 mt-2 pl-4">
-                    <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                        <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier']) ? 'selected' : ''; ?>>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier']) && $order_form['cover_luar_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_luar_jenis" id="cover_luar_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_luar_jenis']) ? 'selected' : ''; ?>>Jenis</option>
-                        <?php foreach ($options['cover_luar']['jenis'] as $jenis): ?>
-                            <option value="<?= $jenis ?>" <?php echo (isset($order_form['cover_luar_jenis']) && $order_form['cover_luar_jenis'] === $jenis) ? 'selected' : ''; ?>><?= $jenis ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_luar_warna']) ? 'selected' : ''; ?>>Warna</option>
-                        <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
-                            <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna']) && $order_form['cover_luar_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_luar_gsm" id="cover_luar_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_luar_gsm']) ? 'selected' : ''; ?>>GSM</option>
-                        <?php foreach ($options['cover_luar']['gsm'] as $gsm): ?>
-                            <option value="<?= $gsm ?>" <?php echo (isset($order_form['cover_luar_gsm']) && $order_form['cover_luar_gsm'] === $gsm) ? 'selected' : ''; ?>><?= $gsm ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="cover_luar_ukuran" id="cover_luar_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['cover_luar_ukuran']) ? 'selected' : ''; ?>>Ukuran</option>
-                        <?php foreach ($options['cover_luar']['ukuran'] as $ukuran): ?>
-                            <option value="<?= $ukuran ?>" <?php echo (isset($order_form['cover_luar_ukuran']) && $order_form['cover_luar_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Box</label>
-                <div class="flex space-x-2 pl-4">
-                    <select name="box_supplier" id="box_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('box')">
-                        <option value="" disabled <?php echo !isset($order_form['box_supplier']) ? 'selected' : ''; ?>>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['box_supplier']) && $order_form['box_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="box_jenis" id="box_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['box']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['box_jenis']) ? 'selected' : ''; ?>>Jenis</option>
-                        <?php foreach ($options['box']['jenis'] as $jenis): ?>
-                            <option value="<?= $jenis ?>" <?php echo (isset($order_form['box_jenis']) && $order_form['box_jenis'] === $jenis) ? 'selected' : ''; ?>><?= $jenis ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="box_warna" id="box_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['box']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['box_warna']) ? 'selected' : ''; ?>>Warna</option>
-                        <?php foreach ($options['box']['warna'] as $warna): ?>
-                            <option value="<?= $warna ?>" <?php echo (isset($order_form['box_warna']) && $order_form['box_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="box_gsm" id="box_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['box']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['box_gsm']) ? 'selected' : ''; ?>>GSM</option>
-                        <?php foreach ($options['box']['gsm'] as $gsm): ?>
-                            <option value="<?= $gsm ?>" <?php echo (isset($order_form['box_gsm']) && $order_form['box_gsm'] === $gsm) ? 'selected' : ''; ?>><?= $gsm ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="box_ukuran" id="box_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['box']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['box_ukuran']) ? 'selected' : ''; ?>>Ukuran</option>
-                        <?php foreach ($options['box']['ukuran'] as $ukuran): ?>
-                            <option value="<?= $ukuran ?>" <?php echo (isset($order_form['box_ukuran']) && $order_form['box_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-800 text-sm font-semibold mb-2 flex space-x-2 pl-4">Dudukan</label>
-                <div class="flex space-x-2 pl-4">
-                    <select name="dudukan_supplier" id="dudukan_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('dudukan')">
-                        <option value="" disabled <?php echo !isset($order_form['dudukan_supplier']) ? 'selected' : ''; ?>>Supplier</option>
-                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['dudukan_supplier']) && $order_form['dudukan_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="dudukan_jenis" id="dudukan_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['dudukan']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['dudukan_jenis']) ? 'selected' : ''; ?>>Jenis</option>
-                        <?php foreach ($options['dudukan']['jenis'] as $jenis): ?>
-                            <option value="<?= $jenis ?>" <?php echo (isset($order_form['dudukan_jenis']) && $order_form['dudukan_jenis'] === $jenis) ? 'selected' : ''; ?>><?= $jenis ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="dudukan_warna" id="dudukan_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['dudukan']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['dudukan_warna']) ? 'selected' : ''; ?>>Warna</option>
-                        <?php foreach ($options['dudukan']['warna'] as $warna): ?>
-                            <option value="<?= $warna ?>" <?php echo (isset($order_form['dudukan_warna']) && $order_form['dudukan_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="dudukan_gsm" id="dudukan_gsm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['dudukan']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['dudukan_gsm']) ? 'selected' : ''; ?>>GSM</option>
-                        <?php foreach ($options['dudukan']['gsm'] as $gsm): ?>
-                            <option value="<?= $gsm ?>" <?php echo (isset($order_form['dudukan_gsm']) && $order_form['dudukan_gsm'] === $gsm) ? 'selected' : ''; ?>><?= $gsm ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="dudukan_ukuran" id="dudukan_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['dudukan']['disabled']; ?>>
-                        <option value="" disabled <?php echo !isset($order_form['dudukan_ukuran']) ? 'selected' : ''; ?>>Ukuran</option>
-                        <?php foreach ($options['dudukan']['ukuran'] as $ukuran): ?>
-                            <option value="<?= $ukuran ?>" <?php echo (isset($order_form['dudukan_ukuran']) && $order_form['dudukan_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
-        <div class="border-b-2 border-gray-300 mb-6"></div>
-
-        <div class="mb-4">
-            <label class="block text-gray-800 text-sm font-semibold mb-2">Aksesoris:</label>
-            <div class="flex space-x-2">
-                <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <option value="" disabled <?php echo !isset($order_form['aksesoris_jenis']) ? 'selected' : ''; ?>>Pilih Jenis</option>
-                    <?php foreach ($aksesoris_jenis as $jenis): ?>
-                        <option value="<?= $jenis['jenis'] ?>" <?php echo (isset($order_form['aksesoris_jenis']) && $order_form['aksesoris_jenis'] === $jenis['jenis']) ? 'selected' : ''; ?>><?= $jenis['jenis'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <option value="" disabled <?php echo !isset($order_form['aksesoris_ukuran']) ? 'selected' : ''; ?>>Pilih Ukuran</option>
-                    <?php foreach ($aksesoris_ukuran as $ukuran): ?>
-                        <option value="<?= $ukuran['ukuran'] ?>" <?php echo (isset($order_form['aksesoris_ukuran']) && $order_form['aksesoris_ukuran'] === $ukuran['ukuran']) ? 'selected' : ''; ?>><?= $ukuran['ukuran'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <option value="" disabled <?php echo !isset($order_form['aksesoris_warna']) ? 'selected' : ''; ?>>Pilih Warna</option>
-                    <?php foreach ($aksesoris_warna as $warna): ?>
-                        <option value="<?= $warna['warna'] ?>" <?php echo (isset($order_form['aksesoris_warna']) && $order_form['aksesoris_warna'] === $warna['warna']) ? 'selected' : ''; ?>><?= $warna['warna'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <div class="flex space-x-4">
-                <div class="w-1/2">
-                    <label for="dudukan" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan:</label>
-                    <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled <?php echo !isset($order_form['dudukan']) ? 'selected' : ''; ?>>Pilih Dudukan</option>
-                        <?php foreach ($dudukan_options as $dudukan): ?>
-                            <option value="<?= $dudukan['id'] ?>" <?php echo (isset($order_form['dudukan']) && $order_form['dudukan'] == $dudukan['id']) ? 'selected' : ''; ?>><?= $dudukan['jenis'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="w-1/2">
-                    <label for="jumlah_layer" class="block text-gray-800 text-sm font-semibold mb-2">Jumlah layer</label>
-                    <input type="number" name="jumlah_layer" id="jumlah_layer" value="<?php echo htmlspecialchars($order_form['jumlah_layer'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" min="0" step="1">
-                </div>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <div class="flex space-x-4">
-                <div class="w-1/2">
-                    <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
-                    <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
-                        <?php foreach ($logo_options as $logo): ?>
-                            <option value="<?= $logo['jenis'] ?>" <?php echo (isset($order_form['logo']) && $order_form['logo'] === $logo['jenis']) ? 'selected' : ''; ?>><?= $logo['jenis'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="w-1/2">
-                    <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
-                    <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
-                        <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
-                            <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <div class="flex space-x-4">
-                <div class="w-1/2">
-                    <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
+          </div>
+          
+                <div class="mb-4">
+                    <label class="block text-gray-800 text-xl font-semibold mb-2">Kode Pisau</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
-                            <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
-                            <span class="ml-2 text-gray-800">Pabrik</span>
+                            <input type="radio" name="kode_pisau" value="baru" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['kode_pisau']) && $order_form['kode_pisau'] === 'baru') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Baru</span>
                         </label>
                         <label class="inline-flex items-center ml-6">
-                            <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
-                            <span class="ml-2 text-gray-800">Luar</span>
+                            <input type="radio" name="kode_pisau" value="lama" onchange="handleKodePisauChange(this.value)" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['kode_pisau']) && $order_form['kode_pisau'] === 'lama') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Lama</span>
+                        </label>
+                        <?php if (!empty($errors['kode_pisau'])): ?>
+                            <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['kode_pisau']) ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="quantity" class="block text-gray-800 text-xl font-semibold mb-2">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" step="1" value="<?php echo htmlspecialchars($order_form['quantity'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                </div>
+
+                <div id="kode_pisau_baru_fields" style="display:none;" class="mb-4">
+                    <div class="mb-4">
+                        <label for="model_box_baru" class="block text-gray-800 text-xl font-semibold mb-2">Model Box</label>
+                        <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                            <option value="" disabled <?php echo !isset($order_form['model_box_baru']) ? 'selected' : ''; ?>>Pilih Model Box</option>
+                            <?php foreach ($model_boxes as $model_box): ?>
+                                <!-- include box_luar and box_dlm as data attributes so JS can read labels -->
+                                <option value="<?= $model_box['nama'] ?>" data-box-luar="<?= htmlspecialchars($model_box['box_luar'] ?? '') ?>" data-box-dlm="<?= htmlspecialchars($model_box['box_dlm'] ?? '') ?>" <?php echo (isset($order_form['model_box_baru']) && $order_form['model_box_baru'] === $model_box['nama']) ? 'selected' : ''; ?>><?= $model_box['nama'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (!empty($errors['model_box_baru'])): ?>
+                            <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['model_box_baru']) ?></div>
+                        <?php endif; ?>
+                    </div>
+
+                </div>
+
+                <div id="kode_pisau_lama_fields" style="display:none;" class="mb-4">
+                    <label for="barang_lama" class="block text-gray-800 text-xl font-semibold mb-2">Barang</label>
+                    <select name="barang_lama" id="barang_lama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled <?php echo !isset($order_form['barang_lama']) ? 'selected' : ''; ?>>Pilih Barang</option>
+                        <?php foreach ($barangs as $barang): ?>
+                            <option value="<?= $barang['id'] ?>" <?php echo (isset($order_form['barang_lama']) && $order_form['barang_lama'] == $barang['id']) ? 'selected' : ''; ?>><?= $barang['model_box'] . ' - ' . $barang['ukuran'] . ' - ' . $barang['nama'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (!empty($errors['barang_lama'])): ?>
+                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['barang_lama']) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div id="shared_fields" style="display:none;" class="mb-4">
+                    <div class="mb-4">
+                        <label for="jenis_board" class="block text-gray-800 text-xl font-semibold mb-2">Jenis Board</label>
+                        <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                            <option value="" disabled <?php echo !isset($order_form['jenis_board']) ? 'selected' : ''; ?>>Pilih Jenis Board</option>
+                            <?php foreach ($boards as $board): ?>
+                                <option value="<?= $board['jenis'] ?>" <?php echo (isset($order_form['jenis_board']) && $order_form['jenis_board'] === $board['jenis']) ? 'selected' : ''; ?>><?= $board['jenis'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (!empty($errors['jenis_board'])): ?>
+                            <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['jenis_board']) ?></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam</label>
+                        <div class="flex space-x-2">
+                            <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_dalam')">
+                                <option value="" disabled <?php echo !isset($order_form['cover_dalam_supplier']) ? 'selected' : ''; ?>>Supplier</option>
+                                <?php foreach ($distinct_suppliers as $supplier): ?>
+                                    <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_dalam_supplier']) && $order_form['cover_dalam_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
+                                <option value="" disabled <?php echo !isset($order_form['cover_dalam_warna']) ? 'selected' : ''; ?>>Warna</option>
+                                <?php foreach ($options['cover_dalam']['warna'] as $warna): ?>
+                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_dalam_warna']) && $order_form['cover_dalam_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Luar</label>
+                        <!-- Labels that will be updated based on selected model box -->
+                        <div class="flex space-x-2 mt-1 pl-4">
+                            <label id="cover_luar_row1_label" class="w-1/2 text-gray-700">Box Luar</label>
+                        </div>
+                        <div class="flex space-x-2 mt-2 pl-4">
+                          <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
+                            <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier']) ? 'selected' : ''; ?>>Supplier</option>
+                            <?php foreach ($distinct_suppliers as $supplier): ?>
+                              <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier']) && $order_form['cover_luar_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                              <?php endforeach; ?>
+                            </select>
+                            
+                            <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
+                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna']) ? 'selected' : ''; ?>>Warna</option>
+                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
+                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna']) && $order_form['cover_luar_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            
+                        </div>
+                        <div class="flex space-x-2 mt-1 pl-4">
+                            <label id="cover_luar_row2_label" class="w-1/2 text-gray-700">Box Dalam</label>
+                        </div>
+                        <div class="flex space-x-2 mt-2 pl-4">
+                            <select name="cover_luar_supplier" id="cover_luar_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
+                                <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier']) ? 'selected' : ''; ?>>Supplier</option>
+                                <?php foreach ($distinct_suppliers as $supplier): ?>
+                                    <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier']) && $order_form['cover_luar_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select name="cover_luar_warna" id="cover_luar_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
+                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna']) ? 'selected' : ''; ?>>Warna</option>
+                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
+                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna']) && $order_form['cover_luar_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            
+                          </div>
+                        </div>
+                        <div class="mb-4">
+                          <label class="block text-gray-800 text-sm font-semibold mb-2">Aksesoris</label>
+                          <div class="flex space-x-2">
+                            <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                              <option value="" disabled <?php echo !isset($order_form['aksesoris_jenis']) ? 'selected' : ''; ?>>Pilih Jenis</option>
+                              <?php foreach ($aksesoris_jenis as $jenis): ?>
+                                <option value="<?= $jenis['jenis'] ?>" <?php echo (isset($order_form['aksesoris_jenis']) && $order_form['aksesoris_jenis'] === $jenis['jenis']) ? 'selected' : ''; ?>><?= $jenis['jenis'] ?></option>
+                                <?php endforeach; ?>
+                              </select>
+                              <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                <option value="" disabled <?php echo !isset($order_form['aksesoris_ukuran']) ? 'selected' : ''; ?>>Pilih Ukuran</option>
+                                <?php foreach ($aksesoris_ukuran as $ukuran): ?>
+                                  <option value="<?= $ukuran['ukuran'] ?>" <?php echo (isset($order_form['aksesoris_ukuran']) && $order_form['aksesoris_ukuran'] === $ukuran['ukuran']) ? 'selected' : ''; ?>><?= $ukuran['ukuran'] ?></option>
+                                  <?php endforeach; ?>
+                                </select>
+                                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                  <option value="" disabled <?php echo !isset($order_form['aksesoris_warna']) ? 'selected' : ''; ?>>Pilih Warna</option>
+                                  <?php foreach ($aksesoris_warna as $warna): ?>
+                                    <option value="<?= $warna['warna'] ?>" <?php echo (isset($order_form['aksesoris_warna']) && $order_form['aksesoris_warna'] === $warna['warna']) ? 'selected' : ''; ?>><?= $warna['warna'] ?></option>
+                                    <?php endforeach; ?>
+                                  </select>
+                                </div>
+                              </div>
+
+                </div>
+            </div>
+
+            <!-- Right column: SPK fields (lines 227-324) -->
+            <div>
+              <h2 class="text-xl font-bold mb-4 text-gray-400">PENGIRIMAN</h2>
+                <div class="border-b-2 border-gray-300 mb-6"></div>
+
+                <div class="mb-4">
+                    <label for="tanggal_kirim" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal Kirim</label>
+                    <input type="date" name="tanggal_kirim" id="tanggal_kirim" value="<?php echo htmlspecialchars($order_form['tanggal_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                </div>
+
+                <div class="mb-4">
+                    <label for="jam_kirim" class="block text-gray-800 text-sm font-semibold mb-2">Jam Kirim</label>
+                    <input type="time" name="jam_kirim" id="jam_kirim" value="<?php echo htmlspecialchars($order_form['jam_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                </div>
+
+                <div class="mb-4">
+                    <label for="dikirim_dari" class="block text-gray-800 text-sm font-semibold mb-2">Dikirim Dari</label>
+                    <select name="dikirim_dari" id="dikirim_dari" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <option value="" disabled <?php echo !isset($order_form['dikirim_dari']) ? 'selected' : ''; ?>>Pilih Lokasi</option>
+                        <?php foreach ($alamat_pengirim as $alamat): ?>
+                            <option value="<?= $alamat['lokasi'] ?>" <?php echo (isset($order_form['dikirim_dari']) && $order_form['dikirim_dari'] === $alamat['lokasi']) ? 'selected' : ''; ?>><?= $alamat['lokasi'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="tujuan_kirim" class="block text-gray-800 text-sm font-semibold mb-2">Tujuan Kirim</label>
+                    <input type="text" name="tujuan_kirim" id="tujuan_kirim" value="<?php echo htmlspecialchars($order_form['tujuan_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                </div>
+
+                <!-- Insert PEMBAYARAN fields -->
+                <h2 class="text-xl font-bold mb-4 text-gray-400">PEMBAYARAN</h2>
+                <div class="border-b-2 border-gray-300 mb-6"></div>
+
+                <div class="mb-4">
+                    <label for="tanggal_dp" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal DP</label>
+                    <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Pelunasan</label>
+                    <div class="mt-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Harus lunas') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Harus lunas</span>
+                        </label>
+                        <label class="inline-flex items-center ml-6">
+                            <input type="radio" name="pelunasan" value="Setelah dikirim" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Setelah dikirim') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Setelah dikirim</span>
                         </label>
                     </div>
                 </div>
-                <div class="w-1/2">
-                    <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
+
+                <div class="mb-4">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Ongkir</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
-                            <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
-                            <span class="ml-2 text-gray-800">In Stock</span>
+                            <input type="radio" name="ongkir" value="Gracia" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['ongkir']) && $order_form['ongkir'] === 'Gracia') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Gracia</span>
                         </label>
                         <label class="inline-flex items-center ml-6">
-                            <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
-                            <span class="ml-2 text-gray-800">Bikin baru</span>
+                            <input type="radio" name="ongkir" value="Customer" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['ongkir']) && $order_form['ongkir'] === 'Customer') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Customer</span>
                         </label>
                     </div>
                 </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2">Packing</label>
+                    <div class="mt-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="packing" value="Luar kota (Ekspedisi)" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['packing']) && $order_form['packing'] === 'Luar kota (Ekspedisi)') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Luar kota (Ekspedisi)</span>
+                        </label>
+                        <label class="inline-flex items-center ml-6">
+                            <input type="radio" name="packing" value="Dalam kota" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['packing']) && $order_form['packing'] === 'Dalam kota') ? 'checked' : ''; ?>>
+                            <span class="ml-2 text-gray-800">Dalam kota</span>
+                        </label>
+                    </div>
+                </div>
+                    
+                
+                <!-- Insert PENGIRIMAN fields from bikin_shipping.php -->
+                 <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
+                <div class="border-b-2 border-gray-300 mb-6"></div>
+                <div class="mb-4">
+                    <div class="flex space-x-4">
+                        <div class="w-1/2">
+                            <label for="dudukan" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan</label>
+                            <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                <option value="" disabled <?php echo !isset($order_form['dudukan']) ? 'selected' : ''; ?>>Pilih Dudukan</option>
+                                <?php foreach ($dudukan_options as $dudukan): ?>
+                                    <option value="<?= $dudukan['id'] ?>" <?php echo (isset($order_form['dudukan']) && $order_form['dudukan'] == $dudukan['id']) ? 'selected' : ''; ?>><?= $dudukan['jenis'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="w-1/2">
+                            <label for="jumlah_layer" class="block text-gray-800 text-sm font-semibold mb-2">Jumlah layer</label>
+                            <input type="number" name="jumlah_layer" id="jumlah_layer" value="<?php echo htmlspecialchars($order_form['jumlah_layer'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" min="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="flex space-x-4">
+                        <div class="w-1/2">
+                            <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
+                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
+                                <?php foreach ($logo_options as $logo): ?>
+                                    <option value="<?= $logo['jenis'] ?>" <?php echo (isset($order_form['logo']) && $order_form['logo'] === $logo['jenis']) ? 'selected' : ''; ?>><?= $logo['jenis'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="w-1/2">
+                            <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
+                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
+                                <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
+                                    <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
+                            <div class="mt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
+                                    <span class="ml-2 text-gray-800">Pabrik</span>
+                                </label>
+                                <label class="inline-flex items-center ml-6">
+                                    <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
+                                    <span class="ml-2 text-gray-800">Luar</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
+                            <div class="mt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
+                                    <span class="ml-2 text-gray-800">In Stock</span>
+                                </label>
+                                <label class="inline-flex items-center ml-6">
+                                    <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
+                                    <span class="ml-2 text-gray-800">Bikin baru</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
 
+        <div class="border-b-2 border-gray-300 mt-6 mb-6"></div>
         <div class="mb-4">
-            <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan:</label>
+            <label for="keterangan" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan</label>
             <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['keterangan'] ?? ''); ?></textarea>
         </div>
 
         <div class="mb-4">
-            <label for="dibuat_oleh" class="block text-gray-800 text-sm font-semibold mb-2">Dibuat Oleh:</label>
+            <label for="dibuat_oleh" class="block text-gray-800 text-sm font-semibold mb-2">Dibuat Oleh</label>
             <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                 <option value="" disabled <?php echo !isset($order_form['dibuat_oleh']) ? 'selected' : ''; ?>>Pilih Karyawan Sales</option>
                 <?php foreach ($sales_reps as $sales_rep): ?>
                     <option value="<?= $sales_rep['nama'] ?>" <?php echo (isset($order_form['dibuat_oleh']) && $order_form['dibuat_oleh'] === $sales_rep['nama']) ? 'selected' : ''; ?>><?= $sales_rep['nama'] ?></option>
                 <?php endforeach; ?>
             </select>
+            <?php if (!empty($errors['dibuat_oleh'])): ?>
+                <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['dibuat_oleh']) ?></div>
+            <?php endif; ?>
         </div>
 
         <div class="mb-4">
-            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi:</label>
+            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Retail</label>
             <div class="mt-2">
                 <label class="inline-flex items-center">
                     <input type="radio" name="lokasi" value="BSD" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi']) && $order_form['lokasi'] === 'BSD') ? 'checked' : ''; ?>>
@@ -452,7 +632,7 @@ foreach ($prefixes as $prefix) {
         </div>
 
         <div class="flex items-center justify-start space-x-4">
-            <input type="submit" value="Next" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="submit" value="Save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-150 ease-in-out">
             <a href="daftar_fo.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Back
             </a>
@@ -495,6 +675,28 @@ foreach ($prefixes as $prefix) {
             const kodePisauValue = "<?php echo addslashes($order_form['kode_pisau'] ?? ''); ?>";
             if (kodePisauValue) {
                 handleKodePisauChange(kodePisauValue);
+            }
+            // Initialize cover luar labels based on selected model box (if any)
+            const modelBoxSelect = document.getElementById('model_box_baru');
+            const row1Label = document.getElementById('cover_luar_row1_label');
+            const row2Label = document.getElementById('cover_luar_row2_label');
+
+            function updateCoverLuarLabelsFromModel() {
+                if (!modelBoxSelect) return;
+                const opt = modelBoxSelect.options[modelBoxSelect.selectedIndex];
+                if (opt) {
+                    const boxLuar = opt.getAttribute('data-box-luar') || 'Box Luar';
+                    const boxDlm = opt.getAttribute('data-box-dlm') || 'Box Dalam';
+                    // Set labels
+                    if (row1Label) row1Label.textContent = boxLuar;
+                    if (row2Label) row2Label.textContent = boxDlm;
+                }
+            }
+
+            if (modelBoxSelect) {
+                modelBoxSelect.addEventListener('change', updateCoverLuarLabelsFromModel);
+                // Call once to set initial labels
+                updateCoverLuarLabelsFromModel();
             }
         });
     </script>

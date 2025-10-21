@@ -15,11 +15,13 @@ if ($_SESSION['role'] !== 'admin') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = trim($_POST['nama']);
+    $box_luar = trim($_POST['box_luar']);
+    $box_dlm = trim($_POST['box_dlm']);
 
     if (!empty($nama)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO model_box (nama) VALUES (?)");
-            $stmt->execute([$nama]);
+            $stmt = $pdo->prepare("INSERT INTO model_box (nama, box_luar, box_dlm) VALUES (?, ?, ?)");
+            $stmt->execute([$nama, $box_luar, $box_dlm]);
             header("Location: daftar_model_box.php");
             exit;
         } catch (PDOException $e) {
@@ -49,6 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-4">
             <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Model Box:</label>
             <input type="text" name="nama" id="nama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="box_luar" class="block text-gray-800 text-sm font-semibold mb-2">Box Luar:</label>
+            <input type="text" name="box_luar" id="box_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+        </div>
+
+        <div class="mb-4">
+            <label for="box_dlm" class="block text-gray-800 text-sm font-semibold mb-2">Box Dalam:</label>
+            <input type="text" name="box_dlm" id="box_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
         </div>
 
         <div class="flex items-center justify-start space-x-4">
