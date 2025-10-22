@@ -59,6 +59,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         exit();
     }
 
+    $dudukan_img_filenames = [];
+    $upload_dir = 'uploads/';
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+
+    if (isset($_FILES['dudukan_img']) && !empty(array_filter($_FILES['dudukan_img']['name']))) {
+        $image_files = $_FILES['dudukan_img'];
+        $file_count = count($image_files['name']);
+
+        if ($file_count > 3) {
+            $form_errors['dudukan_img'] = 'You can upload a maximum of 3 images.';
+        } else {
+            for ($i = 0; $i < $file_count; $i++) {
+                if ($image_files['error'][$i] === UPLOAD_ERR_OK) {
+                    $file_tmp_name = $image_files['tmp_name'][$i];
+                    $file_name = $image_files['name'][$i];
+                    $file_size = $image_files['size'][$i];
+                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                    $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+
+                    if (in_array($file_ext, $allowed_ext)) {
+                        if ($file_size <= 2097152) { // 2MB
+                            $new_file_name = uniqid('', true) . '.' . $file_ext;
+                            $destination = $upload_dir . $new_file_name;
+                            if (move_uploaded_file($file_tmp_name, $destination)) {
+                                $dudukan_img_filenames[] = $new_file_name;
+                            } else {
+                                $form_errors['dudukan_img'] = 'Failed to move uploaded file.';
+                            }
+                        } else {
+                            $form_errors['dudukan_img'] = 'File size must be 2MB or less.';
+                        }
+                    } else {
+                        $form_errors['dudukan_img'] = 'Invalid file type. Only JPG, JPEG, PNG, and GIF are allowed.';
+                    }
+                } elseif ($image_files['error'][$i] !== UPLOAD_ERR_NO_FILE) {
+                    $form_errors['dudukan_img'] = 'Error uploading file: ' . $image_files['error'][$i];
+                }
+            }
+        }
+    }
+    $dudukan_img_str = implode(',', $dudukan_img_filenames);
+
+    // If there are validation errors from file upload, save and redirect back to form
+    if (!empty($form_errors['dudukan_img'])) {
+        $_SESSION['form_errors'] = $form_errors;
+        $_SESSION['order_form'] = $post;
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+    }
+
     // Prepare values
     $nama = $post['nama_customer'];
     $kode_pisau = $post['kode_pisau'];
@@ -188,8 +240,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $cover_lr = $cover_luar_str;
 
     // Insert into orders (include feedback_cust before keterangan)
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, dudukan_img, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
 
     // Optionally clear session order form
     unset($_SESSION['order_form']);
@@ -300,7 +352,7 @@ foreach ($prefixes as $prefix) {
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
 
-    <form action="" method="post" class="bg-white p-8 shadow-lg">
+    <form action="" method="post" enctype="multipart/form-data" class="bg-white p-8 shadow-lg">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
     <?php $order_form = $_SESSION['order_form'] ?? []; ?>
       
@@ -589,6 +641,14 @@ foreach ($prefixes as $prefix) {
                             <input type="number" name="jumlah_layer" id="jumlah_layer" value="<?php echo htmlspecialchars($order_form['jumlah_layer'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" min="0" step="1">
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="dudukan_img" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan Images (max 3)</label>
+                    <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <?php if (!empty($errors['dudukan_img'])): ?>
+                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['dudukan_img']) ?></div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mb-4">
