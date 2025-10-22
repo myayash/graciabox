@@ -651,7 +651,7 @@ foreach ($prefixes as $prefix) {
         <div class="border-b-2 border-gray-300 mt-6 mb-6"></div>
         <div class="mb-4">
             <label for="feedback_cust" class="block text-gray-800 text-sm font-semibold mb-2">Feedback Customer</label>
-            <input type="text" name="feedback_cust" id="feedback_cust" value="<?php echo htmlspecialchars($order_form['feedback_cust'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <textarea name="feedback_cust" id="feedback_cust" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['feedback_cust'] ?? ''); ?></textarea>
         </div>
 
         <div class="mb-4">
