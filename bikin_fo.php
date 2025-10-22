@@ -260,13 +260,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         // Sanitize the timestamp for filename: replace spaces and colons with hyphens
         $sanitized_dibuat = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace([' ', ':'], '-', $dibuat_timestamp));
 
+        $file_index = 0; // Initialize file index for unique filenames
         foreach ($temp_dudukan_img_data as $file_data) {
             $temp_filename = $file_data['temp_filename'];
             $file_ext = $file_data['ext'];
+            $file_index++; // Increment index for each file
 
             // Construct the new filename
-            // Format: "dudukan" - id from project_form.orders, nama from project_form.orders - dibuat from project_form.orders
-            $new_filename = "dudukan-{$order_id}-{$sanitized_nama}-{$sanitized_dibuat}.{$file_ext}";
+            // Format: "dudukan" - id from project_form.orders, nama from project_form.orders - dibuat from project_form.orders - index
+            $new_filename = "dudukan-{$order_id}-{$sanitized_nama}-{$sanitized_dibuat}-{$file_index}.{$file_ext}";
             $old_path = $upload_dir . $temp_filename;
             $new_path = $upload_dir . $new_filename;
 
@@ -688,6 +690,7 @@ foreach ($prefixes as $prefix) {
                 <div class="mb-4">
                     <label for="dudukan_img" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan Images (max 3)</label>
                     <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <div id="image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
                     <?php if (!empty($errors['dudukan_img'])): ?>
                         <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['dudukan_img']) ?></div>
                     <?php endif; ?>
@@ -970,6 +973,37 @@ foreach ($prefixes as $prefix) {
             successModalClose && successModalClose.addEventListener('click', function(){
                 successModal.classList.add('hidden');
             });
+
+            const dudukanImgInput = document.getElementById('dudukan_img');
+            const imagePreviewContainer = document.getElementById('image_preview_container');
+
+            if (dudukanImgInput && imagePreviewContainer) {
+                dudukanImgInput.addEventListener('change', function() {
+                    imagePreviewContainer.innerHTML = ''; // Clear previous previews
+
+                    const files = this.files;
+                    if (files.length > 3) {
+                        // Display an error message if more than 3 files are selected
+                        imagePreviewContainer.innerHTML = '<div class="text-red-600 text-sm">You can upload a maximum of 3 images.</div>';
+                        this.value = ''; // Clear selected files
+                        return;
+                    }
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
+                                imagePreviewContainer.appendChild(img);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            }
         })();
     </script>
     </body>
