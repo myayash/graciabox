@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         exit();
     }
 
-    $dudukan_img_filenames = [];
+    $temp_dudukan_img_data = []; // To store temporary filenames and extensions
     $upload_dir = 'uploads/';
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
@@ -82,10 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
 
                     if (in_array($file_ext, $allowed_ext)) {
                         if ($file_size <= 2097152) { // 2MB
-                            $new_file_name = uniqid('', true) . '.' . $file_ext;
-                            $destination = $upload_dir . $new_file_name;
+                            $temp_file_name = uniqid('', true) . '.' . $file_ext; // Generate a temporary unique name
+                            $destination = $upload_dir . $temp_file_name;
                             if (move_uploaded_file($file_tmp_name, $destination)) {
-                                $dudukan_img_filenames[] = $new_file_name;
+                                $temp_dudukan_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
                             } else {
                                 $form_errors['dudukan_img'] = 'Failed to move uploaded file.';
                             }
@@ -101,7 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
             }
         }
     }
-    $dudukan_img_str = implode(',', $dudukan_img_filenames);
+    // Initialize $dudukan_img_str as empty for now, it will be updated after order insertion
+    $dudukan_img_str = '';
 
     // If there are validation errors from file upload, save and redirect back to form
     if (!empty($form_errors['dudukan_img'])) {
@@ -242,6 +243,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Insert into orders (include feedback_cust before keterangan)
     $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, dudukan_img, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+
+    $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
+
+    $final_dudukan_img_filenames = [];
+    if (!empty($temp_dudukan_img_data)) {
+        // Sanitize nama and dibuat_oleh for filename
+        $sanitized_nama = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace(' ', '-', $nama));
+
+        // Fetch the 'dibuat' timestamp from the newly inserted order
+        $stmt_dibuat = $pdo->prepare("SELECT dibuat FROM orders WHERE id = ?");
+        $stmt_dibuat->execute([$order_id]);
+        $order_data = $stmt_dibuat->fetch(PDO::FETCH_ASSOC);
+        $dibuat_timestamp = $order_data['dibuat'] ?? date('Y-m-d H:i:s'); // Fallback to current time if not found
+
+        // Sanitize the timestamp for filename: replace spaces and colons with hyphens
+        $sanitized_dibuat = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace([' ', ':'], '-', $dibuat_timestamp));
+
+        foreach ($temp_dudukan_img_data as $file_data) {
+            $temp_filename = $file_data['temp_filename'];
+            $file_ext = $file_data['ext'];
+
+            // Construct the new filename
+            // Format: "dudukan" - id from project_form.orders, nama from project_form.orders - dibuat from project_form.orders
+            $new_filename = "dudukan-{$order_id}-{$sanitized_nama}-{$sanitized_dibuat}.{$file_ext}";
+            $old_path = $upload_dir . $temp_filename;
+            $new_path = $upload_dir . $new_filename;
+
+            if (rename($old_path, $new_path)) {
+                $final_dudukan_img_filenames[] = $new_filename;
+            } else {
+                // Handle error if rename fails, though unlikely if move_uploaded_file succeeded
+                error_log("Failed to rename file from {$old_path} to {$new_path}");
+                // Optionally, you might want to revert the order insertion or mark it as failed
+            }
+        }
+        $dudukan_img_str = implode(',', $final_dudukan_img_filenames);
+
+        // Update the dudukan_img column in the orders table with the new filenames
+        $stmt_update_img = $pdo->prepare("UPDATE orders SET dudukan_img = ? WHERE id = ?");
+        $stmt_update_img->execute([$dudukan_img_str, $order_id]);
+    }
 
     // Optionally clear session order form
     unset($_SESSION['order_form']);
