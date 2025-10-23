@@ -70,6 +70,8 @@ function formatField($key, $value) {
 
         $display_value = nl2br(htmlspecialchars($value));
 
+    } else if ($key === 'biaya') {
+        $display_value = 'Rp. ' . number_format((float)$value, 0, ',', '.');
     }
 
     return ['display_key' => $display_key, 'display_value' => $display_value];
@@ -109,7 +111,7 @@ $html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">'; // M
 // Row 1
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top" style="font-size:24px">';
-$html .= '<table width="100%"  border="1" cellspacing="0" cellpadding="5">';
+$html .= '<table width="100%"  border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
 // Customer
 if (isset($order['nama'])) {
     $formatted = formatField('nama', $order['nama']);
@@ -135,7 +137,7 @@ $html .= '</table>';
 $html .= '</td>';
 
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
 // Tanggal Kirim
 if (isset($order['tanggal_kirim'])) {
     $formatted = formatField('tanggal_kirim', $order['tanggal_kirim']);
@@ -163,7 +165,7 @@ $html .= '</tr>';
 // Row 2
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
 // Model Box
 if (isset($order['model_box'])) {
     $formatted = formatField('model_box', $order['model_box']);
@@ -254,6 +256,7 @@ $html .= '</table>';
 $html .= '</td>';
 $html .= '<td width="50%" valign="top">';
 $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<tr><td colspan="2"><strong style=" text-align:left; vertical-align:top; opacity:0.5;">Aksesoris</strong></td></tr>';
 // Aksesoris
 if (isset($order['aksesoris'])) {
     $aksesoris_data = [];
