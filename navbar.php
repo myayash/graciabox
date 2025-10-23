@@ -13,12 +13,14 @@
                             <li><a href="daftar_barang.php" class="block px-4 py-2 hover:bg-gray-200">tabel barang</a></li>
                             <li><a href="daftar_model_box.php" class="block px-4 py-2 hover:bg-gray-200">tabel model box</a></li>
                             <li><a href="daftar_board.php" class="block px-4 py-2 hover:bg-gray-200">tabel board</a></li>
-                        </div>
-                        <div>
+                            <li><a href="daftar_spk.php" class="block px-4 py-2 hover:bg-gray-200">tabel spk dudukan</a></li>
+                          </div>
+                          <div>
                             <li><a href="daftar_karyawan_sales.php" class="block px-4 py-2 hover:bg-gray-200">tabel karyawan sales</a></li>
                             <li><a href="daftar_aksesoris.php" class="block px-4 py-2 hover:bg-gray-200">tabel aksesoris</a></li>
                             <li><a href="daftar_dudukan.php" class="block px-4 py-2 hover:bg-gray-200">tabel dudukan</a></li>
                             <li><a href="daftar_kertas.php" class="block px-4 py-2 hover:bg-gray-200">tabel kertas</a></li>
+                            <li><a href="daftar_spk_logo.php" class="block px-4 py-2 hover:bg-gray-200">tabel spk logo</a></li>
                         </div>
                     </div>
                 </ul>

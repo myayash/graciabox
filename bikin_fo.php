@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
 
     // Basic required checks
     if (empty($post['nama_customer'])) {
-        $form_errors['nama_customer'] = 'Nama Customer is requi/cover red.';
+        $form_errors['nama_customer'] = 'Nama Customer is required.';
     }
     if (empty($post['kode_pisau'])) {
         $form_errors['kode_pisau'] = 'Kode Pisau is required.';
