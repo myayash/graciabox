@@ -27,12 +27,11 @@ if (!isset($_SESSION['user_id'])) {
         <span class="mr-4">Daftar SPK</span>
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <div class="inline-flex">
-            <a href="bikin_fo.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ SPK</a>
             <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-                <a href="daftar_spk.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active SPK</a>
+                <a href="daftar_spk.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active SPK Dudukan</a>
             <?php else:
 ?>
-                <a href="daftar_spk.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived SPK</a>
+                <a href="daftar_spk.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived SPK Dudukan</a>
             <?php endif;
 ?>
         </div>

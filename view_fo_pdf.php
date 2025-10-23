@@ -37,6 +37,7 @@ if (!$order) {
 
 
 
+
 // Helper function to format display key and value
 
 function formatField($key, $value) {
@@ -47,7 +48,9 @@ function formatField($key, $value) {
 
 
 
-    if ($key === 'cover_dlm') {
+    if ($key === 'nama') {
+        $display_value = strtoupper(htmlspecialchars($value));
+    } else if ($key === 'cover_dlm') {
 
         $display_value = nl2br(htmlspecialchars(preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value)));
 
@@ -55,13 +58,17 @@ function formatField($key, $value) {
 
         $display_value = nl2br(htmlspecialchars(str_replace("\\n", "; ", $value)));
 
+    } else if ($key === 'ukuran') {
+        $display_value = htmlspecialchars($value) . ' cm';
     } else if ($key === 'quantity') {
 
-        $display_value = htmlspecialchars(str_replace(' pcs', '', $value));
+        $display_value = htmlspecialchars(str_replace(' pcs', '', $value)) . ' pcs';
 
+    } else if ($key === 'kode_pisau') {
+        $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'aksesoris') {
 
-        $display_value = nl2br(htmlspecialchars(preg_replace('/(jenis|ukuran|warna):\s*/i', '', $value)));
+        $display_value = nl2br(htmlspecialchars($value));
 
     }
 
@@ -85,10 +92,10 @@ $dompdf = new Dompdf($options);
 
 // Generate HTML content for the PDF
 
-$html = '<style>body { font-family: helvetica, sans-serif; }</style>';
+$html = '<style>body { font-family: verdana, sans-serif; }</style>';
 $html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
 $html .= '<div style="float: left;">';
-$html .= '<img src="' . __DIR__ . '/Applications/XAMPP/xamppfiles/htdocs/graciabox-form/graciabox_logo_gray.jpeg" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$html .= '<img src="' . __DIR__ . '/graciabox_logo_gray.jpeg" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
 $html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SALES CUSTOM ORDER (NO. ' . htmlspecialchars($order['id']) . ')</h2>';
 $html .= '</div>';
 $html .= '<div style="float: right;">';
@@ -99,220 +106,298 @@ $html .= '</div>'; // End container
 
 $html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">'; // Main table for 2 columns
 
-$html .= '<tr>'; // Row for the two columns
-
-
-
-// Column 1
-
-        $html .= '<td width="60%" valign="top">';
-
-        $html .= '<div style="height: 5px;"></div>'; // Placeholder for alignment
-        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-
-// Column 1, Group 1
-
-$group1_col1_fields = [
-
-    'Nama' => 'nama',
-
-    'Ukuran (cm)' => 'ukuran',
-
-    'Kode Pisau' => 'kode_pisau',
-
-    'Quantity' => 'quantity'
-
-];
-
-foreach ($group1_col1_fields as $display_name => $db_key) {
-
-    if (isset($order[$db_key])) {
-
-        $formatted = formatField($db_key, $order[$db_key]);
-
-        $html .= '<tr><td width="30%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-
-    }
-
+// Row 1
+$html .= '<tr>';
+$html .= '<td width="50%" valign="top" style="font-size:24px">';
+$html .= '<table width="100%"  border="1" cellspacing="0" cellpadding="5">';
+// Customer
+if (isset($order['nama'])) {
+    $formatted = formatField('nama', $order['nama']);
+    $html .= '<tr><td width="50%"><strong>Customer</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+  }
+// Ukuran
+if (isset($order['ukuran'])) {
+    $formatted = formatField('ukuran', $order['ukuran']);
+    $html .= '<tr><td width="50%"><strong>Ukuran</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
-
-$html .= '</table><br/>'; // End Group 1, add a break
-
-$html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">BOX</h3>'; // Added heading for Column 1, Group 2
-
-// Column 1, Group 2
-
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-$group2_col1_fields = [
-
-    'Model Box' => 'model_box',
-
-    'Nama Box Lama' => 'nama_box_lama',
-
-    'Jenis Board' => 'jenis_board',
-
-    'Cover Dalam' => 'cover_dlm',
-
-    'Cover Luar' => 'cover_lr'
-
-];
-
-foreach ($group2_col1_fields as $display_name => $db_key) {
-
-    if (isset($order[$db_key])) {
-
-        $formatted = formatField($db_key, $order[$db_key]);
-
-        $html .= '<tr><td width="30%" style="vertical-align: top;"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-
-    }
-
+// Kode Pisau
+if (isset($order['kode_pisau'])) {
+    $formatted = formatField('kode_pisau', $order['kode_pisau']);
+    $html .= '<tr><td width="50%"><strong>Kode Pisau</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
-
-$html .= '</table><br/>'; // End Group 2, add a break
-
-$html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">SPK</h3>'; // Added heading for Column 1, Group 3
-
-// Column 1, Group 3
-
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-$group3_col1_fields = [
-
-    'Aksesoris' => 'aksesoris',
-
-    'Dudukan' => 'dudukan',
-
-    'Logo' => 'logo',
-
-    'Ukuran Poly' => 'ukuran_poly',
-
-    'Lokasi Poly' => 'lokasi_poly',
-
-    'Klise' => 'klise'
-
-];
-
-        foreach ($group3_col1_fields as $display_name => $db_key) {
-
-            if (isset($order[$db_key])) {
-
-                $formatted = formatField($db_key, $order[$db_key]);
-
-                $html .= '<tr><td width="30%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-
-            }
-
-        }
-
-$html .= '</table>'; // End Group 3
-
-$html .= '</td>'; // End Column 1
-
-
-
-// Column 2
-
-        $html .= '<td width="40%" valign="top">';
-
-        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 5px 0;">PENGIRIMAN</h3>'; // Added heading for Column 2, Group 1
-        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-
-// Column 2, Group 1
-
-$group1_col2_fields = [
-
-    'Tanggal Kirim' => 'tanggal_kirim',
-
-    'Jam Kirim' => 'jam_kirim',
-
-    'Dikirim Dari' => 'dikirim_dari',
-
-    'Tujuan Kirim' => 'tujuan_kirim'
-
-];
-
-foreach ($group1_col2_fields as $display_name => $db_key) {
-
-    if (isset($order[$db_key])) {
-
-        $formatted = formatField($db_key, $order[$db_key]);
-
-        $html .= '<tr><td width="70%"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-
-    }
-
-}
-
-        $html .= '</table>'; // End Group 1
-
-        $html .= '<h3 style="text-align: center; background-color: #f2f2f2; margin: 20px 0 5px 0;">PEMBAYARAN</h3>'; // Added heading for Column 2, Group 2
-        $html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-        // Column 2, Group 2
-        $group2_col2_fields = [
-            'Tanggal DP' => 'tanggal_dp',
-            'Pelunasan' => 'pelunasan',
-            'Ongkir' => 'ongkir',
-            'Packing' => 'packing'
-        ];
-
-        foreach ($group2_col2_fields as $display_name => $db_key) {
-            if (isset($order[$db_key])) {
-                $formatted = formatField($db_key, $order[$db_key]);
-                $html .= '<tr><td width="70%" style="vertical-align: top;"><strong>' . $display_name . '</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-            }
-        }
-
-        $html .= '</table>'; // End Group 2
-
-        $html .= '</td>'; // End Column 2
-$html .= '</tr>'; // End Row for the two columns
-
-
-
-
-// Keterangan (separated)
-
-$html .= '<tr><td colspan="2">';
-
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-
-if (isset($order['keterangan'])) {
-
-    $formatted = formatField('keterangan', $order['keterangan']);
-
-    $html .= '<tr><td colspan="2" style="text-align: center;"><strong>Keterangan:</strong><br/>' . $formatted['display_value'] . '</td></tr>';
-
+// Quantity
+if (isset($order['quantity'])) {
+    $formatted = formatField('quantity', $order['quantity']);
+    $html .= '<tr><td width="50%"><strong>Quantity</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 
 $html .= '</table>';
+$html .= '</td>';
 
-$html .= '</td></tr>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Tanggal Kirim
+if (isset($order['tanggal_kirim'])) {
+    $formatted = formatField('tanggal_kirim', $order['tanggal_kirim']);
+    $html .= '<tr><td width="50%"><strong>Tanggal Kirim</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Jam Kirim
+if (isset($order['jam_kirim'])) {
+    $formatted = formatField('jam_kirim', $order['jam_kirim']);
+    $html .= '<tr><td width="50%"><strong>Jam Kirim</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Dikirim Dari
+if (isset($order['dikirim_dari'])) {
+    $formatted = formatField('dikirim_dari', $order['dikirim_dari']);
+    $html .= '<tr><td width="50%"><strong>Dikirim Dari</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Tujuan Kirim
+if (isset($order['tujuan_kirim'])) {
+    $formatted = formatField('tujuan_kirim', $order['tujuan_kirim']);
+    $html .= '<tr><td width="50%"><strong>Tujuan Kirim</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
 
-$html .= '<tr><td><br/></td></tr>'; // Add a break between tables
+// Row 2
+$html .= '<tr>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Model Box
+if (isset($order['model_box'])) {
+    $formatted = formatField('model_box', $order['model_box']);
+    $html .= '<tr><td width="50%"style= "font-size:24px;"><strong>Model Box</strong></td><td width="70%" style="font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Nama Pisau
+if (isset($order['nama_box_lama'])) {
+    $formatted = formatField('nama_box_lama', $order['nama_box_lama']);
+    $html .= '<tr><td width="50%"><strong>Nama Pisau</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Jenis Board
+if (isset($order['jenis_board'])) {
+    $formatted = formatField('jenis_board', $order['jenis_board']);
+    $html .= '<tr><td width="50%" style= "font-size:24px;"><strong>Board</strong></td><td width="70%" style = "vertical-align:top; font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Cover Dalam
+if (isset($order['cover_dlm'])) {
+    $formatted = formatField('cover_dlm', $order['cover_dlm']);
+    $html .= '<tr><td width="50%"><strong>Cover Dalam</strong></td><td width="70%" style = "vertical-align:top;">: ' . $formatted['display_value'] . '</td></tr>';
+}
+;
+$html .= '</td>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Tanggal DP
+if (isset($order['tanggal_dp'])) {
+    $formatted = formatField('tanggal_dp', $order['tanggal_dp']);
+    $html .= '<tr><td width="50%"><strong>Tanggal DP</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Pelunasan
+if (isset($order['pelunasan'])) {
+    $formatted = formatField('pelunasan', $order['pelunasan']);
+    $html .= '<tr><td width="50%"><strong>Pelunasan</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Ongkir
+if (isset($order['ongkir'])) {
+    $formatted = formatField('ongkir', $order['ongkir']);
+    $html .= '<tr><td width="50%"><strong>Ongkir</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Packing
+if (isset($order['packing'])) {
+    $formatted = formatField('packing', $order['packing']);
+    $html .= '<tr><td width="50%"><strong>Packing</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Biaya
+if (isset($order['biaya'])) {
+    $formatted = formatField('biaya', $order['biaya']);
+    $html .= '<tr><td width="50%"><strong>Biaya</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
+
+// Row 3
+$html .= '<tr>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<tr><td colspan="2"><strong style=" text-align:left; vertical-align:top; opacity:0.5;">Cover Luar</strong></td></tr>';
+// Cover Luar
+if (isset($order['cover_lr'])) {
+    $cover_lr_data = [];
+    $parts = explode("\n", str_replace(['; ', ', '], "\n", $order['cover_lr']));
+    foreach ($parts as $part) {
+        $part = trim($part);
+        if (empty($part)) continue;
+
+        $colon_pos = strpos($part, ':');
+        if ($colon_pos !== false) {
+            $label = trim(substr($part, 0, $colon_pos));
+            $value_item = trim(substr($part, $colon_pos + 1));
+            $cover_lr_data[$label] = $value_item;
+        } else {
+            // If no colon, treat the whole part as a value without a specific label
+            $cover_lr_data[] = $part;
+        }
+    }
+
+    
+
+    // Now generate HTML rows for each remaining parsed cover_lr item
+    foreach ($cover_lr_data as $label => $value_item) {
+        $display_label = is_numeric($label) ? 'Cover Luar Detail' : ucwords(str_replace('_', ' ', $label));
+        $html .= '<tr><td width="50%" style="vertical-align:top;"><strong>' . htmlspecialchars($display_label) . '</strong></td><td width="70%" style="vertical-align:top;">: ' . htmlspecialchars($value_item) . '</td></tr>';
+    }
+}
+
+$html .= '</table>';
+$html .= '</td>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Aksesoris
+if (isset($order['aksesoris'])) {
+    $aksesoris_data = [];
+    $jenis = '';
+    $ukuran = '';
+    $warna = '';
+
+    $parts = explode("
+", str_replace([";", "-"], "
+", $order['aksesoris']));
+    foreach ($parts as $part) {
+        $part = trim($part);
+        if (empty($part)) continue;
+
+        $colon_pos = strpos($part, ':');
+        if ($colon_pos !== false) {
+            $label = trim(substr($part, 0, $colon_pos));
+            $value_item = trim(substr($part, $colon_pos + 1));
+
+            if (strtolower($label) === 'jenis') {
+                $jenis = $value_item;
+            } elseif (strtolower($label) === 'ukuran') {
+                $ukuran = $value_item;
+            } elseif (strtolower($label) === 'warna') {
+                $warna = $value_item;
+            } else {
+                $aksesoris_data[$label] = $value_item;
+            }
+        } else {
+            $aksesoris_data[] = $part;
+        }
+    }
+
+    if (!empty($jenis)) {
+        $html .= '<tr><td colspan="2" style="vertical-align:top; font-size:24px;"><strong>' . strtoupper(htmlspecialchars($jenis)) . '</strong></td></tr>';
+    }
+    if (!empty($ukuran)) {
+        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;ukuran</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($ukuran) . '</td></tr>';
+    }
+    if (!empty($warna)) {
+        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;warna</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($warna) . '</td></tr>';
+    }
+
+    // Now generate HTML rows for any other parsed aksesoris item
+    foreach ($aksesoris_data as $label => $value_item) {
+        $display_label = is_numeric($label) ? 'Aksesoris Detail' : ucwords(str_replace('_', ' ', $label));
+        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>' . htmlspecialchars($display_label) . '</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($value_item) . '</td></tr>';
+    }
+}
+// Ket. Aksesoris
+if (isset($order['ket_aksesoris'])) {
+    $formatted = formatField('ket_aksesoris', $order['ket_aksesoris']);
+    $html .= '<tr><td width="50%"><strong>Keterangan</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
 
 
-// Bottom Group (spanning both columns) - Formatted like 'dibuat'
-$html .= '<tr><td colspan="2" style="text-align: right;">'; // Container for right-aligned paragraphs
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
+
+// Row 4
+$html .= '<tr>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">';
+
+$html .= '</table>';
+$html .= '</td>';
+$html .= '<td width="50%" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Dudukan
+if (isset($order['dudukan'])) {
+    $formatted = formatField('dudukan', $order['dudukan']);
+    $html .= '<tr><td width="50%" style="font-size:24px;"><strong>Dudukan</strong></td><td width="70%" style="font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Logo
+if (isset($order['logo'])) {
+    $formatted = formatField('logo', $order['logo']);
+    $html .= '<tr><td width="50%" style="font-size:24px;"><strong>Logo</strong></td><td width="70%" style="font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Ukuran Poly
+if (isset($order['ukuran_poly'])) {
+    $formatted = formatField('ukuran_poly', $order['ukuran_poly']);
+    $html .= '<tr><td width="50%"><strong>Ukuran Poly</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Lokasi Poly
+if (isset($order['lokasi_poly'])) {
+    $formatted = formatField('lokasi_poly', $order['lokasi_poly']);
+    $html .= '<tr><td width="50%"><strong>Lokasi Poly</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+// Klise
+if (isset($order['klise'])) {
+    $formatted = formatField('klise', $order['klise']);
+    $html .= '<tr><td width="50%"><strong>Klise</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
+
+
+
+// Row 7
+$html .= '<tr>';
+$html .= '<td colspan="2" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// FB Cust
+if (isset($order['feedback_cust'])) {
+    $formatted = formatField('feedback_cust', $order['feedback_cust']);
+    $html .= '<tr><td width="30%"><strong>Feedback Customer</strong></td><td width="85%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
+
+// Row 7
+$html .= '<tr>';
+$html .= '<td colspan="2" valign="top">';
+$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+// Keterangan
+if (isset($order['keterangan'])) {
+    $formatted = formatField('keterangan', $order['keterangan']);
+    $html .= '<tr><td width="30%"><strong>Keterangan</strong></td><td width="85%">: ' . $formatted['display_value'] . '</td></tr>';
+}
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
+
+// Row 8 (Spanning both columns for Keterangan, Sales PJ, Lokasi)
+$html .= '<tr>';
+$html .= '<td colspan="2" valign="top">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">';
+
+// Sales PJ
 if (isset($order['sales_pj'])) {
     $formatted = formatField('sales_pj', $order['sales_pj']);
-    $html .= '<p style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . $formatted['display_value'] . ',</p><br/>';
+    $html .= '<tr><td width="30%"><strong></strong></td><td width="85%" style="text-align: right;">' . $formatted['display_value'] . ',</td></tr>';
 }
+// Lokasi
 if (isset($order['lokasi'])) {
     $formatted = formatField('lokasi', $order['lokasi']);
-    $html .= '<p style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . $formatted['display_value'] . '</p>';
+    $html .= '<tr><td width="30%"><strong></strong></td><td width="85%" style="text-align: right;">' . $formatted['display_value'] . '</td></tr>';
 }
-$html .= '</td></tr>'; // End Bottom Group
-
-
-
-
-
-
+$html .= '</table>';
+$html .= '</td>';
+$html .= '</tr>';
 
 $html .= '</table>'; // End Main table
 

@@ -267,6 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // feedback customer
     $feedback_cust = $post['feedback_cust'] ?? null;
     $aksesoris = 'jenis:' . ($post['aksesoris_jenis'] ?? '') . ' - ukuran:' . ($post['aksesoris_ukuran'] ?? '') . ' - warna:' . ($post['aksesoris_warna'] ?? '');
+    $ket_aksesoris = $post['ket_aksesoris'] ?? null;
     $jumlah_layer = $post['jumlah_layer'] ?? null;
     $logo = $post['logo'] ?? null;
     $ukuran_poly = $post['ukuran_poly'] ?? null;
@@ -289,8 +290,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $cover_lr = $cover_luar_str;
 
     // Insert into orders (include feedback_cust before keterangan)
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
 
     $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
 
@@ -652,6 +653,10 @@ foreach ($prefixes as $prefix) {
                                     <?php endforeach; ?>
                                   </select>
                                 </div>
+                              </div>
+                              <div class="mb-4">
+                                <label for="ket_aksesoris" class="block text-gray-800 text-sm font-semibold mb-2">Keterangan Aksesoris</label>
+                                <textarea name="ket_aksesoris" id="ket_aksesoris" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['ket_aksesoris'] ?? ''); ?></textarea>
                               </div>
 
                 </div>
