@@ -798,7 +798,7 @@ foreach ($prefixes as $prefix) {
 
                 <div class="mb-4">
                     <label for="tanggal_kirim" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal Kirim</label>
-                    <input type="date" name="tanggal_kirim" id="tanggal_kirim" value="<?php echo htmlspecialchars($order_form['tanggal_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="date" name="tanggal_kirim" id="tanggal_kirim" value="<?php echo htmlspecialchars($order_form['tanggal_kirim'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                 </div>
 
                 <div class="mb-4">
@@ -827,7 +827,7 @@ foreach ($prefixes as $prefix) {
 
                 <div class="mb-4">
                     <label for="tanggal_dp" class="block text-gray-800 text-sm font-semibold mb-2">Tanggal DP</label>
-                    <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                 </div>
 
                 <div class="mb-4">
