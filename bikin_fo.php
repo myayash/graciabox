@@ -144,6 +144,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Initialize $logo_img_str as empty for now, it will be updated after order insertion
     $logo_img_str = '';
 
+    $temp_poly_img_data = []; // To store temporary filenames and extensions for poly images
+    if (isset($_FILES['poly_img']) && !empty(array_filter($_FILES['poly_img']['name']))) {
+        $image_files = $_FILES['poly_img'];
+        $file_count = count($image_files['name']);
+
+        if ($file_count > 3) {
+            $form_errors['poly_img'] = 'You can upload a maximum of 3 poly images.';
+        } else {
+            for ($i = 0; $i < $file_count; $i++) {
+                if ($image_files['error'][$i] === UPLOAD_ERR_OK) {
+                    $file_tmp_name = $image_files['tmp_name'][$i];
+                    $file_name = $image_files['name'][$i];
+                    $file_size = $image_files['size'][$i];
+                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                    $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+
+                    if (in_array($file_ext, $allowed_ext)) {
+                        if ($file_size <= 2097152) { // 2MB
+                            $temp_file_name = uniqid('', true) . '.' . $file_ext; // Generate a temporary unique name
+                            $destination = $upload_dir . $temp_file_name;
+                            if (move_uploaded_file($file_tmp_name, $destination)) {
+                                $temp_poly_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
+                            } else {
+                                $form_errors['poly_img'] = 'Failed to move uploaded poly file.';
+                            }
+                        } else {
+                            $form_errors['poly_img'] = 'Poly file size must be 2MB or less.';
+                        }
+                    } else {
+                        $form_errors['poly_img'] = 'Invalid poly file type. Only JPG, JPEG, PNG, and GIF are allowed.';
+                    }
+                } elseif ($image_files['error'][$i] !== UPLOAD_ERR_NO_FILE) {
+                    $form_errors['poly_img'] = 'Error uploading poly file: ' . $image_files['error'][$i];
+                }
+            }
+        }
+    }
+    // Initialize $poly_img_str as empty for now, it will be updated after order insertion
+    $poly_img_str = '';
+
     // If there are validation errors from logo file upload, save and redirect back to form
     if (!empty($form_errors['logo_img'])) {
         $_SESSION['form_errors'] = $form_errors;
@@ -292,8 +332,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $cover_lr = $cover_luar_str;
 
     // Insert into orders (include feedback_cust before keterangan)
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, poly_img, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $poly_img_str, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
 
     $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
 
@@ -365,6 +405,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         // Update the logo_img column in the orders table with the new filenames
         $stmt_update_logo_img = $pdo->prepare("UPDATE orders SET logo_img = ? WHERE id = ?");
         $stmt_update_logo_img->execute([$logo_img_str, $order_id]);
+    }
+
+    $final_poly_img_filenames = [];
+    if (!empty($temp_poly_img_data)) {
+        // $sanitized_nama and $sanitized_dibuat are already available from dudukan_img processing
+
+        $file_index = 0; // Initialize file index for unique filenames
+        foreach ($temp_poly_img_data as $file_data) {
+            $temp_filename = $file_data['temp_filename'];
+            $file_ext = $file_data['ext'];
+            $file_index++; // Increment index for each file
+
+            // Construct the new filename
+            // Format: "poly" - id from project_form.orders, nama from project_form.orders - dibuat from project_form.orders - index
+            $new_filename = "poly-{$order_id}-{$sanitized_nama}-{$sanitized_dibuat}-{$file_index}.{$file_ext}";
+            $old_path = $upload_dir . $temp_filename;
+            $new_path = $upload_dir . $new_filename;
+
+            if (rename($old_path, $new_path)) {
+                $final_poly_img_filenames[] = $new_filename;
+            } else {
+                error_log("Failed to rename poly file from {$old_path} to {$new_path}");
+            }
+        }
+        $poly_img_str = implode(',', $final_poly_img_filenames);
+
+        // Update the poly_img column in the orders table with the new filenames
+        $stmt_update_poly_img = $pdo->prepare("UPDATE orders SET poly_img = ? WHERE id = ?");
+        $stmt_update_poly_img->execute([$poly_img_str, $order_id]);
     }
 
     // Optionally clear session order form
@@ -810,7 +879,7 @@ foreach ($prefixes as $prefix) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="w-1/2">
+                        <div class="w-1/2 mb-4">
                             <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
                             <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
                                 <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
@@ -819,7 +888,15 @@ foreach ($prefixes as $prefix) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                    </div>
+                      </div>
+                      <div class="mb-4">
+                        <label for="logo_img" class="block text-gray-800 text-sm font-semibold mb-2">Logo Images (max 3)</label>
+                        <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                        <div id="logo_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
+                          <?php if (!empty($errors['logo_img'])): ?>
+                              <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['logo_img']) ?></div>
+                          <?php endif; ?>
+                      </div>
                 </div>
 
                 <div class="mb-4">
@@ -854,13 +931,15 @@ foreach ($prefixes as $prefix) {
                 </div>
 
                 <div class="mb-4">
-                    <label for="logo_img" class="block text-gray-800 text-sm font-semibold mb-2">Logo Images (max 3)</label>
-                    <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <div id="logo_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
-                    <?php if (!empty($errors['logo_img'])): ?>
-                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['logo_img']) ?></div>
+                    <label for="poly_img" class="block text-gray-800 text-sm font-semibold mb-2">Poly Images (max 3)</label>
+                    <input type="file" name="poly_img[]" id="poly_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <div id="poly_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
+                    <?php if (!empty($errors['poly_img'])): ?>
+                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['poly_img']) ?></div>
                     <?php endif; ?>
                 </div>
+
+                
                 
             </div>
         </div>
@@ -1219,6 +1298,36 @@ foreach ($prefixes as $prefix) {
                                 img.src = e.target.result;
                                 img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
                                 logoImagePreviewContainer.appendChild(img);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            }
+            const polyImgInput = document.getElementById('poly_img');
+            const polyImagePreviewContainer = document.getElementById('poly_image_preview_container');
+
+            if (polyImgInput && polyImagePreviewContainer) {
+                polyImgInput.addEventListener('change', function() {
+                    polyImagePreviewContainer.innerHTML = ''; // Clear previous previews
+
+                    const files = this.files;
+                    if (files.length > 3) {
+                        // Display an error message if more than 3 files are selected
+                        polyImagePreviewContainer.innerHTML = '<div class="text-red-600 text-sm">You can upload a maximum of 3 poly images.</div>';
+                        this.value = ''; // Clear selected files
+                        return;
+                    }
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
+                                polyImagePreviewContainer.appendChild(img);
                             };
                             reader.readAsDataURL(file);
                         }
