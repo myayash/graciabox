@@ -400,6 +400,8 @@ $html .= '</tr>';
 
 $html .= '</table>'; // End Main table
 
+$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Form Order Produksi.</div>';
+
 $dompdf->loadHtml($html);
 
 // (Optional) Setup the paper size and orientation
