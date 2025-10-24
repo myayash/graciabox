@@ -31,6 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         $form_errors['jenis_board'] = 'Jenis Board is required.';
     }
 
+    if (!empty($post['nama_customer'])) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM customer WHERE nama = ?");
+        $stmt->execute([$post['nama_customer']]);
+        if ($stmt->fetchColumn() == 0) {
+            $form_errors['nama_customer'] = 'Customer tidak ditemukan. Silakan pilih dari daftar atau buat customer baru.';
+        }
+    }
+
     // Kode pisau specific validation
     if (isset($post['kode_pisau']) && $post['kode_pisau'] === 'baru') {
         if (empty($post['model_box_baru'])) {
@@ -539,6 +547,37 @@ foreach ($prefixes as $prefix) {
     <title>bikin form order</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
+<style>
+.searchable-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 100%;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+.dropdown-content a:hover {background-color: #f1f1f1}
+.show {display: block;}
+#customer_search {
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.7em top 50%, 0 0;
+    background-size: 1.2em auto, 100%;
+}
+</style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
@@ -572,12 +611,15 @@ foreach ($prefixes as $prefix) {
           <div class="mb-8">
               <label for="nama_customer" class="block text-gray-800 text-xl font-semibold mb-2">Nama Customer</label>
               <?php $errors = $_SESSION['form_errors'] ?? []; unset($_SESSION['form_errors']); ?>
-              <select name="nama_customer" id="nama_customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                  <option value="" disabled <?php echo !isset($order_form['nama_customer']) ? 'selected' : ''; ?>>Pilih Customer</option>
-                  <?php foreach ($customers as $customer): ?>
-                      <option value="<?= $customer['nama'] ?>" <?php echo (isset($order_form['nama_customer']) && $order_form['nama_customer'] === $customer['nama']) ? 'selected' : ''; ?>><?= $customer['nama'] ?></option>
-                  <?php endforeach; ?>
-              </select>
+              <div class="searchable-dropdown">
+                  <input type="text" id="customer_search" placeholder="Pilih atau cari customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" value="<?php echo htmlspecialchars($order_form['nama_customer'] ?? ''); ?>">
+                  <div id="customer_dropdown" class="dropdown-content">
+                      <?php foreach ($customers as $customer): ?>
+                          <a href="#" data-value="<?= $customer['nama'] ?>"><?= $customer['nama'] ?></a>
+                      <?php endforeach; ?>
+                  </div>
+                  <input type="hidden" name="nama_customer" id="nama_customer" value="<?php echo htmlspecialchars($order_form['nama_customer'] ?? ''); ?>">
+              </div>
               <?php if (!empty($errors['nama_customer'])): ?>
                   <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['nama_customer']) ?></div>
               <?php endif; ?>
@@ -1336,5 +1378,92 @@ foreach ($prefixes as $prefix) {
             }
         })();
     </script>
-    </body>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('customer_search');
+    const dropdown = document.getElementById('customer_dropdown');
+    const hiddenInput = document.getElementById('nama_customer');
+    const dropdownOptions = Array.from(dropdown.getElementsByTagName('a'));
+    let activeOption = -1;
+
+    searchInput.addEventListener('click', function() {
+        dropdown.classList.toggle('show');
+    });
+
+    searchInput.addEventListener('input', function() {
+        const filter = searchInput.value.toUpperCase();
+        let hasVisibleOptions = false;
+        for (let i = 0; i < dropdownOptions.length; i++) {
+            const txtValue = dropdownOptions[i].textContent || dropdownOptions[i].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                dropdownOptions[i].style.display = "";
+                hasVisibleOptions = true;
+            } else {
+                dropdownOptions[i].style.display = "none";
+            }
+        }
+        if(hasVisibleOptions) {
+            dropdown.classList.add('show');
+        } else {
+            dropdown.classList.remove('show');
+        }
+        activeOption = -1;
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.keyCode === 40) { // ArrowDown
+            e.preventDefault();
+            activeOption++;
+            addActive();
+        } else if (e.keyCode === 38) { // ArrowUp
+            e.preventDefault();
+            activeOption--;
+            addActive();
+        } else if (e.keyCode === 13) { // Enter
+            e.preventDefault();
+            if (activeOption > -1) {
+                dropdownOptions.find(opt => opt.style.display !== 'none' && dropdownOptions.indexOf(opt) >= activeOption)?.click();
+            }
+        } else if (e.keyCode === 9) { // Tab
+            if (activeOption > -1) {
+                e.preventDefault();
+                dropdownOptions.find(opt => opt.style.display !== 'none' && dropdownOptions.indexOf(opt) >= activeOption)?.click();
+            }
+            dropdown.classList.remove('show');
+        }
+    });
+
+    function addActive() {
+        const visibleOptions = dropdownOptions.filter(opt => opt.style.display !== 'none');
+        if (visibleOptions.length === 0) return;
+        removeActive();
+        if (activeOption >= visibleOptions.length) activeOption = 0;
+        if (activeOption < 0) activeOption = (visibleOptions.length - 1);
+        
+        visibleOptions[activeOption].style.backgroundColor = "#ddd";
+    }
+
+    function removeActive() {
+        for (let i = 0; i < dropdownOptions.length; i++) {
+            dropdownOptions[i].style.backgroundColor = "";
+        }
+    }
+
+    dropdownOptions.forEach(function(option) {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            searchInput.value = this.getAttribute('data-value');
+            hiddenInput.value = this.getAttribute('data-value');
+            dropdown.classList.remove('show');
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.matches('#customer_search')) {
+            dropdown.classList.remove('show');
+        }
+    });
+});
+</script>
+</body>
 </html>
