@@ -288,10 +288,10 @@ if (isset($order['aksesoris'])) {
         $html .= '<tr><td colspan="2" style="vertical-align:top; font-size:24px;"><strong>' . strtoupper(htmlspecialchars($jenis)) . '</strong></td></tr>';
     }
     if (!empty($ukuran)) {
-        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;ukuran</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($ukuran) . ' cm</td></tr>';
+        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;Ukuran</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($ukuran) . ' cm</td></tr>';
     }
     if (!empty($warna)) {
-        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;warna</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($warna) . '</td></tr>';
+        $html .= '<tr><td width="50%" style="vertical-align:top; font-size:24px;"><strong>&nbsp;&nbsp;&nbsp;&nbsp;Warna</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . htmlspecialchars($warna) . '</td></tr>';
     }
 
     // Now generate HTML rows for any other parsed aksesoris item
