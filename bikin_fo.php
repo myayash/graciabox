@@ -257,6 +257,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         $stmt->execute([$dudukan_id]);
         $drow = $stmt->fetch(PDO::FETCH_ASSOC);
         $dudukan_jenis = $drow['jenis'] ?? null;
+    } else {
+        $dudukan_jenis = 'Tidak ada';
     }
 
     // other fields
@@ -269,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $aksesoris = 'jenis:' . ($post['aksesoris_jenis'] ?? '') . ' - ukuran:' . ($post['aksesoris_ukuran'] ?? '') . ' - warna:' . ($post['aksesoris_warna'] ?? '');
     $ket_aksesoris = $post['ket_aksesoris'] ?? null;
     $jumlah_layer = $post['jumlah_layer'] ?? null;
-    $logo = $post['logo'] ?? null;
+    $logo = !empty($post['logo']) ? $post['logo'] : 'Tidak ada';
     $ukuran_poly = $post['ukuran_poly'] ?? null;
     $lokasi_poly = $post['lokasi_poly'] ?? null;
     $klise = $post['klise'] ?? null;
@@ -749,7 +751,10 @@ foreach ($prefixes as $prefix) {
                 </div>
                     
                 
-                <h2 class="text-xl font-bold mb-4 text-gray-400">SPK</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-400">SPK</h2>
+                    <button type="button" id="reset_spk_button" class="text-sm font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">reset</button>
+                </div>
                 <div class="border-b-2 border-gray-300 mb-6"></div>
                 <div class="mb-4">
                     <div class="flex space-x-4">
@@ -968,6 +973,45 @@ foreach ($prefixes as $prefix) {
     <script>
         // Simple client-side validation before submit
         (function(){
+            const resetButton = document.getElementById('reset_spk_button');
+            if(resetButton) {
+                resetButton.addEventListener('click', function() {
+                    // Reset Dudukan dropdown
+                    document.getElementById('dudukan').selectedIndex = 0;
+
+                    // Reset Jumlah layer
+                    document.getElementById('jumlah_layer').value = '';
+
+                    // Reset Dudukan Images
+                    const dudukanImgInput = document.getElementById('dudukan_img');
+                    dudukanImgInput.value = '';
+                    document.getElementById('image_preview_container').innerHTML = '';
+
+                    // Reset Logo dropdown
+                    document.getElementById('logo').selectedIndex = 0;
+
+                    // Reset Ukuran Poly dropdown
+                    document.getElementById('ukuran_poly').selectedIndex = 0;
+
+                    // Reset Lokasi Poly radio buttons
+                    const lokasiPolyRadios = document.getElementsByName('lokasi_poly');
+                    for (let i = 0; i < lokasiPolyRadios.length; i++) {
+                        lokasiPolyRadios[i].checked = false;
+                    }
+
+                    // Reset Klise radio buttons
+                    const kliseRadios = document.getElementsByName('klise');
+                    for (let i = 0; i < kliseRadios.length; i++) {
+                        kliseRadios[i].checked = false;
+                    }
+
+                    // Reset Logo Images
+                    const logoImgInput = document.getElementById('logo_img');
+                    logoImgInput.value = '';
+                    document.getElementById('logo_image_preview_container').innerHTML = '';
+                });
+            }
+
             const form = document.querySelector('form');
             const clientErrors = document.getElementById('client_errors');
             const successModal = document.getElementById('successModal');

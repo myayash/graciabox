@@ -30,71 +30,60 @@ $stmt->execute([$order_id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
-
     die('Error: Order not found.');
-
 }
 
-
-
-
 // Helper function to format display key and value
-
 function formatField($key, $value) {
-
     $display_key = ucwords(str_replace(['_', 'dlm', 'lr', 'pj'], [' ', 'Dalam', 'Luar', 'PJ'], $key));
-
     $display_value = htmlspecialchars($value);
-
-
 
     if ($key === 'nama') {
         $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'cover_dlm') {
-
         $display_value = nl2br(htmlspecialchars(preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value)));
-
     } else if ($key === 'cover_lr') {
-
         $display_value = nl2br(htmlspecialchars(str_replace("\\n", "; ", $value)));
-
     } else if ($key === 'ukuran') {
         $display_value = htmlspecialchars($value) . ' cm';
     } else if ($key === 'quantity') {
-
         $display_value = htmlspecialchars(str_replace(' pcs', '', $value)) . ' pcs';
-
     } else if ($key === 'kode_pisau') {
         $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'aksesoris') {
-
         $display_value = nl2br(htmlspecialchars($value));
-
     } else if ($key === 'biaya') {
         $display_value = 'Rp. ' . number_format((float)$value, 0, ',', '.');
     }
 
     return ['display_key' => $display_key, 'display_value' => $display_value];
-
 }
 
-
-
 // Instantiate and use the dompdf class
-
 $options = new Options();
-
 $options->set('isHtml5ParserEnabled', true);
-
 $options->set('isRemoteEnabled', true);
-
 $dompdf = new Dompdf($options);
 
-
-
 // Generate HTML content for the PDF
+$html = '<style>
+body { font-family: verdana, sans-serif; }
+.rounded-container {
+    border: 1px solid #000;
+    border-radius: 6.5px;
+    overflow: hidden;
+}
+.rounded-container table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+}
+.rounded-container td {
+    padding: 6px;
+    vertical-align: top;
+}
 
-$html = '<style>body { font-family: verdana, sans-serif; }</style>';
+</style>';
 $html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
 $html .= '<div style="float: left;">';
 $html .= '<img src="' . __DIR__ . '/graciabox_logo_gray.jpeg" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
@@ -111,12 +100,13 @@ $html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">'; // M
 // Row 1
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top" style="font-size:24px">';
-$html .= '<table width="100%"  border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Customer
 if (isset($order['nama'])) {
     $formatted = formatField('nama', $order['nama']);
     $html .= '<tr><td width="50%"><strong>Customer</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
-  }
+}
 // Ukuran
 if (isset($order['ukuran'])) {
     $formatted = formatField('ukuran', $order['ukuran']);
@@ -132,12 +122,13 @@ if (isset($order['quantity'])) {
     $formatted = formatField('quantity', $order['quantity']);
     $html .= '<tr><td width="50%"><strong>Quantity</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
-
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Tanggal Kirim
 if (isset($order['tanggal_kirim'])) {
     $formatted = formatField('tanggal_kirim', $order['tanggal_kirim']);
@@ -159,17 +150,19 @@ if (isset($order['tujuan_kirim'])) {
     $html .= '<tr><td width="50%"><strong>Tujuan Kirim</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
 
 // Row 2
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-radius: 10px;">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Model Box
 if (isset($order['model_box'])) {
     $formatted = formatField('model_box', $order['model_box']);
-    $html .= '<tr><td width="50%"style= "font-size:24px;"><strong>Model Box</strong></td><td width="70%" style="font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+    $html .= '<tr><td width="50%" style="font-size:24px;"><strong>Model Box</strong></td><td width="70%" style="font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
 }
 // Nama Pisau
 if (isset($order['nama_box_lama'])) {
@@ -179,17 +172,19 @@ if (isset($order['nama_box_lama'])) {
 // Jenis Board
 if (isset($order['jenis_board'])) {
     $formatted = formatField('jenis_board', $order['jenis_board']);
-    $html .= '<tr><td width="50%" style= "font-size:24px;"><strong>Board</strong></td><td width="70%" style = "vertical-align:top; font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
+    $html .= '<tr><td width="50%" style="font-size:24px;"><strong>Board</strong></td><td width="70%" style="vertical-align:top; font-size:24px;">: ' . $formatted['display_value'] . '</td></tr>';
 }
 // Cover Dalam
 if (isset($order['cover_dlm'])) {
     $formatted = formatField('cover_dlm', $order['cover_dlm']);
-    $html .= '<tr><td width="50%"><strong>Cover Dalam</strong></td><td width="70%" style = "vertical-align:top;">: ' . $formatted['display_value'] . '</td></tr>';
+    $html .= '<tr><td width="50%"><strong>Cover Dalam</strong></td><td width="70%" style="vertical-align:top;">: ' . $formatted['display_value'] . '</td></tr>';
 }
-;
+$html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Tanggal DP
 if (isset($order['tanggal_dp'])) {
     $formatted = formatField('tanggal_dp', $order['tanggal_dp']);
@@ -216,14 +211,16 @@ if (isset($order['biaya'])) {
     $html .= '<tr><td width="50%"><strong>Biaya</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
 
 // Row 3
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-$html .= '<tr><td colspan="2"><strong style=" text-align:left; vertical-align:top; opacity:0.5;">Cover Luar</strong></td></tr>';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
+$html .= '<tr><td colspan="2"><strong style="text-align:left; vertical-align:top; opacity:0.5;">Cover Luar</strong></td></tr>';
 // Cover Luar
 if (isset($order['cover_lr'])) {
     $cover_lr_data = [];
@@ -243,20 +240,19 @@ if (isset($order['cover_lr'])) {
         }
     }
 
-    
-
     // Now generate HTML rows for each remaining parsed cover_lr item
     foreach ($cover_lr_data as $label => $value_item) {
         $display_label = is_numeric($label) ? 'Cover Luar Detail' : ucwords(str_replace('_', ' ', $label));
-        $html .= '<tr><td width="50%" style="vertical-align:top;"><strong>' . htmlspecialchars($display_label) . '</strong></td><td width="70%" style="vertical-align:top;">: ' . htmlspecialchars($value_item) . '</td></tr>';
+        $html .= '<tr><td width="50%"><strong>' . htmlspecialchars($display_label) . '</strong></td><td width="70%">: ' . htmlspecialchars($value_item) . '</td></tr>';
     }
 }
-
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
-$html .= '<tr><td colspan="2"><strong style=" text-align:left; vertical-align:top; opacity:0.5;">Aksesoris</strong></td></tr>';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
+$html .= '<tr><td colspan="2"><strong style="text-align:left; vertical-align:top; opacity:0.5;">Aksesoris</strong></td></tr>';
 // Aksesoris
 if (isset($order['aksesoris'])) {
     $aksesoris_data = [];
@@ -264,9 +260,7 @@ if (isset($order['aksesoris'])) {
     $ukuran = '';
     $warna = '';
 
-    $parts = explode("
-", str_replace([";", "-"], "
-", $order['aksesoris']));
+    $parts = explode("\n", str_replace([";", "-"], "\n", $order['aksesoris']));
     foreach ($parts as $part) {
         $part = trim($part);
         if (empty($part)) continue;
@@ -311,9 +305,8 @@ if (isset($order['ket_aksesoris'])) {
     $formatted = formatField('ket_aksesoris', $order['ket_aksesoris']);
     $html .= '<tr><td width="50%"><strong>Keterangan</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
-
-
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
 
@@ -321,11 +314,11 @@ $html .= '</tr>';
 $html .= '<tr>';
 $html .= '<td width="50%" valign="top">';
 $html .= '<table width="100%" border="0" cellspacing="0" cellpadding="5">';
-
 $html .= '</table>';
 $html .= '</td>';
 $html .= '<td width="50%" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Dudukan
 if (isset($order['dudukan'])) {
     $formatted = formatField('dudukan', $order['dudukan']);
@@ -352,34 +345,37 @@ if (isset($order['klise'])) {
     $html .= '<tr><td width="50%"><strong>Klise</strong></td><td width="70%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
-
-
 
 // Row 7
 $html .= '<tr>';
 $html .= '<td colspan="2" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // FB Cust
 if (isset($order['feedback_cust'])) {
     $formatted = formatField('feedback_cust', $order['feedback_cust']);
     $html .= '<tr><td width="30%"><strong>Feedback Customer</strong></td><td width="85%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
 
 // Row 7
 $html .= '<tr>';
 $html .= '<td colspan="2" valign="top">';
-$html .= '<table width="100%" border="1" cellspacing="0" cellpadding="5">';
+$html .= '<div class="rounded-container">';
+$html .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">';
 // Keterangan
 if (isset($order['keterangan'])) {
     $formatted = formatField('keterangan', $order['keterangan']);
     $html .= '<tr><td width="30%"><strong>Keterangan</strong></td><td width="85%">: ' . $formatted['display_value'] . '</td></tr>';
 }
 $html .= '</table>';
+$html .= '</div>';
 $html .= '</td>';
 $html .= '</tr>';
 
@@ -404,7 +400,6 @@ $html .= '</tr>';
 
 $html .= '</table>'; // End Main table
 
-
 $dompdf->loadHtml($html);
 
 // (Optional) Setup the paper size and orientation
@@ -415,5 +410,4 @@ $dompdf->render();
 
 // Output the generated PDF to Browser
 $dompdf->stream('order_' . $order_id . '.pdf', ["Attachment" => false]);
-
 ?>
