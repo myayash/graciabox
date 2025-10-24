@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // merge POST into a local array
     $post = $_POST;
 
+    error_log(print_r($_FILES, true));
+
     // Basic required checks
     if (empty($post['nama_customer'])) {
         $form_errors['nama_customer'] = 'Nama Customer is required.';
@@ -70,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $temp_dudukan_img_data = []; // To store temporary filenames and extensions
     $upload_dir = 'uploads/';
     if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+        mkdir($upload_dir, 0777, true);
     }
 
     if (isset($_FILES['dudukan_img']) && !empty(array_filter($_FILES['dudukan_img']['name']))) {
@@ -91,13 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
                     if (in_array($file_ext, $allowed_ext)) {
                         if ($file_size <= 2097152) { // 2MB
                             $temp_file_name = uniqid('', true) . '.' . $file_ext; // Generate a temporary unique name
-                            $destination = $upload_dir . $temp_file_name;
-                            if (move_uploaded_file($file_tmp_name, $destination)) {
-                                $temp_dudukan_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
-                            } else {
-                                $form_errors['dudukan_img'] = 'Failed to move uploaded file.';
-                            }
-                        } else {
+                                                $destination = $upload_dir . $temp_file_name;
+                                                if (move_uploaded_file($file_tmp_name, $destination)) {
+                                                    $temp_dudukan_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
+                                                } else {
+                                                    $form_errors['dudukan_img'] = 'Failed to move uploaded file.';
+                                                    error_log("Failed to move uploaded dudukan_img file from {$file_tmp_name} to {$destination}. Error: " . error_get_last()['message']);
+                                                }                        } else {
                             $form_errors['dudukan_img'] = 'File size must be 2MB or less.';
                         }
                     } else {
@@ -136,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
                                 $temp_logo_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
                             } else {
                                 $form_errors['logo_img'] = 'Failed to move uploaded logo file.';
+                                error_log("Failed to move uploaded logo_img file from {$file_tmp_name} to {$destination}. Error: " . error_get_last()['message']);
                             }
                         } else {
                             $form_errors['logo_img'] = 'Logo file size must be 2MB or less.';
@@ -176,6 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
                                 $temp_poly_img_data[] = ['temp_filename' => $temp_file_name, 'ext' => $file_ext];
                             } else {
                                 $form_errors['poly_img'] = 'Failed to move uploaded poly file.';
+                                error_log("Failed to move uploaded poly_img file from {$file_tmp_name} to {$destination}. Error: " . error_get_last()['message']);
                             }
                         } else {
                             $form_errors['poly_img'] = 'Poly file size must be 2MB or less.';
