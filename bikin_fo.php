@@ -270,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $feedback_cust = $post['feedback_cust'] ?? null;
     $aksesoris = 'jenis:' . ($post['aksesoris_jenis'] ?? '') . ' - ukuran:' . ($post['aksesoris_ukuran'] ?? '') . ' - warna:' . ($post['aksesoris_warna'] ?? '');
     $ket_aksesoris = $post['ket_aksesoris'] ?? null;
-    $jumlah_layer = $post['jumlah_layer'] ?? null;
+    $jumlah_layer = (isset($post['jumlah_layer']) && is_numeric($post['jumlah_layer'])) ? (int)$post['jumlah_layer'] : null;
     $logo = !empty($post['logo']) ? $post['logo'] : 'Tidak ada';
     $ukuran_poly = $post['ukuran_poly'] ?? null;
     $lokasi_poly = $post['lokasi_poly'] ?? null;
@@ -391,6 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['from_shipping'])) {
 }
 
 // Fetch data for dropdowns
+$order_form = $_SESSION['order_form'] ?? [];
 $customers = $pdo->query("SELECT * FROM customer WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $model_boxes = $pdo->query("SELECT * FROM model_box WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $boards = $pdo->query("SELECT * FROM board WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
@@ -398,13 +399,28 @@ $distinct_suppliers = $pdo->query("SELECT DISTINCT supplier FROM kertas WHERE is
 $sales_reps = $pdo->query("SELECT * FROM empl_sales WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $aksesoris_jenis = $pdo->query("SELECT DISTINCT jenis FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
-$aksesoris_ukuran = $pdo->query("SELECT DISTINCT ukuran FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
-$aksesoris_warna = $pdo->query("SELECT DISTINCT warna FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
 $dudukan_options = $pdo->query("SELECT * FROM dudukan")->fetchAll(PDO::FETCH_ASSOC);
 $logo_options = $pdo->query("SELECT DISTINCT jenis FROM logo")->fetchAll(PDO::FETCH_ASSOC);
 $logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchAll(PDO::FETCH_ASSOC);
 
-$order_form = $_SESSION['order_form'] ?? [];
+$aksesoris_ukuran_options = [];
+$aksesoris_warna_options = [];
+$aksesoris_dropdown_disabled = 'disabled';
+
+if (!empty($order_form['aksesoris_jenis'])) {
+    $jenis = $order_form['aksesoris_jenis'];
+    $stmt_ukuran = $pdo->prepare("SELECT DISTINCT ukuran FROM aksesoris WHERE jenis = ? AND ukuran IS NOT NULL AND ukuran != '' ORDER BY ukuran ASC");
+    $stmt_ukuran->execute([$jenis]);
+    $aksesoris_ukuran_options = $stmt_ukuran->fetchAll(PDO::FETCH_COLUMN);
+
+    $stmt_warna = $pdo->prepare("SELECT DISTINCT warna FROM aksesoris WHERE jenis = ? AND warna IS NOT NULL AND warna != '' ORDER BY warna ASC");
+    $stmt_warna->execute([$jenis]);
+    $aksesoris_warna_options = $stmt_warna->fetchAll(PDO::FETCH_COLUMN);
+    
+    if(count($aksesoris_ukuran_options) > 0 || count($aksesoris_warna_options) > 0) {
+        $aksesoris_dropdown_disabled = '';
+    }
+}
 
 // Fetch alamat_pengirim for shipping select (used when embedding shipping fields)
 $alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::FETCH_ASSOC);
@@ -642,16 +658,16 @@ foreach ($prefixes as $prefix) {
                                 <option value="<?= $jenis['jenis'] ?>" <?php echo (isset($order_form['aksesoris_jenis']) && $order_form['aksesoris_jenis'] === $jenis['jenis']) ? 'selected' : ''; ?>><?= $jenis['jenis'] ?></option>
                                 <?php endforeach; ?>
                               </select>
-                              <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                              <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" <?php echo $aksesoris_dropdown_disabled; ?>>
                                 <option value="" disabled <?php echo !isset($order_form['aksesoris_ukuran']) ? 'selected' : ''; ?>>Pilih Ukuran</option>
-                                <?php foreach ($aksesoris_ukuran as $ukuran): ?>
-                                  <option value="<?= $ukuran['ukuran'] ?>" <?php echo (isset($order_form['aksesoris_ukuran']) && $order_form['aksesoris_ukuran'] === $ukuran['ukuran']) ? 'selected' : ''; ?>><?= $ukuran['ukuran'] ?></option>
+                                <?php foreach ($aksesoris_ukuran_options as $ukuran): ?>
+                                  <option value="<?= $ukuran ?>" <?php echo (isset($order_form['aksesoris_ukuran']) && $order_form['aksesoris_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
                                   <?php endforeach; ?>
                                 </select>
-                                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" <?php echo $aksesoris_dropdown_disabled; ?>>
                                   <option value="" disabled <?php echo !isset($order_form['aksesoris_warna']) ? 'selected' : ''; ?>>Pilih Warna</option>
-                                  <?php foreach ($aksesoris_warna as $warna): ?>
-                                    <option value="<?= $warna['warna'] ?>" <?php echo (isset($order_form['aksesoris_warna']) && $order_form['aksesoris_warna'] === $warna['warna']) ? 'selected' : ''; ?>><?= $warna['warna'] ?></option>
+                                  <?php foreach ($aksesoris_warna_options as $warna): ?>
+                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['aksesoris_warna']) && $order_form['aksesoris_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
                                     <?php endforeach; ?>
                                   </select>
                                 </div>
@@ -812,11 +828,11 @@ foreach ($prefixes as $prefix) {
                             <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
                             <div class="mt-2">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
+                                    <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
                                     <span class="ml-2 text-gray-800">Pabrik</span>
                                 </label>
                                 <label class="inline-flex items-center ml-6">
-                                    <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
+                                    <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
                                     <span class="ml-2 text-gray-800">Luar</span>
                                 </label>
                             </div>
@@ -825,11 +841,11 @@ foreach ($prefixes as $prefix) {
                             <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
                             <div class="mt-2">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
+                                    <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
                                     <span class="ml-2 text-gray-800">In Stock</span>
                                 </label>
                                 <label class="inline-flex items-center ml-6">
-                                    <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" required <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
+                                    <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
                                     <span class="ml-2 text-gray-800">Bikin baru</span>
                                 </label>
                             </div>
@@ -973,6 +989,45 @@ foreach ($prefixes as $prefix) {
     <script>
         // Simple client-side validation before submit
         (function(){
+            document.getElementById('aksesoris_jenis').addEventListener('change', updateAksesorisOptions);
+
+            function updateAksesorisOptions() {
+                const jenisDropdown = document.getElementById('aksesoris_jenis');
+                const ukuranDropdown = document.getElementById('aksesoris_ukuran');
+                const warnaDropdown = document.getElementById('aksesoris_warna');
+                const selectedJenis = jenisDropdown.value;
+
+                // Disable and clear dependent dropdowns
+                ukuranDropdown.disabled = true;
+                warnaDropdown.disabled = true;
+                ukuranDropdown.innerHTML = '<option value="" disabled selected>Pilih Ukuran</option>';
+                warnaDropdown.innerHTML = '<option value="" disabled selected>Pilih Warna</option>';
+
+                if (selectedJenis) {
+                    fetch(`get_aksesoris_options.php?jenis=${encodeURIComponent(selectedJenis)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Populate ukuran dropdown
+                            if (data.ukuran && data.ukuran.length > 0) {
+                                data.ukuran.forEach(function(ukuran) {
+                                    const option = new Option(ukuran, ukuran);
+                                    ukuranDropdown.add(option);
+                                });
+                                ukuranDropdown.disabled = false;
+                            }
+
+                            // Populate warna dropdown
+                            if (data.warna && data.warna.length > 0) {
+                                data.warna.forEach(function(warna) {
+                                    const option = new Option(warna, warna);
+                                    warnaDropdown.add(option);
+                                });
+                                warnaDropdown.disabled = false;
+                            }
+                        })
+                        .catch(error => console.error('Error fetching aksesoris options:', error));
+                }
+            }
             const resetButton = document.getElementById('reset_spk_button');
             if(resetButton) {
                 resetButton.addEventListener('click', function() {
