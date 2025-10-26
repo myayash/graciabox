@@ -1,12 +1,12 @@
-<?php session_start(); ?>
+<?php if (session_status() === PHP_SESSION_NONE) { session_start(); } ?>
 <!-- Menu Bar (Top Navigation) -->
-<nav class="bg-white text-gray-800 p-4 shadow-lg fixed w-full top-0 left-0">
+<nav class="bg-white text-gray-800 p-4 shadow-lg fixed w-full top-0 left-0 z-30">
     <div class="container mx-auto flex items-center">
         <div class="text-xl font-bold text-gray-800"><a href="index.php">gracia box form</a></div>
         <ul class="flex space-x-6 ml-6">
             <li class="relative">
                 <button onclick="toggleDropdown(event, 'database-menu')" class="hover:bg-gray-200 px-3 py-2 dropdown-toggle">tabel data</button>
-                <ul id="database-menu" class="absolute bg-white mt-2 shadow-lg dropdown-menu p-4 w-max" style="display: none;">
+                <ul id="database-menu" class="absolute bg-white mt-2 shadow-lg dropdown-menu p-4 w-max" style="display: none; z-index: 50;">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <li><a href="daftar_customer.php" class="block px-4 py-2 hover:bg-gray-200">tabel customer</a></li>

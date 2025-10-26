@@ -96,8 +96,11 @@ if ($_SESSION['role'] !== 'admin') {
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR perusahaan LIKE ? OR no_telp LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+            $searchable_columns = ['id', 'nama', 'perusahaan', 'no_telp', 'dibuat'];
+            
+            $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+            
+            $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
         }
 
         if (!empty($conditions)) {

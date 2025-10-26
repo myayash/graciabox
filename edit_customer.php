@@ -3,7 +3,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 require_once 'config.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {

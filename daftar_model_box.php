@@ -1,4 +1,4 @@
-<?php session_start(); ?>
+<?php if (session_status() === PHP_SESSION_NONE) { session_start(); } ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +7,57 @@
     <title>daftar model box</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
+    <style>
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        thead th:first-child {
+            left: 0;
+            z-index: 20;
+        }
+        .table-container {
+            position: relative;
+            cursor: grab;
+        }
+        .table-container.active {
+            cursor: grabbing;
+            cursor: -webkit-grabbing;
+        }
+        .table-container::before,
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .table-container::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container.scrolling-left::before {
+            opacity: 1;
+        }
+        .table-container.scrolling-right::after {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
@@ -123,12 +174,14 @@
             }
 
             // Add search filter
-            if (isset($_GET['search']) && $_GET['search'] !== '') {
-                $searchTerm = '%' . $_GET['search'] . '%';
-                $conditions[] = "(nama LIKE ?)";
-                $params = array_merge($params, [$searchTerm]);
-            }
-
+                    if (isset($_GET['search']) && $_GET['search'] !== '') {
+                        $searchTerm = '%' . $_GET['search'] . '%';
+                        $searchable_columns = ['id', 'nama', 'box_luar', 'box_dlm', 'dibuat'];
+                        
+                        $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+                        
+                        $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
+                    }
             if (!empty($conditions)) {
                 $sql .= " WHERE " . implode(" AND ", $conditions);
             }
@@ -141,7 +194,7 @@
 
             if ($model_boxes) {
 
-                echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
+                echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
 
                 echo "<table class=\"min-w-full divide-y divide-gray-200\">";
 
@@ -168,57 +221,33 @@
     
 
                 // Dynamically create table headers from column names, using display names if available
-
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['id'] ?? 'ID') . "</th>";
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['nama'] ?? 'Nama Model Box') . "</th>";
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['box_luar'] ?? 'Box Luar') . "</th>";
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['box_dlm'] ?? 'Box Dalam') . "</th>";
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names['dibuat'] ?? 'Dibuat') . "</th>";
-
-                if ($is_admin) {
-
-                    echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
-
+                foreach (array_keys($model_boxes[0]) as $columnName) {
+                    if ($columnName == 'is_archived') continue;
+                    echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
                 }
-
+                if ($is_admin) {
+                    echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
+                }
                 echo "</tr></thead>";
-
                 echo "<tbody class=\"bg-white divide-y divide-gray-200\">";
-
                 // Populate table rows with data
-
                 foreach ($model_boxes as $model_box) {
-
                     echo "<tr>";
-
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['id']) . "</td>";
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['nama']) . "</td>";
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['box_luar']) . "</td>";
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['box_dlm']) . "</td>";
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($model_box['dibuat']) . "</td>";
-
-                    if ($is_admin) {
-
-                        echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-
-                        echo "<a href=\"edit_model_box.php?id=" . htmlspecialchars($model_box['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
-
-                        if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-
-                            echo "<a href=\"daftar_model_box.php?unarchive_id=" . htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this model box?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
-
-                        } else {
-
-                            echo "<a href=\"daftar_model_box.php?archive_id=" . htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this model box?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
-
-                        }
-
+                    foreach ($model_box as $columnName => $value) {
+                        if ($columnName == 'is_archived') continue;
+                        echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($value) . "</td>";
                     }
-
-                    echo "</td>";
-
+                    if ($is_admin) {
+                        echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
+                        echo "<a href=\"edit_model_box.php?id=" . htmlspecialchars($model_box['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                        if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
+                            echo "<a href=\"daftar_model_box.php?unarchive_id=" . htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this model box?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                        } else {
+                            echo "<a href=\"daftar_model_box.php?archive_id=" . htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this model box?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                        }
+                        echo "</td>";
+                    }
                     echo "</tr>";
-
                 }
 
                 echo "</tbody>";
@@ -241,5 +270,64 @@
 
         ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableContainer = document.querySelector('.table-container');
+
+    if (tableContainer) {
+        function updateShadows() {
+            const scrollLeft = tableContainer.scrollLeft;
+            const scrollWidth = tableContainer.scrollWidth;
+            const clientWidth = tableContainer.clientWidth;
+
+            if (scrollWidth > clientWidth) {
+                if (scrollLeft > 0) {
+                    tableContainer.classList.add('scrolling-left');
+                } else {
+                    tableContainer.classList.remove('scrolling-left');
+                }
+
+                if (scrollLeft < scrollWidth - clientWidth - 1) { // -1 for precision
+                    tableContainer.classList.add('scrolling-right');
+                } else {
+                    tableContainer.classList.remove('scrolling-right');
+                }
+            } else {
+                tableContainer.classList.remove('scrolling-left', 'scrolling-right');
+            }
+        }
+
+        tableContainer.addEventListener('scroll', updateShadows);
+        window.addEventListener('resize', updateShadows);
+        updateShadows(); // Initial check
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        tableContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            tableContainer.classList.add('active');
+            startX = e.pageX - tableContainer.offsetLeft;
+            scrollLeft = tableContainer.scrollLeft;
+        });
+        tableContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - tableContainer.offsetLeft;
+            const walk = (x - startX) * 2; // scroll-fast
+            tableContainer.scrollLeft = scrollLeft - walk;
+        });
+    }
+});
+</script>
 </body>
 </html>
