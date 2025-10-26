@@ -52,6 +52,13 @@
         .table-container.scrolling-right::after {
             opacity: 1;
         }
+        .table-container {
+            cursor: grab;
+        }
+        .table-container.active {
+            cursor: grabbing;
+            cursor: -webkit-grabbing;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
@@ -266,6 +273,32 @@ document.addEventListener('DOMContentLoaded', function() {
         tableContainer.addEventListener('scroll', updateShadows);
         window.addEventListener('resize', updateShadows);
         updateShadows(); // Initial check
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        tableContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            tableContainer.classList.add('active');
+            startX = e.pageX - tableContainer.offsetLeft;
+            scrollLeft = tableContainer.scrollLeft;
+        });
+        tableContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - tableContainer.offsetLeft;
+            const walk = (x - startX) * 2; // scroll-fast
+            tableContainer.scrollLeft = scrollLeft - walk;
+        });
     }
 });
 </script>
