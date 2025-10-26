@@ -1,4 +1,19 @@
-<?php session_start(); ?>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to view this page.');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +22,57 @@
     <title>daftar jenis board</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
+    <style>
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        thead th:first-child {
+            left: 0;
+            z-index: 20;
+        }
+        .table-container {
+            position: relative;
+            cursor: grab;
+        }
+        .table-container.active {
+            cursor: grabbing;
+            cursor: -webkit-grabbing;
+        }
+        .table-container::before,
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .table-container::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container.scrolling-left::before {
+            opacity: 1;
+        }
+        .table-container.scrolling-right::after {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
@@ -85,8 +151,11 @@
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(jenis LIKE ?)";
-            $params = array_merge($params, [$searchTerm]);
+            $searchable_columns = ['id', 'jenis', 'dibuat'];
+            
+            $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+            
+            $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
         }
 
         if (!empty($conditions)) {
@@ -98,7 +167,7 @@
         $boards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($boards) {
-            echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
+            echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
             echo "<table class=\"min-w-full divide-y divide-gray-200\">";
             echo "<thead><tr>";
             // Define a mapping for column names to display names
@@ -149,5 +218,64 @@
     }
     ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableContainer = document.querySelector('.table-container');
+
+    if (tableContainer) {
+        function updateShadows() {
+            const scrollLeft = tableContainer.scrollLeft;
+            const scrollWidth = tableContainer.scrollWidth;
+            const clientWidth = tableContainer.clientWidth;
+
+            if (scrollWidth > clientWidth) {
+                if (scrollLeft > 0) {
+                    tableContainer.classList.add('scrolling-left');
+                } else {
+                    tableContainer.classList.remove('scrolling-left');
+                }
+
+                if (scrollLeft < scrollWidth - clientWidth - 1) { // -1 for precision
+                    tableContainer.classList.add('scrolling-right');
+                } else {
+                    tableContainer.classList.remove('scrolling-right');
+                }
+            } else {
+                tableContainer.classList.remove('scrolling-left', 'scrolling-right');
+            }
+        }
+
+        tableContainer.addEventListener('scroll', updateShadows);
+        window.addEventListener('resize', updateShadows);
+        updateShadows(); // Initial check
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        tableContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            tableContainer.classList.add('active');
+            startX = e.pageX - tableContainer.offsetLeft;
+            scrollLeft = tableContainer.scrollLeft;
+        });
+        tableContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - tableContainer.offsetLeft;
+            const walk = (x - startX) * 2; // scroll-fast
+            tableContainer.scrollLeft = scrollLeft - walk;
+        });
+    }
+});
+</script>
 </body>
 </html>

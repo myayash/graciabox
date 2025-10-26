@@ -1,4 +1,7 @@
-<?php session_start();
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
@@ -9,7 +12,8 @@ if (!isset($_SESSION['user_id'])) {
 // Check if the user has the 'admin' role.
 if ($_SESSION['role'] !== 'admin') {
     die('Access Denied: You do not have permission to view this page.');
-} ?>
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,6 +22,57 @@ if ($_SESSION['role'] !== 'admin') {
     <title>daftar dudukan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
+    <style>
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        thead th:first-child {
+            left: 0;
+            z-index: 20;
+        }
+        .table-container {
+            position: relative;
+            cursor: grab;
+        }
+        .table-container.active {
+            cursor: grabbing;
+            cursor: -webkit-grabbing;
+        }
+        .table-container::before,
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .table-container::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container.scrolling-left::before {
+            opacity: 1;
+        }
+        .table-container.scrolling-right::after {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
@@ -96,8 +151,11 @@ if ($_SESSION['role'] !== 'admin') {
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(jenis LIKE ?)";
-            $params = array_merge($params, [$searchTerm]);
+            $searchable_columns = ['id', 'jenis'];
+            
+            $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+            
+            $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
         }
 
         if (!empty($conditions)) {
@@ -109,7 +167,7 @@ if ($_SESSION['role'] !== 'admin') {
         $dudukan_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($dudukan_data) {
-            echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
+            echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
             echo "<table class=\"min-w-full divide-y divide-gray-200\">";
             echo "<thead><tr>";
             // Define a mapping for column names to display names
@@ -122,7 +180,7 @@ if ($_SESSION['role'] !== 'admin') {
             // Dynamically create table headers from column names, using display names if available
             foreach (array_keys($dudukan_data[0]) as $columnName) {
                 if ($columnName == 'is_archived') continue;
-                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">" . htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
+                echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">". htmlspecialchars($column_display_names[$columnName] ?? $columnName) . "</th>";
             }
             if ($is_admin) {
                 echo "<th class=\"px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th>";
@@ -134,15 +192,15 @@ if ($_SESSION['role'] !== 'admin') {
                 echo "<tr>";
                 foreach ($dudukan as $columnName => $value) {
                     if ($columnName == 'is_archived') continue;
-                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">" . htmlspecialchars($value) . "</td>";
+                    echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-900\">". htmlspecialchars($value) . "</td>";
                 }
                 if ($is_admin) {
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                    echo "<a href=\"edit_dudukan.php?id=" . htmlspecialchars($dudukan['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                    echo "<a href=\"edit_dudukan.php?id=". htmlspecialchars($dudukan['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
                     if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-                        echo "<a href=\"daftar_dudukan.php?unarchive_id=" . htmlspecialchars($dudukan['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this dudukan?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                        echo "<a href=\"daftar_dudukan.php?unarchive_id=". htmlspecialchars($dudukan['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this dudukan?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                     } else {
-                        echo "<a href=\"daftar_dudukan.php?archive_id=" . htmlspecialchars($dudukan['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this dudukan?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                        echo "<a href=\"daftar_dudukan.php?archive_id=". htmlspecialchars($dudukan['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this dudukan?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
                     }
                     echo "</td>";
                 }
@@ -159,5 +217,64 @@ if ($_SESSION['role'] !== 'admin') {
     }
     ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableContainer = document.querySelector('.table-container');
+
+    if (tableContainer) {
+        function updateShadows() {
+            const scrollLeft = tableContainer.scrollLeft;
+            const scrollWidth = tableContainer.scrollWidth;
+            const clientWidth = tableContainer.clientWidth;
+
+            if (scrollWidth > clientWidth) {
+                if (scrollLeft > 0) {
+                    tableContainer.classList.add('scrolling-left');
+                } else {
+                    tableContainer.classList.remove('scrolling-left');
+                }
+
+                if (scrollLeft < scrollWidth - clientWidth - 1) { // -1 for precision
+                    tableContainer.classList.add('scrolling-right');
+                } else {
+                    tableContainer.classList.remove('scrolling-right');
+                }
+            } else {
+                tableContainer.classList.remove('scrolling-left', 'scrolling-right');
+            }
+        }
+
+        tableContainer.addEventListener('scroll', updateShadows);
+        window.addEventListener('resize', updateShadows);
+        updateShadows(); // Initial check
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        tableContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            tableContainer.classList.add('active');
+            startX = e.pageX - tableContainer.offsetLeft;
+            scrollLeft = tableContainer.scrollLeft;
+        });
+        tableContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            tableContainer.classList.remove('active');
+        });
+        tableContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - tableContainer.offsetLeft;
+            const walk = (x - startX) * 2; // scroll-fast
+            tableContainer.scrollLeft = scrollLeft - walk;
+        });
+    }
+});
+</script>
 </body>
 </html>
