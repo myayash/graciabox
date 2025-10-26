@@ -89,8 +89,19 @@
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ? OR cover_lr LIKE ? OR keterangan LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $searchable_columns = [
+                'id', 'nama', 'kode_pisau', 'ukuran', 'model_box', 'jenis_board', 
+                'cover_dlm', 'sales_pj', 'nama_box_lama', 'lokasi', 'cover_lr', 
+                'keterangan', 'quantity', 'feedback_cust', 'aksesoris', 
+                'ket_aksesoris', 'dudukan', 'jumlah_layer', 'logo', 'ukuran_poly', 
+                'lokasi_poly', 'klise', 'tanggal_kirim', 'jam_kirim', 
+                'dikirim_dari', 'tujuan_kirim', 'tanggal_dp', 'pelunasan', 
+                'ongkir', 'packing', 'biaya'
+            ];
+            
+            $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+            
+            $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
         }
 
         if (!empty($conditions)) {
