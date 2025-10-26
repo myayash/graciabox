@@ -1,4 +1,15 @@
 <?php
+$script_name = basename($_SERVER['PHP_SELF']);
+if ($script_name !== 'login.php' && $script_name !== 'setup.php') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: login.php');
+        exit();
+    }
+}
+
 $host = '127.0.0.1';
 $dbname = 'project_form'; // Create this in phpMyAdmin if needed
 $username = 'root';

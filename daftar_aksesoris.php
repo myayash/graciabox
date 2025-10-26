@@ -1,13 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Check if the user is logged in at all.
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'config.php';
 
 // Check if the user has the 'admin' role.
 if ($_SESSION['role'] !== 'admin') {
@@ -100,7 +92,6 @@ if ($_SESSION['role'] !== 'admin') {
     </form>
 
     <?php
-    require_once 'config.php';
 
     $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 

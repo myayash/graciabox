@@ -1,4 +1,4 @@
-<?php session_start(); ?>
+<?php require_once 'config.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +89,6 @@
     </form>
 
     <?php
-    require_once 'config.php';
 
     $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 

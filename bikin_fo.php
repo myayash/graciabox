@@ -871,7 +871,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                     <div class="mb-4">
                         <label class="block text-gray-800 text-sm font-semibold mb-2">Cover Dalam</label>
                         <div class="flex space-x-2">
-                            <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_dalam')">
+                            <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
                                 <option value="" disabled <?php echo !isset($order_form['cover_dalam_supplier']) ? 'selected' : ''; ?>>Supplier</option>
                                 <?php foreach ($distinct_suppliers as $supplier): ?>
                                     <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_dalam_supplier']) && $order_form['cover_dalam_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
@@ -1009,11 +1009,11 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                     <label class="block text-gray-800 text-sm font-semibold mb-2">Pelunasan</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
-                            <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Harus Lunas') ? 'checked' : ''; ?>>
+                            <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && strcasecmp($order_form['pelunasan'], 'Harus Lunas') == 0) ? 'checked' : ''; ?>>
                             <span class="ml-2 text-gray-800">Harus lunas</span>
                         </label>
                         <label class="inline-flex items-center ml-6">
-                            <input type="radio" name="pelunasan" value="Setelah dikirim" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Setelah dikirim') ? 'checked' : ''; ?>>
+                            <input type="radio" name="pelunasan" value="Setelah dikirim" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && strcasecmp($order_form['pelunasan'], 'Setelah dikirim') == 0) ? 'checked' : ''; ?>>
                             <span class="ml-2 text-gray-800">Setelah dikirim</span>
                         </label>
                     </div>
