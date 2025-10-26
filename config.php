@@ -1,13 +1,34 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $script_name = basename($_SERVER['PHP_SELF']);
-if ($script_name !== 'login.php' && $script_name !== 'setup.php') {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+
+if ($script_name !== 'login.php' && $script_name !== 'setup.php' && isset($_SESSION['user_id'])) {
+    if ($_SESSION['role'] === 'viewer') {
+        $allowed_files = [
+            'daftar_fo.php',
+            'login.php',
+            'logout.php',
+            'config.php',
+            'index.php',
+            'scripts.js',
+            'get_aksesoris_options.php',
+            'get_kertas_filtered_options.php',
+            'get_kertas_options.php',
+            'get_model_box_details.php',
+            'view_fo_pdf.php',
+            'navbar.php'
+        ];
+        if (!in_array($script_name, $allowed_files)) {
+            header('Location: daftar_fo.php');
+            exit();
+        }
     }
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: login.php');
-        exit();
-    }
+} elseif ($script_name !== 'login.php' && $script_name !== 'setup.php') {
+    header('Location: login.php');
+    exit();
 }
 
 $host = '127.0.0.1';

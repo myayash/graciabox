@@ -17,6 +17,7 @@ include 'config.php';
     <?php include 'navbar.php'; ?>
 
     <main class="container mx-auto mt-10">
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a href="bikin_fo.php" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
                 <div class="text-center">
@@ -40,6 +41,16 @@ include 'config.php';
             </a>
 
         </div>
+        <?php else: ?>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="daftar_fo.php" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <i class="fa-solid fa-list-ol fa-5x mx-auto mb-4 text-blue-600"></i>
+                    <h2 class="text-xl font-semibold mb-2">daftar FO</h2>
+                </div>
+            </a>
+        </div>
+        <?php endif; ?>
     </main>
 
 </body>

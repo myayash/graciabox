@@ -4,6 +4,7 @@
     <div class="container mx-auto flex items-center">
         <div class="text-xl font-bold text-gray-800"><a href="index.php">gracia box internal</a></div>
         <ul class="flex space-x-6 ml-6">
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
             <li class="relative">
                 <button onclick="toggleDropdown(event, 'database-menu')" class="hover:bg-gray-200 px-3 py-2 dropdown-toggle">tabel data</button>
                 <ul id="database-menu" class="absolute bg-white mt-2 shadow-lg dropdown-menu p-4 w-max" style="display: none; z-index: 50;">
@@ -25,6 +26,7 @@
                     </div>
                 </ul>
             </li>
+            <?php endif; ?>
             <li><button onclick="window.location.href='daftar_fo.php'" class="hover:bg-gray-200 px-3 py-2">daftar fo</button></li>
         </ul>
         <div class="ml-auto">
