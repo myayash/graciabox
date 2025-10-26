@@ -170,6 +170,7 @@ try {
                     echo "<td class=\"px-6 py-4 whitespace-nowap text-sm font-medium flex items-center space-x-2\">";
                     // Actions for SPK can be added here in the future, e.g., edit, view details
                     // echo "<a href=\"edit_spk.php?id=" . htmlspecialchars($spk['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                    echo "<a href=\"view_spk_pdf.php?id=" . htmlspecialchars($spk['id']) . "\" class=\"text-blue-600 hover:text-blue-900 mr-2\">View</a>";
                     if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
                         echo "<a href=\"daftar_spk.php?unarchive_id=" . htmlspecialchars($spk['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this SPK?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                     } else {

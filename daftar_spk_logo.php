@@ -165,6 +165,7 @@ if (!isset($_SESSION['user_id'])) {
                 }
                 if ($is_admin) {
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
+                    echo "<a href=\"view_spk_logo_pdf.php?id=" . htmlspecialchars($spk['id']) . "\" class=\"text-blue-600 hover:text-blue-900 mr-2\">View</a>";
                     if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
                         echo "<a href=\"daftar_spk_logo.php?unarchive_id=" . htmlspecialchars($spk['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this SPK?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                     } else {

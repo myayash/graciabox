@@ -345,11 +345,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Store only the cover luar lines (Box Luar and Box Dalam) in cover_lr as requested
     $cover_lr = $cover_luar_str;
 
-    // Insert into orders (include feedback_cust before keterangan)
-    $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, poly_img, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $poly_img_str, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+    if (isset($post['id']) && !empty($post['id'])) { // UPDATE
+        $order_id = $post['id'];
 
-    $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
+        // Fetch existing image filenames
+        $stmt_images = $pdo->prepare("SELECT dudukan_img, logo_img, poly_img FROM orders WHERE id = ?");
+        $stmt_images->execute([$order_id]);
+        $current_images = $stmt_images->fetch(PDO::FETCH_ASSOC);
+
+        // If new images are uploaded, they will be handled later. If not, keep the old ones.
+        $dudukan_img_str = $current_images['dudukan_img'];
+        $logo_img_str = $current_images['logo_img'];
+        $poly_img_str = $current_images['poly_img'];
+
+        $stmt = $pdo->prepare("UPDATE orders SET nama=?, kode_pisau=?, ukuran=?, model_box=?, jenis_board=?, cover_dlm=?, sales_pj=?, nama_box_lama=?, lokasi=?, quantity=?, feedback_cust=?, keterangan=?, cover_lr=?, aksesoris=?, ket_aksesoris=?, dudukan=?, jumlah_layer=?, logo=?, ukuran_poly=?, lokasi_poly=?, klise=?, tanggal_kirim=?, jam_kirim=?, dikirim_dari=?, tujuan_kirim=?, tanggal_dp=?, pelunasan=?, ongkir=?, packing=?, biaya=? WHERE id=?");
+        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya, $order_id]);
+        $_SESSION['flash_success'] = 'FO SUKSES diupdate';
+    } else { // INSERT
+        // Insert into orders (include feedback_cust before keterangan)
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, poly_img, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $poly_img_str, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+        $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
+        $_SESSION['flash_success'] = 'FO SUKSES disimpan';
+    }
 
     $final_dudukan_img_filenames = [];
     if (!empty($temp_dudukan_img_data)) {
@@ -468,13 +486,135 @@ if ($_SESSION['role'] !== 'admin') {
     die('Access Denied: You do not have permission to create new orders.');
 }
 
+
+$edit_mode = isset($_GET['id']);
+$order_id = null;
+
 // Handle POST from shipping (back navigation)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['from_shipping'])) {
     $_SESSION['order_form'] = array_merge($_SESSION['order_form'] ?? [], $_POST);
 }
 
-// Fetch data for dropdowns
-$order_form = $_SESSION['order_form'] ?? [];
+if ($edit_mode) {
+    $order_id = $_GET['id'];
+
+    // Fetch the existing order
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
+    $stmt->execute([$order_id]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$order) {
+        die('Error: Order not found.');
+    }
+
+    // Prepare order data for form pre-filling
+    $order_form = [
+        'id' => $order['id'],
+        'nama_customer' => $order['nama'],
+        'kode_pisau' => $order['kode_pisau'],
+        'quantity' => str_replace(' pcs', '', $order['quantity']),
+        'model_box_baru' => $order['model_box'],
+        'jenis_board' => $order['jenis_board'],
+        'keterangan' => $order['keterangan'],
+        'feedback_cust' => $order['feedback_cust'],
+        'dibuat_oleh' => $order['sales_pj'],
+        'lokasi' => $order['lokasi'],
+        'jumlah_layer' => $order['jumlah_layer'],
+        'logo' => $order['logo'],
+        'ukuran_poly' => $order['ukuran_poly'],
+        'lokasi_poly' => $order['lokasi_poly'],
+        'klise' => $order['klise'],
+        'barang_lama' => null,
+        'dudukan' => null,
+        'length' => '',
+        'width' => '',
+        'height' => '',
+        'tanggal_kirim' => $order['tanggal_kirim'],
+        'jam_kirim' => $order['jam_kirim'],
+        'dikirim_dari' => $order['dikirim_dari'],
+        'tujuan_kirim' => $order['tujuan_kirim'],
+        'tanggal_dp' => $order['tanggal_dp'],
+        'pelunasan' => $order['pelunasan'],
+        'ongkir' => $order['ongkir'],
+        'packing' => $order['packing'],
+        'biaya' => $order['biaya'],
+        'ket_aksesoris' => $order['ket_aksesoris'],
+    ];
+
+    if (!empty($order['ukuran'])) {
+        $ukuran_parts = explode(' x ', $order['ukuran']);
+        $order_form['length'] = $ukuran_parts[0] ?? '';
+        $order_form['width'] = $ukuran_parts[1] ?? '';
+        $order_form['height'] = $ukuran_parts[2] ?? '';
+    }
+
+    if (!empty($order['cover_dlm'])) {
+        $parts = explode(' - ', $order['cover_dlm']);
+        $order_form['cover_dalam_supplier'] = $parts[0] ?? '';
+        $order_form['cover_dalam_warna'] = $parts[1] ?? '';
+    }
+
+    // Determine labels for cover luar
+    $box_luar_label = 'Box Luar';
+    $box_dlm_label = 'Box Dalam';
+    if (!empty($order['model_box'])) {
+        $stmt_labels = $pdo->prepare("SELECT box_luar, box_dlm FROM model_box WHERE nama = ? LIMIT 1");
+        $stmt_labels->execute([$order['model_box']]);
+        $mbRow = $stmt_labels->fetch(PDO::FETCH_ASSOC);
+        if ($mbRow) {
+            if (!empty($mbRow['box_luar'])) $box_luar_label = $mbRow['box_luar'];
+            if (!empty($mbRow['box_dlm'])) $box_dlm_label = $mbRow['box_dlm'];
+        }
+    }
+
+    if (!empty($order['cover_lr'])) {
+        $lines = explode("\n", $order['cover_lr']);
+        foreach($lines as $line) {
+            if (strpos($line, $box_luar_label . ':') !== false) {
+                $parts = explode(' - ', str_replace($box_luar_label . ': ', '', $line));
+                $order_form['cover_luar_supplier_luar'] = $parts[0] ?? '';
+                $order_form['cover_luar_warna_luar'] = $parts[1] ?? '';
+            }
+            if (strpos($line, $box_dlm_label . ':') !== false) {
+                $parts = explode(' - ', str_replace($box_dlm_label . ': ', '', $line));
+                $order_form['cover_luar_supplier_dlm'] = $parts[0] ?? '';
+                $order_form['cover_luar_warna_dlm'] = $parts[1] ?? '';
+            }
+        }
+    }
+
+    if (!empty($order['aksesoris'])) {
+        preg_match('/jenis:(.*?) - ukuran:(.*?) - warna:(.*)/', $order['aksesoris'], $matches);
+        if (count($matches) === 4) {
+            $order_form['aksesoris_jenis'] = trim($matches[1]);
+            $order_form['aksesoris_ukuran'] = trim($matches[2]);
+            $order_form['aksesoris_warna'] = trim($matches[3]);
+        }
+    }
+
+    if ($order_form['kode_pisau'] === 'lama' && !empty($order['nama_box_lama'])) {
+        $stmt = $pdo->prepare("SELECT id FROM barang WHERE nama = ? AND model_box = ? AND ukuran = ?");
+        $stmt->execute([$order['nama_box_lama'], $order['model_box'], $order['ukuran']]);
+        $barang_id_row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($barang_id_row) {
+            $order_form['barang_lama'] = $barang_id_row['id'];
+        }
+    }
+
+    if (!empty($order['dudukan']) && $order['dudukan'] !== 'Tidak ada') {
+        $stmt = $pdo->prepare("SELECT id FROM dudukan WHERE jenis = ?");
+        $stmt->execute([$order['dudukan']]);
+        $dudukan_id_row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($dudukan_id_row) {
+            $order_form['dudukan'] = $dudukan_id_row['id'];
+        }
+    } elseif ($order['dudukan'] === 'Tidak ada') {
+        $order_form['dudukan'] = '0';
+    }
+
+} else {
+    $order_form = $_SESSION['order_form'] ?? [];
+}
 $customers = $pdo->query("SELECT * FROM customer WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $model_boxes = $pdo->query("SELECT * FROM model_box WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
 $boards = $pdo->query("SELECT * FROM board WHERE is_archived = 0")->fetchAll(PDO::FETCH_ASSOC);
@@ -509,7 +649,7 @@ if (!empty($order_form['aksesoris_jenis'])) {
 $alamat_pengirim = $pdo->query("SELECT * FROM alamat_pengirim")->fetchAll(PDO::FETCH_ASSOC);
 
 // Prepare options for each prefix
-$prefixes = ['cover_dalam', 'cover_luar', 'box', 'dudukan'];
+$prefixes = ['cover_dalam', 'box', 'dudukan']; // cover_luar is handled separately
 $options = [];
 foreach ($prefixes as $prefix) {
     $options[$prefix] = [
@@ -541,6 +681,24 @@ foreach ($prefixes as $prefix) {
 
         $options[$prefix]['disabled'] = '';
     }
+}
+
+// Special handling for cover_luar with two rows
+$options['cover_luar_luar'] = ['warna' => [], 'disabled' => 'disabled'];
+if (!empty($order_form['cover_luar_supplier_luar'])) {
+    $supplier = $order_form['cover_luar_supplier_luar'];
+    $stmt = $pdo->prepare("SELECT DISTINCT warna FROM kertas WHERE is_archived = 0 AND supplier = ? ORDER BY warna ASC");
+    $stmt->execute([$supplier]);
+    $options['cover_luar_luar']['warna'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $options['cover_luar_luar']['disabled'] = '';
+}
+$options['cover_luar_dlm'] = ['warna' => [], 'disabled' => 'disabled'];
+if (!empty($order_form['cover_luar_supplier_dlm'])) {
+    $supplier = $order_form['cover_luar_supplier_dlm'];
+    $stmt = $pdo->prepare("SELECT DISTINCT warna FROM kertas WHERE is_archived = 0 AND supplier = ? ORDER BY warna ASC");
+    $stmt->execute([$supplier]);
+    $options['cover_luar_dlm']['warna'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $options['cover_luar_dlm']['disabled'] = '';
 }
 
 ?>
@@ -608,7 +766,10 @@ foreach ($prefixes as $prefix) {
 
     <form action="" method="post" enctype="multipart/form-data" class="bg-white p-8 shadow-lg">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-    <?php $order_form = $_SESSION['order_form'] ?? []; ?>
+    <?php if ($edit_mode): ?>
+        <input type="hidden" name="id" value="<?= htmlspecialchars($order_id) ?>">
+    <?php endif; ?>
+    <?php // The $order_form is now initialized earlier in the script ?>
       
       <!-- Two-column layout: left = BOX fields, right = SPK fields -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -732,37 +893,45 @@ foreach ($prefixes as $prefix) {
                             <label id="cover_luar_row1_label" class="w-1/2 text-gray-700">Box Luar</label>
                         </div>
                                                 <div class="flex space-x-2 mt-2 pl-4">
-                                                    <select name="cover_luar_supplier_luar" id="cover_luar_supplier_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                                                        <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_luar']) ? 'selected' : ''; ?>>Supplier</option>
-                                                        <?php foreach ($distinct_suppliers as $supplier): ?>
-                                                            <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_luar']) && $order_form['cover_luar_supplier_luar'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                            
-                                                        <select name="cover_luar_warna_luar" id="cover_luar_warna_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                                                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_luar']) ? 'selected' : ''; ?>>Warna</option>
-                                                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
-                                                                        <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_luar']) && $order_form['cover_luar_warna_luar'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                                                                <?php endforeach; ?>
-                                                        </select>
-                            
-                                                </div>
-                        <div class="flex space-x-2 mt-1 pl-4">
-                            <label id="cover_luar_row2_label" class="w-1/2 text-gray-700">Box Dalam</label>
-                        </div>
-                        <div class="flex space-x-2 mt-2 pl-4">
-                            <select name="cover_luar_supplier_dlm" id="cover_luar_supplier_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptions('cover_luar')">
-                                <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_dlm']) ? 'selected' : ''; ?>>Supplier</option>
-                                <?php foreach ($distinct_suppliers as $supplier): ?>
-                                    <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_dlm']) && $order_form['cover_luar_supplier_dlm'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <select name="cover_luar_warna_dlm" id="cover_luar_warna_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar']['disabled']; ?>>
-                                <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_dlm']) ? 'selected' : ''; ?>>Warna</option>
-                                <?php foreach ($options['cover_luar']['warna'] as $warna): ?>
-                                    <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_dlm']) && $order_form['cover_luar_warna_dlm'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                                                                                                        <select name="cover_luar_supplier_luar" id="cover_luar_supplier_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
+                                                                                                            <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_luar']) ? 'selected' : ''; ?>>Supplier</option>
+                                                                                                            <?php foreach ($distinct_suppliers as $supplier):
+                                                                                                                ?>
+                                                                                                                <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_luar']) && $order_form['cover_luar_supplier_luar'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                                                                                                <?php
+                                                                                                                endforeach; ?>
+                                                                                                            </select>
+                                                                                
+                                                                                                            <select name="cover_luar_warna_luar" id="cover_luar_warna_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar_luar']['disabled']; ?>>
+                                                                                                                    <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_luar']) ? 'selected' : ''; ?>>Warna</option>
+                                                                                                                    <?php foreach ($options['cover_luar_luar']['warna'] as $warna):
+                                                                                                                        ?>
+                                                                                                                            <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_luar']) && $order_form['cover_luar_warna_luar'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                                                                                                    <?php
+                                                                                                                    endforeach; ?>
+                                                                                                            </select>
+                                                                                
+                                                                                                    </div>
+                                                                            <div class="flex space-x-2 mt-1 pl-4">
+                                                                                <label id="cover_luar_row2_label" class="w-1/2 text-gray-700">Box Dalam</label>
+                                                                            </div>
+                                                                            <div class="flex space-x-2 mt-2 pl-4">
+                                                                                <select name="cover_luar_supplier_dlm" id="cover_luar_supplier_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
+                                                                                    <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_dlm']) ? 'selected' : ''; ?>>Supplier</option>
+                                                                                    <?php foreach ($distinct_suppliers as $supplier):
+                                                                                        ?>
+                                                                                        <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_luar_supplier_dlm']) && $order_form['cover_luar_supplier_dlm'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
+                                                                                    <?php
+                                                                                    endforeach; ?>
+                                                                                </select>
+                                                                                <select name="cover_luar_warna_dlm" id="cover_luar_warna_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar_dlm']['disabled']; ?>>
+                                                                                    <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_dlm']) ? 'selected' : ''; ?>>Warna</option>
+                                                                                    <?php foreach ($options['cover_luar_dlm']['warna'] as $warna):
+                                                                                        ?>
+                                                                                        <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_luar_warna_dlm']) && $order_form['cover_luar_warna_dlm'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
+                                                                                    <?php
+                                                                                    endforeach; ?>
+                                                                                </select>
                             
                           </div>
                         </div>
@@ -840,7 +1009,7 @@ foreach ($prefixes as $prefix) {
                     <label class="block text-gray-800 text-sm font-semibold mb-2">Pelunasan</label>
                     <div class="mt-2">
                         <label class="inline-flex items-center">
-                            <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Harus lunas') ? 'checked' : ''; ?>>
+                            <input type="radio" name="pelunasan" value="Harus Lunas" class="form-radio h-4 w-4 text-blue-600" <?php echo (isset($order_form['pelunasan']) && $order_form['pelunasan'] === 'Harus Lunas') ? 'checked' : ''; ?>>
                             <span class="ml-2 text-gray-800">Harus lunas</span>
                         </label>
                         <label class="inline-flex items-center ml-6">
@@ -908,86 +1077,257 @@ foreach ($prefixes as $prefix) {
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="dudukan_img" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan Images (max 3)</label>
-                    <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <div id="image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
-                    <?php if (!empty($errors['dudukan_img'])): ?>
-                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['dudukan_img']) ?></div>
-                    <?php endif; ?>
-                </div>
+                                <div class="mb-4">
 
-                <div class="mb-4">
-                    <div class="flex space-x-4">
-                        <div class="w-1/2">
-                            <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
-                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                                <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
-                                <option value="Tidak ada" <?php echo (isset($order_form['logo']) && $order_form['logo'] === 'Tidak ada') ? 'selected' : ''; ?>>Tidak ada</option>
-                                <?php foreach ($logo_options as $logo): ?>
-                                    <option value="<?= $logo['jenis'] ?>" <?php echo (isset($order_form['logo']) && $order_form['logo'] === $logo['jenis']) ? 'selected' : ''; ?>><?= $logo['jenis'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="w-1/2 mb-4">
-                            <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
-                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                                <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
-                                <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
-                                    <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                      </div>
-                      <div class="mb-4">
-                        <label for="logo_img" class="block text-gray-800 text-sm font-semibold mb-2">Logo Images (max 3)</label>
-                        <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                        <div id="logo_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
-                          <?php if (!empty($errors['logo_img'])): ?>
-                              <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['logo_img']) ?></div>
-                          <?php endif; ?>
-                      </div>
-                </div>
+                                    <label for="dudukan_img" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan Images (max 3)</label>
 
-                <div class="mb-4">
-                    <div class="flex space-x-4">
-                        <div class="w-1/2">
-                            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
-                            <div class="mt-2">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
-                                    <span class="ml-2 text-gray-800">Pabrik</span>
-                                </label>
-                                <label class="inline-flex items-center ml-6">
-                                    <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
-                                    <span class="ml-2 text-gray-800">Luar</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="w-1/2">
-                            <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
-                            <div class="mt-2">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
-                                    <span class="ml-2 text-gray-800">In Stock</span>
-                                </label>
-                                <label class="inline-flex items-center ml-6">
-                                    <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
-                                    <span class="ml-2 text-gray-800">Bikin baru</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                    <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
 
-                <div class="mb-4">
-                    <label for="poly_img" class="block text-gray-800 text-sm font-semibold mb-2">Poly Images (max 3)</label>
-                    <input type="file" name="poly_img[]" id="poly_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                    <div id="poly_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
-                    <?php if (!empty($errors['poly_img'])): ?>
-                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['poly_img']) ?></div>
-                    <?php endif; ?>
-                </div>
+                                    <div id="image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
+
+                                    <?php if ($edit_mode && !empty($order['dudukan_img'])):
+
+                                        ?>
+
+                                        <div class="mt-2">Current images:</div>
+
+                                        <div class="flex flex-wrap gap-2 mt-2">
+
+                                            <?php foreach (explode(',', $order['dudukan_img']) as $img):
+
+                                                ?>
+
+                                                <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+
+                                            <?php
+
+                                            endforeach; ?>
+
+                                        </div>
+
+                                    <?php
+
+                                    endif; ?>
+
+                                    <?php if (!empty($errors['dudukan_img'])):
+
+                                        ?>
+
+                                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['dudukan_img']) ?></div>
+
+                                    <?php
+
+                                    endif; ?>
+
+                                </div>
+
+                
+
+                                <div class="mb-4">
+
+                                    <div class="flex space-x-4">
+
+                                        <div class="w-1/2">
+
+                                            <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
+
+                                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+
+                                                <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
+
+                                                <option value="Tidak ada" <?php echo (isset($order_form['logo']) && $order_form['logo'] === 'Tidak ada') ? 'selected' : ''; ?>>Tidak ada</option>
+
+                                                <?php foreach ($logo_options as $logo):
+
+                                                    ?>
+
+                                                    <option value="<?= $logo['jenis'] ?>" <?php echo (isset($order_form['logo']) && $order_form['logo'] === $logo['jenis']) ? 'selected' : ''; ?>><?= $logo['jenis'] ?></option>
+
+                                                <?php
+
+                                                endforeach; ?>
+
+                                            </select>
+
+                                        </div>
+
+                                        <div class="w-1/2 mb-4">
+
+                                            <label for="ukuran_poly" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran Poly</label>
+
+                                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+
+                                                <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
+
+                                                <?php foreach ($logo_uk_poly_options as $uk_poly):
+
+                                                    ?>
+
+                                                    <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
+
+                                                <?php
+
+                                                endforeach; ?>
+
+                                            </select>
+
+                                        </div>
+
+                                      </div>
+
+                                      <div class="mb-4">
+
+                                        <label for="logo_img" class="block text-gray-800 text-sm font-semibold mb-2">Logo Images (max 3)</label>
+
+                                        <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+
+                                        <div id="logo_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
+
+                                          <?php if ($edit_mode && !empty($order['logo_img'])):
+
+                                              ?>
+
+                                              <div class="mt-2">Current images:</div>
+
+                                              <div class="flex flex-wrap gap-2 mt-2">
+
+                                                  <?php foreach (explode(',', $order['logo_img']) as $img):
+
+                                                      ?>
+
+                                                      <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+
+                                                  <?php
+
+                                                  endforeach; ?>
+
+                                              </div>
+
+                                          <?php
+
+                                          endif; ?>
+
+                                          <?php if (!empty($errors['logo_img'])):
+
+                                              ?>
+
+                                              <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['logo_img']) ?></div>
+
+                                          <?php
+
+                                          endif; ?>
+
+                                      </div>
+
+                                </div>
+
+                
+
+                                <div class="mb-4">
+
+                                    <div class="flex space-x-4">
+
+                                        <div class="w-1/2">
+
+                                            <label class="block text-gray-800 text-sm font-semibold mb-2">Lokasi Poly</label>
+
+                                            <div class="mt-2">
+
+                                                <label class="inline-flex items-center">
+
+                                                    <input type="radio" name="lokasi_poly" value="Pabrik" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Pabrik') ? 'checked' : ''; ?>>
+
+                                                    <span class="ml-2 text-gray-800">Pabrik</span>
+
+                                                </label>
+
+                                                <label class="inline-flex items-center ml-6">
+
+                                                    <input type="radio" name="lokasi_poly" value="Luar" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['lokasi_poly']) && $order_form['lokasi_poly'] === 'Luar') ? 'checked' : ''; ?>>
+
+                                                    <span class="ml-2 text-gray-800">Luar</span>
+
+                                                </label>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="w-1/2">
+
+                                            <label class="block text-gray-800 text-sm font-semibold mb-2">Klise</label>
+
+                                            <div class="mt-2">
+
+                                                <label class="inline-flex items-center">
+
+                                                    <input type="radio" name="klise" value="In Stock" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out" <?php echo (isset($order_form['klise']) && $order_form['klise'] === 'In Stock') ? 'checked' : ''; ?>>
+
+                                                    <span class="ml-2 text-gray-800">In Stock</span>
+
+                                                </label>
+
+                                                <label class="inline-flex items-center ml-6">
+
+                                                    <input type="radio" name="klise" value="Bikin baru" class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"<?php echo (isset($order_form['klise']) && $order_form['klise'] === 'Bikin baru') ? 'checked' : ''; ?>>
+
+                                                    <span class="ml-2 text-gray-800">Bikin baru</span>
+
+                                                </label>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                
+
+                                <div class="mb-4">
+
+                                    <label for="poly_img" class="block text-gray-800 text-sm font-semibold mb-2">Poly Images (max 3)</label>
+
+                                    <input type="file" name="poly_img[]" id="poly_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+
+                                    <div id="poly_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
+
+                                    <?php if ($edit_mode && !empty($order['poly_img'])):
+
+                                        ?>
+
+                                        <div class="mt-2">Current images:</div>
+
+                                        <div class="flex flex-wrap gap-2 mt-2">
+
+                                            <?php foreach (explode(',', $order['poly_img']) as $img):
+
+                                                ?>
+
+                                                <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+
+                                            <?php
+
+                                            endforeach; ?>
+
+                                        </div>
+
+                                    <?php
+
+                                    endif; ?>
+
+                                    <?php if (!empty($errors['poly_img'])):
+
+                                        ?>
+
+                                        <div class="text-red-600 text-sm mt-1"><?= htmlspecialchars($errors['poly_img']) ?></div>
+
+                                    <?php
+
+                                    endif; ?>
+
+                                </div>
 
                 
                 

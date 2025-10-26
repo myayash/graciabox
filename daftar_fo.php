@@ -157,7 +157,7 @@
                 }
                 if ($is_admin) {
                     echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                    echo "<a href=\"edit_fo.php?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900 mr-2\">Edit</a>";
+                    echo "<a href=\"bikin_fo.php?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900 mr-2\">Edit</a>";
                     echo "<a href=\"view_fo_pdf.php?id=" . htmlspecialchars($order['id']) . "\" class=\"text-blue-600 hover:text-blue-900 mr-2\">View</a>";
                     if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
                         echo "<a href=\"daftar_fo.php?unarchive_id=" . htmlspecialchars($order['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this order?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
