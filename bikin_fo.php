@@ -304,7 +304,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // dudukan
     $dudukan_id = $post['dudukan'] ?? null;
     $dudukan_jenis = null;
-    if ($dudukan_id) {
+    if ($dudukan_id === '0') {
+        $dudukan_jenis = 'Tidak ada';
+    } else if ($dudukan_id) {
         $stmt = $pdo->prepare("SELECT jenis FROM dudukan WHERE id = ?");
         $stmt->execute([$dudukan_id]);
         $drow = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -891,8 +893,9 @@ foreach ($prefixes as $prefix) {
                     <div class="flex space-x-4">
                         <div class="w-1/2">
                             <label for="dudukan" class="block text-gray-800 text-sm font-semibold mb-2">Dudukan</label>
-                            <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                            <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                                 <option value="" disabled <?php echo !isset($order_form['dudukan']) ? 'selected' : ''; ?>>Pilih Dudukan</option>
+                                <option value="0" <?php echo (isset($order_form['dudukan']) && $order_form['dudukan'] === '0') ? 'selected' : ''; ?>>Tidak ada</option>
                                 <?php foreach ($dudukan_options as $dudukan): ?>
                                     <option value="<?= $dudukan['id'] ?>" <?php echo (isset($order_form['dudukan']) && $order_form['dudukan'] == $dudukan['id']) ? 'selected' : ''; ?>><?= $dudukan['jenis'] ?></option>
                                 <?php endforeach; ?>
@@ -918,8 +921,9 @@ foreach ($prefixes as $prefix) {
                     <div class="flex space-x-4">
                         <div class="w-1/2">
                             <label for="logo" class="block text-gray-800 text-sm font-semibold mb-2">Logo</label>
-                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                                 <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
+                                <option value="Tidak ada" <?php echo (isset($order_form['logo']) && $order_form['logo'] === 'Tidak ada') ? 'selected' : ''; ?>>Tidak ada</option>
                                 <?php foreach ($logo_options as $logo): ?>
                                     <option value="<?= $logo['jenis'] ?>" <?php echo (isset($order_form['logo']) && $order_form['logo'] === $logo['jenis']) ? 'selected' : ''; ?>><?= $logo['jenis'] ?></option>
                                 <?php endforeach; ?>
