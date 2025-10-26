@@ -90,7 +90,7 @@ if (!isset($_SESSION['user_id'])) {
 
     
 try {
-        $sql = "SELECT id, nama, ukuran, quantity, dibuat, model_box, dudukan, dudukan_img, is_archived FROM spk_dudukan";
+        $sql = "SELECT id, nama, ukuran, quantity, dibuat, model_box, dudukan, jumlah_layer, dudukan_img, is_archived FROM spk_dudukan";
         $conditions = [];
         $params = [];
 
@@ -132,6 +132,7 @@ try {
                 'dibuat' => 'Dibuat',
                 'model_box' => 'Model Box',
                 'dudukan' => 'Dudukan',
+                'jumlah_layer' => 'Jumlah Layer',
                 'dudukan_img' => 'Gambar Dudukan',
             ];
 
