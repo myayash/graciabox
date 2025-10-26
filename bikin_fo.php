@@ -1620,17 +1620,34 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                 // let the form submit
             });
 
-            // Show success modal if server told us so
-            if (window.__flashSuccess) {
-                // hide native server flash box if present
+            function showSuccessModal(message) {
                 const serverFlash = document.getElementById('server_flash_success');
                 if (serverFlash) serverFlash.style.display = 'none';
-                successModalMessage.textContent = window.__flashSuccess;
+                successModalMessage.textContent = message;
                 successModal.classList.remove('hidden');
+                successModalClose.focus();
             }
 
-            successModalClose && successModalClose.addEventListener('click', function(){
+            function hideSuccessModal() {
                 successModal.classList.add('hidden');
+            }
+
+            // Show success modal if server told us so
+            if (window.__flashSuccess) {
+                showSuccessModal(window.__flashSuccess);
+            }
+
+            // Close modal events
+            successModalClose && successModalClose.addEventListener('click', hideSuccessModal);
+            successModal && successModal.addEventListener('click', function(event) {
+                if (event.target === successModal) {
+                    hideSuccessModal();
+                }
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape" && !successModal.classList.contains('hidden')) {
+                    hideSuccessModal();
+                }
             });
 
             const dudukanImgInput = document.getElementById('dudukan_img');
