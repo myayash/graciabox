@@ -7,6 +7,52 @@
     <title>daftar FO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
+    <style>
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        thead th:first-child {
+            left: 0;
+            z-index: 20;
+        }
+        .table-container {
+            position: relative;
+        }
+        .table-container::before,
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .table-container::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+            opacity: 0;
+        }
+        .table-container.scrolling-left::before {
+            opacity: 1;
+        }
+        .table-container.scrolling-right::after {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
     <?php include 'navbar.php'; ?>
@@ -114,7 +160,7 @@
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($orders) {
-            echo "<div class=\"overflow-x-auto bg-white shadow-lg\">";
+            echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
             echo "<table class=\"min-w-full divide-y divide-gray-200\">";
             echo "<thead><tr>";
             // Define a mapping for column names to display names
@@ -190,5 +236,38 @@
     }
     ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableContainer = document.querySelector('.table-container');
+
+    if (tableContainer) {
+        function updateShadows() {
+            const scrollLeft = tableContainer.scrollLeft;
+            const scrollWidth = tableContainer.scrollWidth;
+            const clientWidth = tableContainer.clientWidth;
+
+            if (scrollWidth > clientWidth) {
+                if (scrollLeft > 0) {
+                    tableContainer.classList.add('scrolling-left');
+                } else {
+                    tableContainer.classList.remove('scrolling-left');
+                }
+
+                if (scrollLeft < scrollWidth - clientWidth - 1) { // -1 for precision
+                    tableContainer.classList.add('scrolling-right');
+                } else {
+                    tableContainer.classList.remove('scrolling-right');
+                }
+            } else {
+                tableContainer.classList.remove('scrolling-left', 'scrolling-right');
+            }
+        }
+
+        tableContainer.addEventListener('scroll', updateShadows);
+        window.addEventListener('resize', updateShadows);
+        updateShadows(); // Initial check
+    }
+});
+</script>
 </body>
 </html>
