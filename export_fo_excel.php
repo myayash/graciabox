@@ -9,7 +9,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 try {
-    $sql = "SELECT id, lokasi, nama, ukuran, kode_pisau, quantity, model_box, jenis_board, cover_dlm, cover_lr, nama_box_lama, sales_pj, dibuat, keterangan, aksesoris, dudukan, jumlah_layer, logo, ukuran_poly, lokasi_poly, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, is_archived FROM orders";
+    $sql = "SELECT * FROM orders";
     $conditions = [];
     $params = [];
 
@@ -29,8 +29,19 @@ try {
         // Add search filter
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(nama LIKE ? OR kode_pisau LIKE ? OR ukuran LIKE ? OR model_box LIKE ? OR jenis_board LIKE ? OR cover_dlm LIKE ? OR cover_lr LIKE ? OR sales_pj LIKE ? OR nama_box_lama LIKE ? OR lokasi LIKE ?)";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $searchable_columns = [
+                'id', 'nama', 'kode_pisau', 'ukuran', 'model_box', 'jenis_board', 
+                'cover_dlm', 'sales_pj', 'nama_box_lama', 'lokasi', 'cover_lr', 
+                'keterangan', 'quantity', 'feedback_cust', 'aksesoris', 
+                'ket_aksesoris', 'dudukan', 'jumlah_layer', 'logo', 'ukuran_poly', 
+                'lokasi_poly', 'klise', 'tanggal_kirim', 'jam_kirim', 
+                'dikirim_dari', 'tujuan_kirim', 'tanggal_dp', 'pelunasan', 
+                'ongkir', 'packing', 'biaya'
+            ];
+            
+            $conditions[] = "(" . implode(" LIKE ? OR ", $searchable_columns) . " LIKE ?)";
+            
+            $params = array_merge($params, array_fill(0, count($searchable_columns), $searchTerm));
         }
     }
 
@@ -49,15 +60,9 @@ try {
 
         $output = fopen('php://output', 'w');
 
-        // Define the explicit order of columns for export
-        $export_columns = [
-            'id', 'lokasi', 'nama', 'ukuran', 'kode_pisau', 'quantity', 'model_box', 'jenis_board', 
-            'cover_dlm', 'cover_lr', 'nama_box_lama', 'sales_pj', 'dibuat', 'keterangan', 
-            'aksesoris', 'dudukan', 'jumlah_layer', 'logo', 'ukuran_poly', 'lokasi_poly', 
-            'klise', 'tanggal_kirim', 'jam_kirim', 'dikirim_dari', 'tujuan_kirim', 'is_archived'
-        ];
+        // Use all columns from the first row to generate headers, maintaining order
+        $export_columns = array_keys($orders[0]);
 
-        // Get column headers from the explicit list
         $column_display_names = [
             'id' => 'ID',
             'lokasi' => 'Lokasi',
@@ -73,17 +78,27 @@ try {
             'sales_pj' => 'PJ Sales',
             'dibuat' => 'Dibuat',
             'keterangan' => 'Keterangan',
+            'feedback_cust' => 'Feedback Customer',
             'aksesoris' => 'Aksesoris',
+            'ket_aksesoris' => 'Keterangan Aksesoris',
             'dudukan' => 'Dudukan',
+            'dudukan_img' => 'Gambar Dudukan',
             'jumlah_layer' => 'Jumlah Layer',
             'logo' => 'Logo',
+            'logo_img' => 'Gambar Logo',
             'ukuran_poly' => 'Ukuran Poly',
             'lokasi_poly' => 'Lokasi Poly',
+            'poly_img' => 'Gambar Poly',
             'klise' => 'Klise',
             'tanggal_kirim' => 'Tanggal Kirim',
             'jam_kirim' => 'Jam Kirim',
             'dikirim_dari' => 'Dikirim Dari',
             'tujuan_kirim' => 'Tujuan Kirim',
+            'tanggal_dp' => 'Tanggal DP',
+            'pelunasan' => 'Pelunasan',
+            'ongkir' => 'Ongkir',
+            'packing' => 'Packing',
+            'biaya' => 'Biaya',
             'is_archived' => 'Archived'
         ];
 
