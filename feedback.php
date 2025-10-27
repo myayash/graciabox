@@ -26,6 +26,13 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                 <strong class="font-bold">Berhasil!</strong>
                 <span class="block sm:inline">Feedback sukses disampaikan.</span>
             </div>';
+            echo '<script>
+                if (window.history.replaceState) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete("status");
+                    window.history.replaceState({path: url.href}, "", url.href);
+                }
+            </script>';
         }
         ?>
         <form action="process_feedback.php" method="post">
