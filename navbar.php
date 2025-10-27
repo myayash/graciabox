@@ -31,6 +31,9 @@
         </ul>
         <div class="ml-auto">
             <?php if (isset($_SESSION['user_id'])): ?>
+                <?php if (isset($_SESSION['username']) && $_SESSION['username'] === 'tester'): ?>
+                    <a href="feedback.php" class="hover:bg-gray-200 px-3 py-2">feedback</a>
+                <?php endif; ?>
                 <a href="logout.php" class="hover:bg-gray-200 px-3 py-2">Logout (<?php echo htmlspecialchars($_SESSION['username']); ?>)</a>
             <?php else: ?>
                 <a href="login.php" class="hover:bg-gray-200 px-3 py-2">Login</a>
