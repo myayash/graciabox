@@ -11,10 +11,33 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
     exit();
 }
 
-require 'config.php';
+// Load config with a protective wrapper so config-time errors are reported back to the feedback page
+try {
+    require 'config.php';
+} catch (Throwable $e) {
+    // If config fails to load, write to PHP error_log and to a fallback file in logs/ for diagnosis
+    $msg = "config.php include failed: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
+    error_log($msg);
+    @file_put_contents(__DIR__ . '/logs/config-failure.log', date('c') . " " . $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
+    // Provide a user-visible error via session and redirect back to feedback form
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+    $_SESSION['feedback_error'] = 'Internal config error. Please contact the dev team.';
+    header('Location: feedback.php?status=error');
+    exit();
+}
+
+// optional logger from config
+$logger = $logger ?? null;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $feedback_text = $_POST['feedback_text'];
+    if ($logger) {
+        try {
+            $logger->info('Received feedback POST', ['user_id' => $_SESSION['user_id'] ?? null, 'username' => $_SESSION['username'] ?? null, 'text_snippet' => substr($feedback_text,0,120)]);
+        } catch (Throwable $logEx) {
+            error_log('Logger->info failed: ' . $logEx->getMessage());
+        }
+    }
     // Handle optional image upload
     $upload_dir = __DIR__ . '/uploads/feedback_images';
     if (!is_dir($upload_dir)) {
@@ -85,9 +108,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $image_filenames[] = $filename;
                     // last set image_path for possible use/display (not stored in DB)
                     $image_path = 'uploads/feedback_images/' . $filename;
+                    if ($logger) {
+                        try {
+                            $logger->info('Saved uploaded feedback image', ['filename' => $filename, 'target' => $target]);
+                        } catch (Throwable $logEx) {
+                            error_log('Logger->info failed: ' . $logEx->getMessage());
+                        }
+                    }
                 } else {
                     $last = error_get_last();
-                    $_SESSION['feedback_error'] = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                    $errMsg = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                    $_SESSION['feedback_error'] = $errMsg;
+                    if ($logger) {
+                        try {
+                            $logger->error('move_uploaded_file failed', ['tmp' => $tmpName, 'target' => $target, 'error' => $last]);
+                        } catch (Throwable $logEx) {
+                            error_log('Logger->error failed: ' . $logEx->getMessage());
+                        }
+                    }
                 }
             }
         } else {
@@ -125,13 +163,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             }
                             $filename = $basename . '.' . $ext;
                             $target = $upload_dir . '/' . $filename;
-                            if (move_uploaded_file($file['tmp_name'], $target)) {
-                                $image_filenames[] = $filename;
-                                $image_path = 'uploads/feedback_images/' . $filename;
-                            } else {
-                                $last = error_get_last();
-                                $_SESSION['feedback_error'] = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
-                            }
+                                        if (move_uploaded_file($file['tmp_name'], $target)) {
+                                            $image_filenames[] = $filename;
+                                            $image_path = 'uploads/feedback_images/' . $filename;
+                                            if ($logger) {
+                                                try {
+                                                    $logger->info('Saved uploaded feedback image (single)', ['filename' => $filename, 'target' => $target]);
+                                                } catch (Throwable $logEx) {
+                                                    error_log('Logger->info failed: ' . $logEx->getMessage());
+                                                }
+                                            }
+                                        } else {
+                                            $last = error_get_last();
+                                            $errMsg = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                                            $_SESSION['feedback_error'] = $errMsg;
+                                            if ($logger) {
+                                                try {
+                                                    $logger->error('move_uploaded_file failed (single)', ['tmp' => $file['tmp_name'], 'target' => $target, 'error' => $last]);
+                                                } catch (Throwable $logEx) {
+                                                    error_log('Logger->error failed: ' . $logEx->getMessage());
+                                                }
+                                            }
+                                        }
                         }
                     }
                 }

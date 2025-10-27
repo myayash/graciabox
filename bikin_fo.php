@@ -1,6 +1,9 @@
 <?php
 include 'config.php';
-session_start();
+// config.php already starts the session; only start if none active to avoid warnings
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Ensure CSRF token exists
 if (empty($_SESSION['csrf_token'])) {
@@ -70,9 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     }
 
     $temp_dudukan_img_data = []; // To store temporary filenames and extensions
-    $upload_dir = 'uploads/';
+    // Use absolute uploads directory so move_uploaded_file/rename use a predictable path
+    $upload_dir = __DIR__ . '/uploads/';
     if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
+        // try to create with safe perms; webserver user should own this directory for production
+        @mkdir($upload_dir, 0755, true);
     }
 
     if (isset($_FILES['dudukan_img']) && !empty(array_filter($_FILES['dudukan_img']['name']))) {

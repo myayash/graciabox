@@ -31,6 +31,7 @@ class ComposerStaticInitd7fa2e2fae709490ed66c9513fa06507
             'Mpdf\\PsrLogAwareTrait\\' => 22,
             'Mpdf\\PsrHttpMessageShim\\' => 24,
             'Mpdf\\' => 5,
+            'Monolog\\' => 8,
             'Masterminds\\' => 12,
         ),
         'F' => 
@@ -76,6 +77,10 @@ class ComposerStaticInitd7fa2e2fae709490ed66c9513fa06507
         'Mpdf\\' => 
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
+        ),
+        'Monolog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
         'Masterminds\\' => 
         array (
