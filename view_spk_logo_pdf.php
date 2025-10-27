@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once __DIR__ . '/vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -119,21 +120,17 @@ if (!empty($spk['logo_img'])) {
     $html .= '<div class="image-gallery">';
     $images = explode(',', $spk['logo_img']);
     
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-    $host = $_SERVER['HTTP_HOST'];
-    $base_url = $protocol . $host;
-    $project_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-
     foreach ($images as $image) {
         $image_name = trim($image);
-        $image_url = $base_url . $project_path . '/uploads/' . rawurlencode($image_name);
+        $image_path = __DIR__ . '/uploads/' . $image_name;
         
-        // Use file_get_contents to fetch the image data from the URL and base64 encode it
-        $image_data = @file_get_contents($image_url);
-        if ($image_data !== false) {
-            $type = pathinfo($image_name, PATHINFO_EXTENSION);
-            $base64 = 'data:image/' . $type . ';base64,' . base64_encode($image_data);
-            $html .= '<img src="' . $base64 . '">';
+        if (is_file($image_path)) {
+            $image_data = @file_get_contents($image_path);
+            if ($image_data !== false) {
+                $type = pathinfo($image_name, PATHINFO_EXTENSION);
+                $base64 = 'data:image/' . $type . ';base64,' . base64_encode($image_data);
+                $html .= '<img src="' . $base64 . '">';
+            }
         }
     }
     $html .= '</div>';
@@ -151,6 +148,9 @@ $dompdf->setPaper('A4', 'portrait');
 
 // Render the HTML as PDF
 $dompdf->render();
+
+ob_end_clean();
+ini_set('display_errors', '0');
 
 // Output the generated PDF to Browser
 $dompdf->stream('spk_logo_' . $spk_id . '.pdf', ["Attachment" => false]);

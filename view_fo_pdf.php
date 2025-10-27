@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once __DIR__ . '/vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -43,11 +44,11 @@ function formatField($key, $value) {
     } else if ($key === 'cover_dlm') {
         $display_value = nl2br(htmlspecialchars(preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value)));
     } else if ($key === 'cover_lr') {
-        $display_value = nl2br(htmlspecialchars(str_replace("\\n", "; ", $value)));
+        $display_value = nl2br(htmlspecialchars(str_replace("\n", "; ", $value)));
     } else if ($key === 'ukuran') {
         $display_value = htmlspecialchars($value) . ' cm';
     } else if ($key === 'quantity') {
-        $display_value = htmlspecialchars(str_replace(' pcs', '', $value)) . ' pcs';
+        $display_value = htmlspecialchars(str_replace(' pcs', '', $value)) . 'pcs';
     } else if ($key === 'kode_pisau') {
         $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'aksesoris') {
@@ -86,7 +87,11 @@ body { font-family: verdana, sans-serif; }
 </style>';
 $html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
 $html .= '<div style="float: left;">';
-$html .= '<img src="' . __DIR__ . '/graciabox_logo_gray.jpeg" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$logo_path = __DIR__ . '/graciabox_logo_gray.jpeg';
+$logo_type = pathinfo($logo_path, PATHINFO_EXTENSION);
+$logo_data = file_get_contents($logo_path);
+$logo_base64 = 'data:image/' . $logo_type . ';base64,' . base64_encode($logo_data);
+$html .= '<img src="' . $logo_base64 . '" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
 $html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SALES CUSTOM ORDER (NO. ' . htmlspecialchars($order['id']) . ')</h2>';
 $html .= '</div>';
 $html .= '<div style="float: right;">';
@@ -409,6 +414,9 @@ $dompdf->setPaper('A4', 'portrait');
 
 // Render the HTML as PDF
 $dompdf->render();
+
+ob_end_clean();
+ini_set('display_errors', '0');
 
 // Output the generated PDF to Browser
 $dompdf->stream('order_' . $order_id . '.pdf', ["Attachment" => false]);
