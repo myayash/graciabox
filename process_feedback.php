@@ -26,53 +26,112 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         @chmod($upload_dir, 0777);
     }
 
-    $image_filename = null;
+    $image_filenames = [];
     $image_path = null;
     // Prepare a place to store any upload error to show to the user
     if (isset($_FILES['feedback_image'])) {
-        $uploadError = $_FILES['feedback_image']['error'];
-        if ($uploadError !== UPLOAD_ERR_NO_FILE) {
-            if ($uploadError !== UPLOAD_ERR_OK) {
-                $_SESSION['feedback_error'] = 'Upload error code: ' . $uploadError;
-            } else {
-                $file = $_FILES['feedback_image'];
+        // support multiple files (feedback_image[])
+        $names = $_FILES['feedback_image']['name'];
+        if (is_array($names)) {
+            $count = count($names);
+            if ($count > 3) {
+                // Only allow up to 3 files
+                $_SESSION['feedback_error'] = 'Maximum 3 files allowed. You selected ' . $count . '.';
+            }
+            $processCount = min(3, $count);
+            for ($i = 0; $i < $processCount; $i++) {
+                $uploadError = $_FILES['feedback_image']['error'][$i];
+                if ($uploadError === UPLOAD_ERR_NO_FILE) {
+                    continue;
+                }
+                if ($uploadError !== UPLOAD_ERR_OK) {
+                    $_SESSION['feedback_error'] = 'Upload error code: ' . $uploadError;
+                    continue;
+                }
+                $tmpName = $_FILES['feedback_image']['tmp_name'][$i];
+                $size = $_FILES['feedback_image']['size'][$i];
                 // Basic validation: max 2MB and allowed image mime types
                 $maxSize = 2 * 1024 * 1024; // 2MB
-                if ($file['size'] > $maxSize) {
+                if ($size > $maxSize) {
                     $_SESSION['feedback_error'] = 'File too large. Max 2MB allowed.';
+                    continue;
+                }
+                // use finfo if available
+                if (function_exists('finfo_open')) {
+                    $finfo = new finfo(FILEINFO_MIME_TYPE);
+                    $mime = $finfo->file($tmpName);
                 } else {
-                    // use finfo if available
-                    $mime = null;
-                    if (function_exists('finfo_open')) {
-                        $finfo = new finfo(FILEINFO_MIME_TYPE);
-                        $mime = $finfo->file($file['tmp_name']);
+                    $mime = mime_content_type($tmpName);
+                }
+                $allowed = [
+                    'image/jpeg' => 'jpg',
+                    'image/png' => 'png',
+                    'image/gif' => 'gif',
+                    'image/webp' => 'webp'
+                ];
+                if (!isset($allowed[$mime])) {
+                    $_SESSION['feedback_error'] = 'Invalid image type. Allowed: jpg, png, gif, webp.';
+                    continue;
+                }
+                $ext = $allowed[$mime];
+                try {
+                    $basename = bin2hex(random_bytes(8));
+                } catch (Exception $e) {
+                    $basename = uniqid();
+                }
+                $filename = $basename . '.' . $ext;
+                $target = $upload_dir . '/' . $filename;
+                if (move_uploaded_file($tmpName, $target)) {
+                    $image_filenames[] = $filename;
+                    // last set image_path for possible use/display (not stored in DB)
+                    $image_path = 'uploads/feedback_images/' . $filename;
+                } else {
+                    $last = error_get_last();
+                    $_SESSION['feedback_error'] = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                }
+            }
+        } else {
+            // fallback: single file (older behavior)
+            $uploadError = $_FILES['feedback_image']['error'];
+            if ($uploadError !== UPLOAD_ERR_NO_FILE) {
+                if ($uploadError !== UPLOAD_ERR_OK) {
+                    $_SESSION['feedback_error'] = 'Upload error code: ' . $uploadError;
+                } else {
+                    $file = $_FILES['feedback_image'];
+                    $maxSize = 2 * 1024 * 1024;
+                    if ($file['size'] > $maxSize) {
+                        $_SESSION['feedback_error'] = 'File too large. Max 2MB allowed.';
                     } else {
-                        $mime = mime_content_type($file['tmp_name']);
-                    }
-                    $allowed = [
-                        'image/jpeg' => 'jpg',
-                        'image/png' => 'png',
-                        'image/gif' => 'gif',
-                        'image/webp' => 'webp'
-                    ];
-                    if (!isset($allowed[$mime])) {
-                        $_SESSION['feedback_error'] = 'Invalid image type. Allowed: jpg, png, gif, webp.';
-                    } else {
-                        $ext = $allowed[$mime];
-                        try {
-                            $basename = bin2hex(random_bytes(8));
-                        } catch (Exception $e) {
-                            $basename = uniqid();
-                        }
-                        $filename = $basename . '.' . $ext;
-                        $target = $upload_dir . '/' . $filename;
-                        if (move_uploaded_file($file['tmp_name'], $target)) {
-                            // store filename for DB and session, path for display
-                            $image_filename = $filename;
-                            $image_path = 'uploads/feedback_images/' . $filename;
+                        if (function_exists('finfo_open')) {
+                            $finfo = new finfo(FILEINFO_MIME_TYPE);
+                            $mime = $finfo->file($file['tmp_name']);
                         } else {
-                            $last = error_get_last();
-                            $_SESSION['feedback_error'] = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                            $mime = mime_content_type($file['tmp_name']);
+                        }
+                        $allowed = [
+                            'image/jpeg' => 'jpg',
+                            'image/png' => 'png',
+                            'image/gif' => 'gif',
+                            'image/webp' => 'webp'
+                        ];
+                        if (!isset($allowed[$mime])) {
+                            $_SESSION['feedback_error'] = 'Invalid image type. Allowed: jpg, png, gif, webp.';
+                        } else {
+                            $ext = $allowed[$mime];
+                            try {
+                                $basename = bin2hex(random_bytes(8));
+                            } catch (Exception $e) {
+                                $basename = uniqid();
+                            }
+                            $filename = $basename . '.' . $ext;
+                            $target = $upload_dir . '/' . $filename;
+                            if (move_uploaded_file($file['tmp_name'], $target)) {
+                                $image_filenames[] = $filename;
+                                $image_path = 'uploads/feedback_images/' . $filename;
+                            } else {
+                                $last = error_get_last();
+                                $_SESSION['feedback_error'] = 'Failed to move uploaded file.' . ($last ? ' ' . $last['message'] : '');
+                            }
                         }
                     }
                 }
@@ -80,20 +139,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Insert feedback text and image filename (if any) into DB
+    // Insert feedback text and image filename(s) (if any) into DB
     $stmt = $pdo->prepare("INSERT INTO feedback_test (text, fb_img) VALUES (?, ?)");
 
-    // Use the filename (or null) for the fb_img column
-    $fb_img = $image_filename ? $image_filename : null;
+    // Store comma-separated filenames (or null) in fb_img
+    $fb_img = count($image_filenames) ? implode(',', $image_filenames) : null;
 
     if ($stmt->execute([$feedback_text, $fb_img])) {
-        // expose the uploaded image filename briefly via session so feedback.php can display it
-        if ($image_filename) {
-            $_SESSION['last_feedback_image'] = $image_filename;
+        // expose the uploaded image filenames briefly via session so feedback.php can display them
+        if (count($image_filenames)) {
+            $_SESSION['last_feedback_image'] = $image_filenames;
         } else {
             unset($_SESSION['last_feedback_image']);
         }
-        // if there was an upload error, keep it in session to show to user on the feedback page
+        // redirect back to feedback page; any upload errors will still be in session
         header("Location: feedback.php?status=success");
     } else {
         // DB insert failed; store error and show
