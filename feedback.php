@@ -14,6 +14,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="scripts.js" defer></script>
 </head>
 <body class="bg-gray-100 font-mono">
     <?php include 'navbar.php'; ?>

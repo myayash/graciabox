@@ -2,7 +2,11 @@ function toggleDropdown(event, id) {
   event.stopPropagation();
   const dropdown = document.getElementById(id);
   if (dropdown) {
-    dropdown.style.display = "block"; // Always set to block for debugging
+    if (dropdown.style.display === "block") {
+      dropdown.style.display = "none";
+    } else {
+      dropdown.style.display = "block";
+    }
   }
 }
 
