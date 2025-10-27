@@ -251,15 +251,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const scrollLeft = tableContainer.scrollLeft;
             const scrollWidth = tableContainer.scrollWidth;
             const clientWidth = tableContainer.clientWidth;
+            const threshold = 15;
 
             if (scrollWidth > clientWidth) {
-                if (scrollLeft > 0) {
+                if (scrollLeft > threshold) {
                     tableContainer.classList.add('scrolling-left');
                 } else {
                     tableContainer.classList.remove('scrolling-left');
                 }
 
-                if (scrollLeft < scrollWidth - clientWidth - 1) { // -1 for precision
+                if (scrollLeft < scrollWidth - clientWidth - threshold) {
                     tableContainer.classList.add('scrolling-right');
                 } else {
                     tableContainer.classList.remove('scrolling-right');
