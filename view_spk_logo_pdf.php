@@ -72,16 +72,20 @@ td, th { padding: 6px; }
 $html .= '<div class="container">';
 
 // Header
-$html .= '<table class="header-table"><tr>';
+$html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
+$html .= '<div style="float: left;">';
 $logo_path = __DIR__ . '/graciabox_logo_gray.jpeg';
 $logo_type = pathinfo($logo_path, PATHINFO_EXTENSION);
 $logo_data = file_get_contents($logo_path);
 $logo_base64 = 'data:image/' . $logo_type . ';base64,' . base64_encode($logo_data);
-$html .= '<td><img src="' . $logo_base64 . '" style="height: 50px;"></td>';
-$html .= '<td style="text-align: center;"><h2>SPK LOGO (NO. ' . htmlspecialchars($spk['id']) . ')</h2></td>';
-$html .= '<td style="text-align: right;">' . htmlspecialchars($spk['dibuat']) . '</td>';
-$html .= '</tr></table>';
-
+$html .= '<img src="' . $logo_base64 . '" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SPK LOGO (NO. ' . htmlspecialchars($spk['id']) . ')</h2>';
+$html .= '</div>';
+$html .= '<div style="float: right;">';
+$html .= '<p style="text-align: right; display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . htmlspecialchars($spk['dibuat']) . '</p>';
+$html .= '</div>';
+$html .= '<div style="clear: both;"></div>'; // Clear floats
+$html .= '</div>'; // End container
 
 // Data section
 $html .= '<table class="data-table">';

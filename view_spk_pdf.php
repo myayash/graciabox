@@ -40,6 +40,7 @@ function formatField($key, $value) {
     $display_value = htmlspecialchars($value);
 
     if ($key === 'nama') {
+        $display_key = 'Customer';
         $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'ukuran') {
         $display_value = htmlspecialchars($value) . ' cm';
@@ -57,14 +58,14 @@ $dompdf = new Dompdf($options);
 // Generate HTML content for the PDF
 $html = '<style>
 body { font-family: verdana, sans-serif; }
-.container { border: 0px solid #000; border-radius: 5px; padding: 10px; }
+.container { border: 1px solid #000; border-radius: 5px; padding: 10px; }
 table { border-collapse: collapse; width: 100%; }
 td, th { padding: 6px; }
 .header-table td { vertical-align: middle; }
 .data-table { margin-top: 20px; }
 .data-table td { vertical-align: top; }
-.data-table strong { font-size: 18px; }
-.data-value { font-size: 18px; }
+.data-table strong { font-size: 24px; }
+.data-value { font-size: 24px; }
 .image-gallery { margin-top: 10px; }
 .image-gallery img { max-width: 150px; max-height: 150px; margin: 5px; border: 1px solid #ccc; }
 </style>';
@@ -72,16 +73,20 @@ td, th { padding: 6px; }
 $html .= '<div class="container">';
 
 // Header
-$html .= '<table class="header-table"><tr>';
+$html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
+$html .= '<div style="float: left;">';
 $logo_path = __DIR__ . '/graciabox_logo_gray.jpeg';
 $logo_type = pathinfo($logo_path, PATHINFO_EXTENSION);
 $logo_data = file_get_contents($logo_path);
 $logo_base64 = 'data:image/' . $logo_type . ';base64,' . base64_encode($logo_data);
-$html .= '<td><img src="' . $logo_base64 . '" style="height: 50px;"></td>';
-$html .= '<td style="text-align: center;"><h2>SPK DUDUKAN (NO. ' . htmlspecialchars($spk['id']) . ')</h2></td>';
-$html .= '<td style="text-align: right;">' . htmlspecialchars($spk['dibuat']) . '</td>';
-$html .= '</tr></table>';
-
+$html .= '<img src="' . $logo_base64 . '" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SPK DUDUKAN (NO. ' . htmlspecialchars($spk['id']) . ')</h2>';
+$html .= '</div>';
+$html .= '<div style="float: right;">';
+$html .= '<p style="text-align: right; display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . htmlspecialchars($spk['dibuat']) . '</p>';
+$html .= '</div>';
+$html .= '<div style="clear: both;"></div>'; // Clear floats
+$html .= '</div>'; // End container
 
 // Data section
 $html .= '<table class="data-table">';
