@@ -2,3 +2,4 @@ uploads/
 uploads/*
 logs/
 logs/*
+.DS_Store
