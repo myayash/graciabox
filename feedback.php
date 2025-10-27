@@ -69,7 +69,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
             <div class="mb-4">
                 <label for="feedback_image" class="block text-gray-700 text-sm font-bold mb-2">Sertakan gambar (opsional)</label>
                 <input type="file" name="feedback_image[]" id="feedback_image" accept="image/*" class="block w-full text-sm text-gray-600" multiple />
-                <p class="text-xs text-gray-500 mt-1">You can select up to 3 images (jpg/png/gif/webp), max 2MB each.</p>
+                <p class="text-xs text-gray-500 mt-1">3 images max (2MB each).</p>
                 <!-- Preview container: show thumbnails immediately after selecting files -->
                 <div id="feedback_image_preview" class="mt-3 grid grid-cols-3 gap-2"></div>
             </div>
