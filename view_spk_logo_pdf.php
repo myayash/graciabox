@@ -43,6 +43,8 @@ function formatField($key, $value) {
         $display_value = strtoupper(htmlspecialchars($value));
     } else if ($key === 'ukuran') {
         $display_value = htmlspecialchars($value) . ' cm';
+    } else if ($key === 'logo') {
+        $display_key = 'Warna Poly';
     }
 
     return ['display_key' => $display_key, 'display_value' => $display_value];
@@ -63,8 +65,8 @@ td, th { padding: 6px; }
 .header-table td { vertical-align: middle; }
 .data-table { margin-top: 20px; }
 .data-table td { vertical-align: top; }
-.data-table strong { font-size: 18px; }
-.data-value { font-size: 18px; }
+.data-table strong { font-size: 24px; }
+.data-value { font-size: 24px; }
 .image-gallery { margin-top: 10px; }
 .image-gallery img { max-width: 150px; max-height: 150px; margin: 5px; border: 1px solid #ccc; }
 </style>';
@@ -143,7 +145,7 @@ if (!empty($spk['logo_img'])) {
 
 $html .= '</div>'; //end container
 
-$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Form Order Produksi.</div>';
+$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Surat Perintah Kerja Produksi Logo.</div>';
 
 $dompdf->loadHtml($html);
 

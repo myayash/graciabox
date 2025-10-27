@@ -161,7 +161,7 @@ if (isset($spk['jumlah_layer']) && is_numeric($spk['jumlah_layer']) && $spk['jum
 
 $html .= '</div>'; //end container
 
-$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Form Order Produksi.</div>';
+$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Surat Perintah Kerja Produksi Dudukan.</div>';
 
 $dompdf->loadHtml($html);
 
