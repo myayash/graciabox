@@ -943,7 +943,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                         <div class="mb-4">
                           <label class="block text-gray-800 text-sm font-semibold mb-2">Aksesoris</label>
                           <div class="flex space-x-2">
-                            <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                            <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
                               <option value="" disabled <?php echo !isset($order_form['aksesoris_jenis']) ? 'selected' : ''; ?>>Pilih Jenis</option>
                               <?php foreach ($aksesoris_jenis as $jenis): ?>
                                 <option value="<?= $jenis['jenis'] ?>" <?php echo (isset($order_form['aksesoris_jenis']) && $order_form['aksesoris_jenis'] === $jenis['jenis']) ? 'selected' : ''; ?>><?= $jenis['jenis'] ?></option>
