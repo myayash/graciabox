@@ -45,8 +45,6 @@ function formatField($key, $value) {
         $display_value = nl2br(htmlspecialchars(preg_replace('/(supplier|jenis|warna|gsm|ukuran):\s*/i', '', $value)));
     } else if ($key === 'cover_lr') {
         $display_value = nl2br(htmlspecialchars(str_replace("\n", "; ", $value)));
-    } else if ($key === 'ukuran') {
-        $display_value = htmlspecialchars($value) . ' cm';
     } else if ($key === 'quantity') {
         $display_value = htmlspecialchars(str_replace(' pcs', '', $value)) . 'pcs';
     } else if ($key === 'kode_pisau') {

@@ -41,8 +41,6 @@ function formatField($key, $value) {
 
     if ($key === 'nama') {
         $display_value = strtoupper(htmlspecialchars($value));
-    } else if ($key === 'ukuran') {
-        $display_value = htmlspecialchars($value) . ' cm';
     } else if ($key === 'logo') {
         $display_key = 'Warna Poly';
     }
@@ -59,7 +57,7 @@ $dompdf = new Dompdf($options);
 // Generate HTML content for the PDF
 $html = '<style>
 body { font-family: verdana, sans-serif; }
-.container { border: 1px solid #000; border-radius: 5px; padding: 10px; }
+.container { border: 1px solid #000; border-radius: 5px; padding: 10px; box-sizing: border-box; width: 100%; overflow: hidden; }
 table { border-collapse: collapse; width: 100%; }
 td, th { padding: 6px; }
 .header-table td { vertical-align: middle; }
@@ -68,7 +66,8 @@ td, th { padding: 6px; }
 .data-table strong { font-size: 24px; }
 .data-value { font-size: 24px; }
 .image-gallery { margin-top: 10px; }
-.image-gallery img { max-width: 150px; max-height: 150px; margin: 5px; border: 1px solid #ccc; }
+.image-gallery .image-item { display: inline-block; vertical-align: top; }
+.image-gallery .image-item img { max-width: 150px; max-height: 150px; margin: 5px; border: 1px solid #ccc; display: block; }
 </style>';
 
 $html .= '<div class="container">';
@@ -135,7 +134,7 @@ if (!empty($spk['logo_img'])) {
             if ($image_data !== false) {
                 $type = pathinfo($image_name, PATHINFO_EXTENSION);
                 $base64 = 'data:image/' . $type . ';base64,' . base64_encode($image_data);
-                $html .= '<img src="' . $base64 . '">';
+                $html .= '<div class="image-item"><img src="' . $base64 . '" alt="Logo image"></div>';
             }
         }
     }
