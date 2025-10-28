@@ -119,22 +119,41 @@ $html .= '</td></tr>';
 
 $html .= '</table>';
 
-// Image Gallery
+// Image Gallery: logo images under 'Gambar Logo', poly images under 'Gambar Poly'
+// Show logo images
 if (!empty($spk['logo_img'])) {
     $html .= '<h3>Gambar Logo</h3>';
     $html .= '<div class="image-gallery">';
     $images = explode(',', $spk['logo_img']);
-    
     foreach ($images as $image) {
         $image_name = trim($image);
         $image_path = __DIR__ . '/uploads/' . $image_name;
-        
         if (is_file($image_path)) {
             $image_data = @file_get_contents($image_path);
             if ($image_data !== false) {
                 $type = pathinfo($image_name, PATHINFO_EXTENSION);
                 $base64 = 'data:image/' . $type . ';base64,' . base64_encode($image_data);
                 $html .= '<div class="image-item"><img src="' . $base64 . '" alt="Logo image"></div>';
+            }
+        }
+    }
+    $html .= '</div>';
+}
+
+// Show poly images under their own header
+if (!empty($spk['poly_img'])) {
+    $html .= '<h3>Gambar Poly</h3>';
+    $html .= '<div class="image-gallery">';
+    $polyImages = explode(',', $spk['poly_img']);
+    foreach ($polyImages as $pimage) {
+        $pimage_name = trim($pimage);
+        $pimage_path = __DIR__ . '/uploads/' . $pimage_name;
+        if (is_file($pimage_path)) {
+            $pimage_data = @file_get_contents($pimage_path);
+            if ($pimage_data !== false) {
+                $ptype = pathinfo($pimage_name, PATHINFO_EXTENSION);
+                $pbase64 = 'data:image/' . $ptype . ';base64,' . base64_encode($pimage_data);
+                $html .= '<div class="image-item"><img src="' . $pbase64 . '" alt="Poly image"></div>';
             }
         }
     }

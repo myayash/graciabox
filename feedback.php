@@ -63,7 +63,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
         </div>
         <form action="process_feedback.php" method="post" enctype="multipart/form-data">
             <div class="mb-4">
-                <label for="feedback_text" class="block text-gray-700 text-sm font-bold mb-2">Apa yang bisa diperbaiki?</label>
+                <label for="feedback_text" class="block text-gray-700 text-sm font-bold mb-2">Ada saran atau keluhan?</label>
                 <textarea name="feedback_text" id="feedback_text" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
             </div>
             <div class="mb-4">

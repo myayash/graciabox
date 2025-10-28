@@ -130,7 +130,7 @@ require_once 'config.php';
     }
 
     try {
-        $sql = "SELECT id, nama, ukuran, quantity, dibuat, model_box, logo, ukuran_poly, lokasi_poly, klise, logo_img, is_archived FROM spk_logo";
+    $sql = "SELECT id, nama, ukuran, quantity, dibuat, model_box, logo, ukuran_poly, lokasi_poly, klise, logo_img, poly_img, is_archived FROM spk_logo";
         $conditions = [];
         $params = [];
 
@@ -176,6 +176,7 @@ require_once 'config.php';
                 'model_box' => 'Model Box',
                 'logo' => 'Logo',
                 'logo_img' => 'Gambar Logo',
+                'poly_img' => 'Gambar Poly',
                 'ukuran_poly' => 'Ukuran Poly',
                 'lokasi_poly' => 'Lokasi Poly',
                 'klise' => 'Klise',
@@ -196,13 +197,13 @@ require_once 'config.php';
                 foreach ($spk as $key => $value) {
                     if ($key == 'is_archived') continue;
 
-                    if ($key === 'logo_img') {
+                    if ($key === 'logo_img' || $key === 'poly_img') {
                         echo "<td class=\"px-6 py-4 whitespace-normal text-sm text-gray-900\">";
                         if (!empty($value)) {
                             $images = explode(',', $value);
                             echo '<div class="grid grid-cols-3 gap-2">';
                             foreach ($images as $image) {
-                                echo "<img src=\"uploads/" . htmlspecialchars(trim($image)) . "\" alt=\"Gambar Logo\" class=\"h-16 w-16 object-cover\">";
+                                echo "<img src=\"uploads/" . htmlspecialchars(trim($image)) . "\" alt=\"Gambar\" class=\"h-16 w-16 object-cover\">";
                             }
                             echo '</div>';
                         }
