@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['feedback_error'] = 'Maximum 3 files allowed. You selected ' . $count . '.';
             }
             $processCount = min(3, $count);
+            $datetime = date('Ymd_His');
             for ($i = 0; $i < $processCount; $i++) {
                 $uploadError = $_FILES['feedback_image']['error'][$i];
                 if ($uploadError === UPLOAD_ERR_NO_FILE) {
@@ -97,11 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     continue;
                 }
                 $ext = $allowed[$mime];
-                try {
-                    $basename = bin2hex(random_bytes(8));
-                } catch (Exception $e) {
-                    $basename = uniqid();
-                }
+                $index = $i + 1;
+                $basename = "feedback_user" . $_SESSION['user_id'] . "_" . $datetime . "_" . $index;
                 $filename = $basename . '.' . $ext;
                 $target = $upload_dir . '/' . $filename;
                 if (move_uploaded_file($tmpName, $target)) {
@@ -156,11 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $_SESSION['feedback_error'] = 'Invalid image type. Allowed: jpg, png, gif, webp.';
                         } else {
                             $ext = $allowed[$mime];
-                            try {
-                                $basename = bin2hex(random_bytes(8));
-                            } catch (Exception $e) {
-                                $basename = uniqid();
-                            }
+                            $datetime = date('Ymd_His');
+                            $index = 1;
+                            $basename = "feedback_user" . $_SESSION['user_id'] . "_" . $datetime . "_" . $index;
                             $filename = $basename . '.' . $ext;
                             $target = $upload_dir . '/' . $filename;
                                         if (move_uploaded_file($file['tmp_name'], $target)) {
