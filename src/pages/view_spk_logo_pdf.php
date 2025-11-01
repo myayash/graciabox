@@ -1,0 +1,181 @@
+<?php
+ob_start();
+require_once __DIR__ . '/vendor/autoload.php';
+use Dompdf\Dompdf;
+use Dompdf\Options;
+error_reporting(E_ALL); ini_set('display_errors', 1);
+require_once 'config.php';
+session_start();
+
+// Check if the user is logged in at all.
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if the user has the 'admin' role.
+if ($_SESSION['role'] !== 'admin') {
+    die('Access Denied: You do not have permission to view PDFs.');
+}
+
+// Check if ID is set
+if (!isset($_GET['id'])) {
+    die('Error: SPK ID not specified.');
+}
+
+$spk_id = $_GET['id'];
+
+// Fetch the existing SPK data
+$stmt = $pdo->prepare("SELECT * FROM spk_logo WHERE id = ?");
+$stmt->execute([$spk_id]);
+$spk = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$spk) {
+    die('Error: SPK not found.');
+}
+
+// Helper function to format display key and value
+function formatField($key, $value) {
+    $display_key = ucwords(str_replace('_', ' ', $key));
+    $display_value = htmlspecialchars($value);
+
+    if ($key === 'nama') {
+        $display_value = strtoupper(htmlspecialchars($value));
+    } else if ($key === 'logo') {
+        $display_key = 'Warna Poly';
+    }
+
+    return ['display_key' => $display_key, 'display_value' => $display_value];
+}
+
+// Instantiate and use the dompdf class
+$options = new Options();
+$options->set('isHtml5ParserEnabled', true);
+$options->set('isRemoteEnabled', true);
+$dompdf = new Dompdf($options);
+
+// Generate HTML content for the PDF
+$html = '<style>
+body { font-family: verdana, sans-serif; }
+.container { border: 1px solid #000; border-radius: 5px; padding: 10px; box-sizing: border-box; width: 100%; overflow: hidden; }
+table { border-collapse: collapse; width: 100%; }
+td, th { padding: 6px; }
+.header-table td { vertical-align: middle; }
+.data-table { margin-top: 20px; }
+.data-table td { vertical-align: top; }
+.data-table strong { font-size: 24px; }
+.data-value { font-size: 24px; }
+.image-gallery { margin-top: 10px; }
+.image-gallery .image-item { display: inline-block; vertical-align: top; }
+.image-gallery .image-item img { max-width: 150px; max-height: 150px; margin: 5px; border: 1px solid #ccc; display: block; }
+</style>';
+
+$html .= '<div class="container">';
+
+// Header
+$html .= '<div style="width: 100%; overflow: auto; margin-bottom: 20px;">'; // Container for header elements
+$html .= '<div style="float: left;">';
+$logo_path = __DIR__ . '/graciabox_logo_gray.jpeg';
+$logo_type = pathinfo($logo_path, PATHINFO_EXTENSION);
+$logo_data = file_get_contents($logo_path);
+$logo_base64 = 'data:image/' . $logo_type . ';base64,' . base64_encode($logo_data);
+$html .= '<img src="' . $logo_base64 . '" style="height: 50px; vertical-align: bottom; margin-right: 10px;">';
+$html .= '<h2 style="display: inline-block; vertical-align: bottom; margin: 0; font-size: 18px;">SPK LOGO (NO. ' . htmlspecialchars($spk['id']) . ')</h2>';
+$html .= '</div>';
+$html .= '<div style="float: right;">';
+$html .= '<p style="text-align: right; display: inline-block; vertical-align: bottom; margin: 0; font-size: 12px;">' . htmlspecialchars($spk['dibuat']) . '</p>';
+$html .= '</div>';
+$html .= '<div style="clear: both;"></div>'; // Clear floats
+$html .= '</div>'; // End container
+
+// Data section
+$html .= '<table class="data-table">';
+
+// Column 1
+$html .= '<tr><td width="50%" valign="top">';
+$html .= '<table>';
+$fields_col1 = ['nama', 'ukuran', 'model_box', 'quantity'];
+foreach($fields_col1 as $field) {
+    if (isset($spk[$field])) {
+        $formatted = formatField($field, $spk[$field]);
+        $html .= '<tr><td width="40%"><strong>' . $formatted['display_key'] . '</strong></td><td class="data-value">: ' . $formatted['display_value'] . '</td></tr>';
+    }
+}
+$html .= '</table>';
+$html .= '</td>';
+
+// Column 2
+$html .= '<td width="50%" valign="top">';
+$html .= '<table>';
+$fields_col2 = ['logo', 'ukuran_poly', 'lokasi_poly', 'klise'];
+foreach($fields_col2 as $field) {
+    if (isset($spk[$field])) {
+        $formatted = formatField($field, $spk[$field]);
+        $html .= '<tr><td width="40%"><strong>' . $formatted['display_key'] . '</strong></td><td class="data-value">: ' . $formatted['display_value'] . '</td></tr>';
+    }
+}
+$html .= '</table>';
+$html .= '</td></tr>';
+
+$html .= '</table>';
+
+// Image Gallery: logo images under 'Gambar Logo', poly images under 'Gambar Poly'
+// Show logo images
+if (!empty($spk['logo_img'])) {
+    $html .= '<h3>Gambar Logo</h3>';
+    $html .= '<div class="image-gallery">';
+    $images = explode(',', $spk['logo_img']);
+    foreach ($images as $image) {
+        $image_name = trim($image);
+        $image_path = __DIR__ . '/uploads/' . $image_name;
+        if (is_file($image_path)) {
+            $image_data = @file_get_contents($image_path);
+            if ($image_data !== false) {
+                $type = pathinfo($image_name, PATHINFO_EXTENSION);
+                $base64 = 'data:image/' . $type . ';base64,' . base64_encode($image_data);
+                $html .= '<div class="image-item"><img src="' . $base64 . '" alt="Logo image"></div>';
+            }
+        }
+    }
+    $html .= '</div>';
+}
+
+// Show poly images under their own header
+if (!empty($spk['poly_img'])) {
+    $html .= '<h3>Gambar Poly</h3>';
+    $html .= '<div class="image-gallery">';
+    $polyImages = explode(',', $spk['poly_img']);
+    foreach ($polyImages as $pimage) {
+        $pimage_name = trim($pimage);
+        $pimage_path = __DIR__ . '/uploads/' . $pimage_name;
+        if (is_file($pimage_path)) {
+            $pimage_data = @file_get_contents($pimage_path);
+            if ($pimage_data !== false) {
+                $ptype = pathinfo($pimage_name, PATHINFO_EXTENSION);
+                $pbase64 = 'data:image/' . $ptype . ';base64,' . base64_encode($pimage_data);
+                $html .= '<div class="image-item"><img src="' . $pbase64 . '" alt="Poly image"></div>';
+            }
+        }
+    }
+    $html .= '</div>';
+}
+
+
+$html .= '</div>'; //end container
+
+$html .= '<div style="text-align: center; font-size: 10px; margin-top: 20px; opacity:50%;">Gracia Box 2025. Surat Perintah Kerja Produksi Logo.</div>';
+
+$dompdf->loadHtml($html);
+
+// (Optional) Setup the paper size and orientation
+$dompdf->setPaper('A4', 'portrait');
+
+// Render the HTML as PDF
+$dompdf->render();
+
+ob_end_clean();
+ini_set('display_errors', '0');
+
+// Output the generated PDF to Browser
+$dompdf->stream('spk_logo_' . $spk_id . '.pdf', ["Attachment" => false]);
+?>

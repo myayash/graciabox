@@ -1,0 +1,28 @@
+# Enable URL rewriting
+RewriteEngine On
+
+# Set the default directory file
+DirectoryIndex index.php
+
+# Prevent directory listing
+Options -Indexes
+
+# Deny access to all .php files except index.php
+<FilesMatch "\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+<Files "index.php">
+    Allow from all
+</Files>
+
+# Deny access to .htaccess
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
