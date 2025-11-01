@@ -748,7 +748,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 }
 </style>
 </head>
-<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
+<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8">
 
     <?php include 'navbar.php'; ?>
     <h1 class="text-xl sm:text-2xl font-bold mb-6 text-gray-800">> bikin FO</h1>
@@ -769,7 +769,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
 
-    <form action="" method="post" enctype="multipart/form-data" class="bg-white p-4 sm:p-6 lg:p-8 shadow-lg rounded-lg max-w-4xl mx-auto">
+    <form action="" method="post" enctype="multipart/form-data" class="bg-white p-4 sm:p-6 lg:p-8 shadow-md rounded-lg max-w-4xl mx-auto">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
     <?php if ($edit_mode): ?>
         <input type="hidden" name="id" value="<?= htmlspecialchars($order_id) ?>">
@@ -1742,7 +1742,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                             reader.onload = function(e) {
                                 const img = document.createElement('img');
                                 img.src = e.target.result;
-                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
+                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded-md');
                                 imagePreviewContainer.appendChild(img);
                             };
                             reader.readAsDataURL(file);
@@ -1773,7 +1773,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                             reader.onload = function(e) {
                                 const img = document.createElement('img');
                                 img.src = e.target.result;
-                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
+                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded-md');
                                 logoImagePreviewContainer.appendChild(img);
                             };
                             reader.readAsDataURL(file);
@@ -1803,7 +1803,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                             reader.onload = function(e) {
                                 const img = document.createElement('img');
                                 img.src = e.target.result;
-                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded');
+                                img.classList.add('w-24', 'h-24', 'object-cover', 'border', 'border-gray-300', 'rounded-md');
                                 polyImagePreviewContainer.appendChild(img);
                             };
                             reader.readAsDataURL(file);

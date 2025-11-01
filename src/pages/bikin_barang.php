@@ -48,15 +48,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
+<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8">
 
 
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">tambah barang</h1>
+    <h1 class="text-xl sm:text-2xl font-bold mb-6 text-gray-800">tambah barang</h1>
 
-    <form action="<?php echo BASE_URL; ?>/bikin_barang" method="post" class="bg-white p-8 shadow-lg">
+    <form action="<?php echo BASE_URL; ?>/bikin_barang" method="post" class="bg-white p-8 shadow-md rounded-lg max-w-md mx-auto">
         <div class="mb-4">
             <label for="model_box" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
-            <select name="model_box" id="model_box" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+            <select name="model_box" id="model_box" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                 <option value="" disabled selected>Select Model Box</option>
                 <?php foreach ($model_boxes as $mb): ?>
                     <option value="<?= htmlspecialchars($mb['nama']) ?>"><?= htmlspecialchars($mb['nama']) ?></option>
@@ -67,19 +67,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-4">
             <label class="block text-gray-800 text-sm font-semibold mb-2">Ukuran:</label>
             <div class="flex space-x-2">
-                <input type="number" step="0.01" name="length" placeholder="panjang" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                <input type="number" step="0.01" name="width" placeholder="lebar" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-                <input type="number" step="0.01" name="height" placeholder="tinggi" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                <input type="number" step="0.01" name="length" placeholder="panjang" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
+                <input type="number" step="0.01" name="width" placeholder="lebar" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
+                <input type="number" step="0.01" name="height" placeholder="tinggi" max="99.99" pattern="[0-9]{2}.[0-9]{2}" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
             </div>
         </div>
 
         <div class="mb-4">
             <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Barang (Optional):</label>
-            <input type="text" name="nama" id="nama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="text" name="nama" id="nama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
         </div>
 
         <div class="flex items-center justify-start space-x-4">
-            <input type="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
             <a href="<?php echo BASE_URL; ?>/daftar_barang" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Cancel
             </a>
