@@ -86,22 +86,23 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
         opacity: 1;
     }
 </style>
-<h1 class="text-2xl font-bold mb-6 text-gray-800">daftar model box
+<h1 class="text-xl sm:text-2xl font-bold mb-6 text-gray-800 flex flex-col sm:flex-row sm:items-center">
+    <span class="mr-4">daftar model box</span>
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-    <div class="inline-flex ml-4">
-        <a href="<?php echo BASE_URL; ?>/bikin_model_box" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Model Box</a>
+    <div class="flex flex-col sm:flex-row sm:inline-flex mt-2 sm:mt-0 sm:ml-4 space-y-2 sm:space-y-0 sm:space-x-2">
+        <a href="<?php echo BASE_URL; ?>/bikin_model_box" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out rounded-md">+ Model Box</a>
         <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-            <a href="<?php echo BASE_URL; ?>/daftar_model_box" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Model Box</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_model_box" class="sm:ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out rounded-md">Active Model Box</a>
         <?php else: ?>
-            <a href="<?php echo BASE_URL; ?>/daftar_model_box?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Model Box</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_model_box?show_archived=true" class="sm:ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out rounded-md">Archived Model Box</a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 </h1>
 
-<form action="<?php echo BASE_URL; ?>/daftar_model_box" method="get" class="mb-4">
-    <input type="text" name="search" placeholder="cari model box" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
+<form action="<?php echo BASE_URL; ?>/daftar_model_box" method="get" class="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+    <input type="text" name="search" placeholder="cari model box" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md w-full sm:w-auto">
+    <button type="submit" class="px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out rounded-md w-full sm:w-auto">Search</button>
     <?php if (isset($_GET['show_archived'])):
         ?><input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
     <?php endif; ?>
@@ -138,7 +139,7 @@ try {
     $model_boxes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if ($model_boxes) {
-        echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
+        echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container rounded-lg\">";
         echo "<table class=\"min-w-full divide-y divide-gray-200\">";
         echo "<thead><tr>";
         // Define a mapping for column names to display names

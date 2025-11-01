@@ -751,7 +751,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
     <?php include 'navbar.php'; ?>
-    <h1 class="text-sm font-bold mb-6 text-gray-800">> bikin FO</h1>
+    <h1 class="text-xl sm:text-2xl font-bold mb-6 text-gray-800">> bikin FO</h1>
 
     <?php if (!empty($_SESSION['flash_error'])): ?>
         <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800">
@@ -769,7 +769,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
 
-    <form action="" method="post" enctype="multipart/form-data" class="bg-white p-4 sm:p-6 lg:p-8 shadow-lg rounded-lg">
+    <form action="" method="post" enctype="multipart/form-data" class="bg-white p-4 sm:p-6 lg:p-8 shadow-lg rounded-lg max-w-4xl mx-auto">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
     <?php if ($edit_mode): ?>
         <input type="hidden" name="id" value="<?= htmlspecialchars($order_id) ?>">
@@ -784,7 +784,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
               <label for="nama_customer" class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Nama Customer</label>
               <?php $errors = $_SESSION['form_errors'] ?? []; unset($_SESSION['form_errors']); ?>
               <div class="searchable-dropdown">
-                  <input type="text" id="customer_search" placeholder="Pilih atau cari customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" value="<?php echo htmlspecialchars($order_form['nama_customer'] ?? ''); ?>">
+                  <input type="text" id="customer_search" placeholder="Pilih atau cari customer" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" value="<?php echo htmlspecialchars($order_form['nama_customer'] ?? ''); ?>">
                   <div id="customer_dropdown" class="dropdown-content">
                       <?php foreach ($customers as $customer): ?>
                           <a href="#" data-value="<?= $customer['nama'] ?>"><?= $customer['nama'] ?></a>
@@ -801,9 +801,9 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
           <div class="mb-4">
             <label class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Ukuran (cm)</label>
             <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-              <input type="text" name="length" placeholder="panjang" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-              <input type="text" name="width" placeholder="lebar" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-              <input type="text" name="height" placeholder="tinggi" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+              <input type="text" name="length" placeholder="panjang" value="<?php echo htmlspecialchars($order_form['length'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
+              <input type="text" name="width" placeholder="lebar" value="<?php echo htmlspecialchars($order_form['width'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
+              <input type="text" name="height" placeholder="tinggi" value="<?php echo htmlspecialchars($order_form['height'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
             </div>
           </div>
           
@@ -826,13 +826,13 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                 <div class="mb-4">
                     <label for="quantity" class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Quantity</label>
-                    <input type="number" name="quantity" id="quantity" step="1" value="<?php echo htmlspecialchars($order_form['quantity'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                    <input type="number" name="quantity" id="quantity" step="1" value="<?php echo htmlspecialchars($order_form['quantity'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                 </div>
 
                 <div id="kode_pisau_baru_fields" style="display:none;" class="mb-4">
                     <div class="mb-4">
                         <label for="model_box_baru" class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Model Box</label>
-                        <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <select name="model_box_baru" id="model_box_baru" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                             <option value="" disabled <?php echo !isset($order_form['model_box_baru']) ? 'selected' : ''; ?>>Pilih Model Box</option>
                             <?php foreach ($model_boxes as $model_box): ?>
                                 <!-- include box_luar and box_dlm as data attributes so JS can read labels -->
@@ -848,7 +848,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                 <div id="kode_pisau_lama_fields" style="display:none;" class="mb-4">
                     <label for="barang_lama" class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Barang</label>
-                    <select name="barang_lama" id="barang_lama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <select name="barang_lama" id="barang_lama" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                         <option value="" disabled <?php echo !isset($order_form['barang_lama']) ? 'selected' : ''; ?>>Pilih Barang</option>
                         <?php foreach ($barangs as $barang): ?>
                             <option value="<?= $barang['id'] ?>" <?php echo (isset($order_form['barang_lama']) && $order_form['barang_lama'] == $barang['id']) ? 'selected' : ''; ?>><?= $barang['model_box'] . ' - ' . $barang['ukuran'] . ' - ' . $barang['nama'] ?></option>
@@ -862,7 +862,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                 <div id="shared_fields" style="display:none;" class="mb-4">
                     <div class="mb-4">
                         <label for="jenis_board" class="block text-gray-800 text-base sm:text-xl font-semibold mb-2">Jenis Board</label>
-                        <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                        <select name="jenis_board" id="jenis_board" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                             <option value="" disabled <?php echo !isset($order_form['jenis_board']) ? 'selected' : ''; ?>>Pilih Jenis Board</option>
                             <?php foreach ($boards as $board): ?>
                                 <option value="<?= $board['jenis'] ?>" <?php echo (isset($order_form['jenis_board']) && $order_form['jenis_board'] === $board['jenis']) ? 'selected' : ''; ?>><?= $board['jenis'] ?></option>
@@ -876,13 +876,13 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                     <div class="mb-4">
                         <label class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Cover Dalam</label>
                         <div class="flex space-x-2">
-                            <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
+                            <select name="cover_dalam_supplier" id="cover_dalam_supplier" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required onchange="updateKertasOptionsForRow(this)">
                                 <option value="" disabled <?php echo !isset($order_form['cover_dalam_supplier']) ? 'selected' : ''; ?>>Supplier</option>
                                 <?php foreach ($distinct_suppliers as $supplier): ?>
                                     <option value="<?= $supplier['supplier'] ?>" <?php echo (isset($order_form['cover_dalam_supplier']) && $order_form['cover_dalam_supplier'] === $supplier['supplier']) ? 'selected' : ''; ?>><?= $supplier['supplier'] ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_dalam']['disabled']; ?>>
+                            <select name="cover_dalam_warna" id="cover_dalam_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required <?php echo $options['cover_dalam']['disabled']; ?>>
                                 <option value="" disabled <?php echo !isset($order_form['cover_dalam_warna']) ? 'selected' : ''; ?>>Warna</option>
                                 <?php foreach ($options['cover_dalam']['warna'] as $warna): ?>
                                     <option value="<?= $warna ?>" <?php echo (isset($order_form['cover_dalam_warna']) && $order_form['cover_dalam_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
@@ -895,7 +895,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                         <label class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Cover Luar</label>
                         <!-- Labels that will be updated based on selected model box -->
                         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-2 pl-4">
-                                                                                                        <select name="cover_luar_supplier_luar" id="cover_luar_supplier_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
+                                                                                                        <select name="cover_luar_supplier_luar" id="cover_luar_supplier_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required onchange="updateKertasOptionsForRow(this)">
                                                                                                             <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_luar']) ? 'selected' : ''; ?>>Supplier</option>
                                                                                                             <?php foreach ($distinct_suppliers as $supplier):
                                                                                                                 ?>
@@ -904,7 +904,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                                                                                                 endforeach; ?>
                                                                                                             </select>
                                                                                 
-                                                                                                            <select name="cover_luar_warna_luar" id="cover_luar_warna_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar_luar']['disabled']; ?>>
+                                                                                                            <select name="cover_luar_warna_luar" id="cover_luar_warna_luar" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required <?php echo $options['cover_luar_luar']['disabled']; ?>>
                                                                                                                     <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_luar']) ? 'selected' : ''; ?>>Warna</option>
                                                                                                                     <?php foreach ($options['cover_luar_luar']['warna'] as $warna):
                                                                                                                         ?>
@@ -915,10 +915,10 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                                                                 
                                                                                                     </div>
                                                                             <div class="flex space-x-2 mt-1 pl-4">
-                                                                                <label id="cover_luar_row2_label" class="w-1/2 text-gray-700">Box Dalam</label>
+                                                                                <label id="cover_luar_row2_label" class="w-1/2 text-gray-700"></label>
                                                                             </div>
                                                                             <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-2 pl-4">
-                                                                                <select name="cover_luar_supplier_dlm" id="cover_luar_supplier_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required onchange="updateKertasOptionsForRow(this)">
+                                                                                <select name="cover_luar_supplier_dlm" id="cover_luar_supplier_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required onchange="updateKertasOptionsForRow(this)">
                                                                                     <option value="" disabled <?php echo !isset($order_form['cover_luar_supplier_dlm']) ? 'selected' : ''; ?>>Supplier</option>
                                                                                     <?php foreach ($distinct_suppliers as $supplier):
                                                                                         ?>
@@ -926,7 +926,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                                                                     <?php
                                                                                     endforeach; ?>
                                                                                 </select>
-                                                                                <select name="cover_luar_warna_dlm" id="cover_luar_warna_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required <?php echo $options['cover_luar_dlm']['disabled']; ?>>
+                                                                                <select name="cover_luar_warna_dlm" id="cover_luar_warna_dlm" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required <?php echo $options['cover_luar_dlm']['disabled']; ?>>
                                                                                     <option value="" disabled <?php echo !isset($order_form['cover_luar_warna_dlm']) ? 'selected' : ''; ?>>Warna</option>
                                                                                     <?php foreach ($options['cover_luar_dlm']['warna'] as $warna):
                                                                                         ?>
@@ -940,19 +940,19 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                         <div class="mb-4">
                           <label class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Aksesoris</label>
                           <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                            <select name="aksesoris_jenis" id="aksesoris_jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                               <option value="" disabled <?php echo !isset($order_form['aksesoris_jenis']) ? 'selected' : ''; ?>>Pilih Jenis</option>
                               <?php foreach ($aksesoris_jenis as $jenis): ?>
                                 <option value="<?= $jenis['jenis'] ?>" <?php echo (isset($order_form['aksesoris_jenis']) && $order_form['aksesoris_jenis'] === $jenis['jenis']) ? 'selected' : ''; ?>><?= $jenis['jenis'] ?></option>
                                 <?php endforeach; ?>
                               </select>
-                              <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" <?php echo $aksesoris_dropdown_disabled; ?>>
+                              <select name="aksesoris_ukuran" id="aksesoris_ukuran" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" <?php echo $aksesoris_dropdown_disabled; ?>>
                                 <option value="" disabled <?php echo !isset($order_form['aksesoris_ukuran']) ? 'selected' : ''; ?>>Pilih Ukuran</option>
                                 <?php foreach ($aksesoris_ukuran_options as $ukuran): ?>
                                   <option value="<?= $ukuran ?>" <?php echo (isset($order_form['aksesoris_ukuran']) && $order_form['aksesoris_ukuran'] === $ukuran) ? 'selected' : ''; ?>><?= $ukuran ?></option>
                                   <?php endforeach; ?>
                                 </select>
-                                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" <?php echo $aksesoris_dropdown_disabled; ?>>
+                                <select name="aksesoris_warna" id="aksesoris_warna" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" <?php echo $aksesoris_dropdown_disabled; ?>>
                                   <option value="" disabled <?php echo !isset($order_form['aksesoris_warna']) ? 'selected' : ''; ?>>Pilih Warna</option>
                                   <?php foreach ($aksesoris_warna_options as $warna): ?>
                                     <option value="<?= $warna ?>" <?php echo (isset($order_form['aksesoris_warna']) && $order_form['aksesoris_warna'] === $warna) ? 'selected' : ''; ?>><?= $warna ?></option>
@@ -962,7 +962,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                               </div>
                               <div class="mb-4">
                                 <label for="ket_aksesoris" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Keterangan Aksesoris</label>
-                                <textarea name="ket_aksesoris" id="ket_aksesoris" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['ket_aksesoris'] ?? ''); ?></textarea>
+                                <textarea name="ket_aksesoris" id="ket_aksesoris" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md"><?php echo htmlspecialchars($order_form['ket_aksesoris'] ?? ''); ?></textarea>
                               </div>
 
                 </div>
@@ -975,17 +975,17 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                 <div class="mb-4">
                     <label for="tanggal_kirim" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Tanggal Kirim</label>
-                    <input type="date" name="tanggal_kirim" id="tanggal_kirim" value="<?php echo htmlspecialchars($order_form['tanggal_kirim'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="date" name="tanggal_kirim" id="tanggal_kirim" value="<?php echo htmlspecialchars($order_form['tanggal_kirim'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                 </div>
 
                 <div class="mb-4">
                     <label for="jam_kirim" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Jam Kirim</label>
-                    <input type="time" name="jam_kirim" id="jam_kirim" value="<?php echo htmlspecialchars($order_form['jam_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="time" name="jam_kirim" id="jam_kirim" value="<?php echo htmlspecialchars($order_form['jam_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                 </div>
 
                 <div class="mb-4">
                     <label for="dikirim_dari" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Dikirim Dari</label>
-                    <select name="dikirim_dari" id="dikirim_dari" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <select name="dikirim_dari" id="dikirim_dari" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                         <option value="" disabled <?php echo !isset($order_form['dikirim_dari']) ? 'selected' : ''; ?>>Pilih Lokasi</option>
                         <?php foreach ($alamat_pengirim as $alamat): ?>
                             <option value="<?= $alamat['lokasi'] ?>" <?php echo (isset($order_form['dikirim_dari']) && $order_form['dikirim_dari'] === $alamat['lokasi']) ? 'selected' : ''; ?>><?= $alamat['lokasi'] ?></option>
@@ -995,7 +995,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                 <div class="mb-4">
                     <label for="tujuan_kirim" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Tujuan Kirim</label>
-                    <input type="text" name="tujuan_kirim" id="tujuan_kirim" value="<?php echo htmlspecialchars($order_form['tujuan_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="text" name="tujuan_kirim" id="tujuan_kirim" value="<?php echo htmlspecialchars($order_form['tujuan_kirim'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                 </div>
 
                 <!-- Insert PEMBAYARAN fields -->
@@ -1004,7 +1004,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                 <div class="mb-4">
                     <label for="tanggal_dp" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Tanggal DP</label>
-                    <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                    <input type="date" name="tanggal_dp" id="tanggal_dp" value="<?php echo htmlspecialchars($order_form['tanggal_dp'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                 </div>
 
                 <div class="mb-4">
@@ -1051,7 +1051,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                 <!-- Biaya field -->
                 <div class="mb-4">
                     <label for="biaya" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Biaya</label>
-                    <input type="text" name="biaya" id="biaya" value="<?php echo htmlspecialchars($order_form['biaya'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" placeholder="0">
+                    <input type="text" name="biaya" id="biaya" value="<?php echo htmlspecialchars($order_form['biaya'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" placeholder="0">
                 </div>
                     
                 
@@ -1064,7 +1064,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                         <div class="w-full sm:w-1/2">
                             <label for="dudukan" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Dudukan</label>
-                            <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                            <select name="dudukan" id="dudukan" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                                 <option value="" disabled <?php echo !isset($order_form['dudukan']) ? 'selected' : ''; ?>>Pilih Dudukan</option>
                                 <option value="0" <?php echo (isset($order_form['dudukan']) && $order_form['dudukan'] === '0') ? 'selected' : ''; ?>>Tidak ada</option>
                                 <?php foreach ($dudukan_options as $dudukan): ?>
@@ -1074,7 +1074,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                         </div>
                         <div class="w-full sm:w-1/2">
                             <label for="jumlah_layer" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Jumlah layer</label>
-                            <input type="number" name="jumlah_layer" id="jumlah_layer" value="<?php echo htmlspecialchars($order_form['jumlah_layer'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" min="0" step="1">
+                            <input type="number" name="jumlah_layer" id="jumlah_layer" value="<?php echo htmlspecialchars($order_form['jumlah_layer'] ?? ''); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" min="0" step="1">
                         </div>
                     </div>
                 </div>
@@ -1083,7 +1083,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                     <label for="dudukan_img" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Dudukan Images (max 3)</label>
 
-                                    <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                    <input type="file" name="dudukan_img[]" id="dudukan_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
 
                                     <div id="image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
 
@@ -1099,7 +1099,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                             
                                                                                                 ?>
                                             
-                                                                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+                                                                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover rounded-md">
                                             <?php
 
                                             endforeach; ?>
@@ -1128,7 +1128,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                                         <div class="w-full sm:w-1/2">
                                             <label for="logo" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Logo</label>
-                                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+                                            <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                                                 <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
                                                 <option value="Tidak ada" <?php echo (isset($order_form['logo']) && $order_form['logo'] === 'Tidak ada') ? 'checked' : ''; ?>>Tidak ada</option>
                                                 <?php foreach ($logo_options as $logo): ?>
@@ -1138,7 +1138,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                         </div>
                                         <div class="w-full sm:w-1/2 mb-4">
                                             <label for="ukuran_poly" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Ukuran Poly</label>
-                                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                                                 <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
                                                 <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
                                                     <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
@@ -1151,7 +1151,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                         <label for="logo_img" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Logo Images (max 3)</label>
 
-                                        <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                        <input type="file" name="logo_img[]" id="logo_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
 
                                         <div id="logo_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
 
@@ -1167,7 +1167,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                                       ?>
 
-                                                      <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+                                                      <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover rounded-md">
 
                                                   <?php
 
@@ -1319,7 +1319,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                     <label for="poly_img" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Poly Images (max 3)</label>
 
-                                    <input type="file" name="poly_img[]" id="poly_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+                                    <input type="file" name="poly_img[]" id="poly_img" multiple accept="image/*" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
 
                                     <div id="poly_image_preview_container" class="flex flex-wrap gap-2 mt-2"></div>
 
@@ -1335,7 +1335,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                                 ?>
 
-                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover rounded-md">
 
                                             <?php
 
@@ -1367,17 +1367,17 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
         <div class="border-b-2 border-gray-300 mt-6 mb-6"></div>
         <div class="mb-4">
             <label for="feedback_cust" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Feedback Customer</label>
-            <textarea name="feedback_cust" id="feedback_cust" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['feedback_cust'] ?? ''); ?></textarea>
+            <textarea name="feedback_cust" id="feedback_cust" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md"><?php echo htmlspecialchars($order_form['feedback_cust'] ?? ''); ?></textarea>
         </div>
 
         <div class="mb-4">
             <label for="keterangan" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Keterangan</label>
-            <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"><?php echo htmlspecialchars($order_form['keterangan'] ?? ''); ?></textarea>
+            <textarea name="keterangan" id="keterangan" rows="3" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md"><?php echo htmlspecialchars($order_form['keterangan'] ?? ''); ?></textarea>
         </div>
 
         <div class="mb-4">
             <label for="dibuat_oleh" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Dibuat Oleh</label>
-            <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <select name="dibuat_oleh" id="dibuat_oleh" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
                 <option value="" disabled <?php echo !isset($order_form['dibuat_oleh']) ? 'selected' : ''; ?>>Pilih Karyawan Sales</option>
                 <?php foreach ($sales_reps as $sales_rep): ?>
                     <option value="<?= $sales_rep['nama'] ?>" <?php echo (isset($order_form['dibuat_oleh']) && $order_form['dibuat_oleh'] === $sales_rep['nama']) ? 'selected' : ''; ?>><?= $sales_rep['nama'] ?></option>
@@ -1403,7 +1403,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
         </div>
 
         <div class="flex items-center justify-start space-x-4">
-            <input type="submit" value="Save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-150 ease-in-out">
+            <input type="submit" value="Save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
             <a href="daftar_fo.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Back
             </a>
@@ -1411,7 +1411,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
     </form>
 
     <!-- Client-side error container -->
-    <div id="client_errors" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-800"></div>
+    <div id="client_errors" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md"></div>
 
     <!-- Success Modal -->
     <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
@@ -1419,7 +1419,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
             <h3 class="text-lg font-semibold mb-2">notif</h3>
             <p id="successModalMessage" class="mb-4 text-gray-700"></p>
             <div class="flex justify-end">
-                <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK</button>
+                <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">OK</button>
             </div>
         </div>
     </div>

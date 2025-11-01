@@ -18,8 +18,8 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
 </head>
 <body class="bg-gray-100 font-mono">
     <?php include 'navbar.php'; ?>
-    <div class="container mx-auto p-8 mt-20">
-        <h1 class="text-sm font-bold mb-4 opacity-25">> feedback</h1>
+    <div class="container mx-auto p-8 mt-20 max-w-4xl">
+        <h1 class="text-sm sm:text-base font-bold mb-4 opacity-25">> feedback</h1>
         <?php
         // If redirected after successful submission, pass flash data to client via JS globals
         if (isset($_GET['status']) && $_GET['status'] == 'success') {
@@ -43,7 +43,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
         // show upload or db error (kept in session by process_feedback.php)
         if (isset($_SESSION['feedback_error']) && $_SESSION['feedback_error']) {
             $err = htmlspecialchars($_SESSION['feedback_error'], ENT_QUOTES, 'UTF-8');
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">';
+            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mt-4" role="alert">';
             echo '<strong class="font-bold">Error:</strong> <span class="block sm:inline">' . $err . '</span>';
             echo '</div>';
             unset($_SESSION['feedback_error']);
@@ -57,24 +57,24 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                 <p id="successModalMessage" class="mb-4 text-gray-700">Feedback sukses disampaikan.</p>
                 <div id="successModalImages" class="grid grid-cols-3 gap-2 mb-4"></div>
                 <div class="flex justify-end">
-                    <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK</button>
+                    <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">OK</button>
                 </div>
             </div>
         </div>
         <form action="index.php?page=process_feedback" method="post" enctype="multipart/form-data">
             <div class="mb-4">
                 <label for="feedback_text" class="block text-gray-700 text-sm font-bold mb-2">Ada saran atau keluhan?</label>
-                <textarea name="feedback_text" id="feedback_text" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+                <textarea name="feedback_text" id="feedback_text" rows="10" class="shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
             </div>
             <div class="mb-4">
                 <label for="feedback_image" class="block text-gray-700 text-sm font-bold mb-2">Sertakan gambar (opsional)</label>
-                <input type="file" name="feedback_image[]" id="feedback_image" accept="image/*" class="block w-full text-sm text-gray-600" multiple />
+                <input type="file" name="feedback_image[]" id="feedback_image" accept="image/*" class="block w-full text-sm text-gray-600 rounded-md" multiple />
                 <p class="text-xs text-gray-500 mt-1">3 images max (2MB each).</p>
                 <!-- Preview container: show thumbnails immediately after selecting files -->
                 <div id="feedback_image_preview" class="mt-3 grid grid-cols-3 gap-2"></div>
             </div>
             <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline">
                     Submit Feedback
                 </button>
             </div>

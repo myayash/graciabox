@@ -89,26 +89,26 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
         cursor: -webkit-grabbing;
     }
 </style>
-<h1 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+<h1 class="text-xl sm:text-2xl font-bold mb-6 text-gray-800 flex flex-col sm:flex-row sm:items-center">
     <span class="mr-4">daftar FO</span>
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-    <div class="inline-flex">
-        <a href="bikin_fo" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Order</a>
+    <div class="flex flex-col sm:flex-row sm:inline-flex mt-2 sm:mt-0 sm:ml-4 space-y-2 sm:space-y-0 sm:space-x-2">
+        <a href="bikin_fo" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out rounded-md">+ Order</a>
         <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-            <a href="daftar_fo" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Orders</a>
+            <a href="daftar_fo" class="px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out rounded-md">Active Orders</a>
         <?php else: ?>
-            <a href="daftar_fo?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Orders</a>
+            <a href="daftar_fo?show_archived=true" class="px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out rounded-md">Archived Orders</a>
         <?php endif; ?>
     </div>
-    <div class="ml-auto">
-        <a href="export_fo_excel<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 transition duration-150 ease-in-out">Export to Excel</a>
+    <div class="sm:ml-auto mt-2 sm:mt-0">
+        <a href="export_fo_excel<?php echo isset($_GET['search']) ? '?search=' . htmlspecialchars($_GET['search']) : ''; echo isset($_GET['show_archived']) ? (isset($_GET['search']) ? '&' : '?') . 'show_archived=' . htmlspecialchars($_GET['show_archived']) : ''; ?>" class="block sm:inline-block px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 transition duration-150 ease-in-out rounded-md">Export to Excel</a>
     </div>
     <?php endif; ?>
 </h1>
 
-<form action="daftar_fo" method="get" class="mb-4">
-    <input type="text" name="search" placeholder="cari FO" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
+<form action="daftar_fo" method="get" class="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+    <input type="text" name="search" placeholder="cari FO" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md w-full sm:w-auto">
+    <button type="submit" class="px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out rounded-md w-full sm:w-auto">Search</button>
     <?php if (isset($_GET['show_archived'])):
         ?><input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
     <?php endif; ?>
@@ -156,7 +156,7 @@ try {
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if ($orders) {
-        echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container\">";
+        echo "<div class=\"overflow-x-auto bg-white shadow-lg table-container rounded-lg\">";
         echo "<table class=\"min-w-full divide-y divide-gray-200\">";
         echo "<thead><tr>";
         // Define a mapping for column names to display names
@@ -209,17 +209,17 @@ try {
                 echo "<td class=\"" . $tdClasses . "\">" . $displayValue . "</td>";
             }
             if ($is_admin) {
-                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                echo "<a href=\"bikin_fo?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900 mr-2\">Edit</a>";
-                echo "<a href=\"view_fo_pdf?id=" . htmlspecialchars($order['id']) . "\" class=\"text-blue-600 hover:text-blue-900 mr-2\">View</a>";
+                echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2\">";
+                echo "<a href=\"bikin_fo?id=" . htmlspecialchars($order['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                echo "<a href=\"view_fo_pdf?id=" . htmlspecialchars($order['id']) . "\" class=\"text-blue-600 hover:text-blue-900\">View</a>";
                 if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
                     echo "<a href=\"daftar_fo?unarchive_id=" . htmlspecialchars($order['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this order?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                 } else {
                     echo "<a href=\"daftar_fo?archive_id=" . htmlspecialchars($order['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this order?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
                 }
-            }
             echo "</td>";
-            echo "</tr>";
+        }
+        echo "</tr>";
         }
         echo "</tbody>";
         echo "</table>";
