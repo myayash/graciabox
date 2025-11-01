@@ -3,3 +3,4 @@ uploads/*
 logs/
 logs/*
 .DS_Store
+*.sql
