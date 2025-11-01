@@ -48,7 +48,9 @@ $raw_pages = [
     'view_fo_pdf',
     'export_fo_excel',
     'view_spk_logo_pdf',
-    'view_spk_pdf'
+    'view_spk_pdf',
+    'logout',
+    'process_feedback'
 ];
 
 if (in_array($url, $raw_pages)) {
