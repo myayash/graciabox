@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
 
     $temp_dudukan_img_data = []; // To store temporary filenames and extensions
     // Use absolute uploads directory so move_uploaded_file/rename use a predictable path
-    $upload_dir = __DIR__ . '/uploads/';
+    $upload_dir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($upload_dir)) {
         // try to create with safe perms; webserver user should own this directory for production
         @mkdir($upload_dir, 0755, true);
@@ -1098,12 +1098,11 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                         <div class="flex flex-wrap gap-2 mt-2">
 
-                                            <?php foreach (explode(',', $order['dudukan_img']) as $img):
-
-                                                ?>
-
-                                                <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
-
+                                                                                            <?php foreach (explode(',', $order['dudukan_img']) as $img):
+                                            
+                                                                                                ?>
+                                            
+                                                                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
                                             <?php
 
                                             endforeach; ?>
@@ -1200,7 +1199,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                                       ?>
 
-                                                      <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+                                                      <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
 
                                                   <?php
 
@@ -1310,7 +1309,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                                 ?>
 
-                                                <img src="uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
+                                                <img src="/gbox-deploy/public/uploads/<?= htmlspecialchars(trim($img)) ?>" class="h-24 w-24 object-cover">
 
                                             <?php
 
@@ -1400,6 +1399,46 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
     </div>
 
     <script>
+    function updateKertasOptionsForRow(supplierElement) {
+        const supplierId = supplierElement.id;
+        const selectedSupplier = supplierElement.value;
+        
+        const warnaId = supplierId.replace('_supplier', '_warna');
+        const warnaDropdown = document.getElementById(warnaId);
+
+        if (!warnaDropdown) {
+            console.error('Could not find warna dropdown with id: ' + warnaId);
+            return;
+        }
+
+        warnaDropdown.disabled = true;
+        warnaDropdown.innerHTML = '<option value="" disabled selected>Pilih Warna</option>';
+
+        if (selectedSupplier) {
+            fetch(`/gbox-deploy/public/get_kertas_filtered_options.php?supplier=${encodeURIComponent(selectedSupplier)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok for supplier: ' + selectedSupplier + ' Status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.warna && data.warna.length > 0) {
+                        data.warna.forEach(function(warna) {
+                            const option = new Option(warna, warna);
+                            warnaDropdown.add(option);
+                        });
+                        warnaDropdown.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching kertas options:', error);
+                });
+        }
+    }
+    </script>
+
+    <script>
         function handleKodePisauChange(value) {
             const modelBoxBaru = document.getElementById('model_box_baru');
             const dibuatOleh = document.getElementById('dibuat_oleh');
@@ -1478,7 +1517,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                 warnaDropdown.innerHTML = '<option value="" disabled selected>Pilih Warna</option>';
 
                 if (selectedJenis) {
-                    fetch(`get_aksesoris_options.php?jenis=${encodeURIComponent(selectedJenis)}`)
+                    fetch(`/gbox-deploy/public/get_aksesoris_options.php?jenis=${encodeURIComponent(selectedJenis)}`)
                         .then(response => response.json())
                         .then(data => {
                             // Populate ukuran dropdown

@@ -7,12 +7,18 @@ DirectoryIndex index.php
 # Prevent directory listing
 Options -Indexes
 
-# Deny access to all .php files except index.php
+# Deny access to all .php files except index.php, get_kertas_filtered_options.php, and get_aksesoris_options.php
 <FilesMatch "\.php$">
     Order Allow,Deny
     Deny from all
 </FilesMatch>
 <Files "index.php">
+    Allow from all
+</Files>
+<Files "get_kertas_filtered_options.php">
+    Allow from all
+</Files>
+<Files "get_aksesoris_options.php">
     Allow from all
 </Files>
 

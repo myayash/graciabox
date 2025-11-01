@@ -1,4 +1,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # If the request is for a file or directory that exists, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} !^/gbox-deploy/$ [NC]
+    RewriteRule ^ - [L]
+
+    # If the request is NOT already for something in the public/ directory,
+    # then rewrite it to public/$1
+    RewriteCond %{REQUEST_URI} !^/gbox-deploy/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

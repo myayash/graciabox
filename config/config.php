@@ -10,8 +10,8 @@ if (empty($_SERVER['REQUEST_ID'])) {
 }
 
 // initialize logger (Monolog). lib/logger.php will require vendor/autoload.php
-if (file_exists(__DIR__ . '/lib/logger.php')) {
-    require_once __DIR__ . '/lib/logger.php';
+if (file_exists(__DIR__ . '/../lib/logger.php')) {
+    require_once __DIR__ . '/../lib/logger.php';
     try {
         $logger = get_logger('gbox');
         $logger->info('Config loaded', ['script' => $script_name ?? null]);
@@ -52,7 +52,8 @@ if (isset($logger) && $logger instanceof Psr\Log\LoggerInterface) {
             // Detailed error for the tester account to speed up debugging in alpha
             echo '<h1>Internal error (debug)</h1>';
             echo '<pre>' . htmlspecialchars((string)$e) . "\n\n" . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-        } else {
+        }
+        else {
             echo '<h1>Internal error</h1><p>An internal error occurred. The team has been notified.</p>';
         }
         exit(1);
@@ -157,4 +158,3 @@ try {
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
-?>
