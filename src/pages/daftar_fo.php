@@ -1,4 +1,5 @@
 <?php
+ob_start();
 
 $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
@@ -12,7 +13,7 @@ if (isset($_GET['archive_id']) && !empty($_GET['archive_id'])) {
     try {
         $stmt = $pdo->prepare("UPDATE orders SET is_archived = 1 WHERE id = ?");
         $stmt->execute([$archive_id]);
-        header("Location: " . BASE_URL . "/daftar_fo"); // Redirect to refresh the page
+        echo '<script>window.location.href="' . BASE_URL . '/daftar_fo";</script>';
         exit;
     } catch (PDOException $e) {
         echo "<p>Error archiving order: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -29,7 +30,7 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
     try {
         $stmt = $pdo->prepare("UPDATE orders SET is_archived = 0 WHERE id = ?");
         $stmt->execute([$unarchive_id]);
-        header("Location: " . BASE_URL . "/daftar_fo?show_archived=true"); // Redirect to refresh the page, staying on archived view
+        echo '<script>window.location.href="' . BASE_URL . '/daftar_fo?show_archived=true";</script>';
         exit;
     } catch (PDOException $e) {
         echo "<p>Error unarchiving order: " . htmlspecialchars($e->getMessage()) . "</p>";
