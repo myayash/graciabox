@@ -1,5 +1,4 @@
 <?php
-ob_start();
 
 $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
@@ -13,7 +12,7 @@ if (isset($_GET['archive_id']) && !empty($_GET['archive_id'])) {
     try {
         $stmt = $pdo->prepare("UPDATE orders SET is_archived = 1 WHERE id = ?");
         $stmt->execute([$archive_id]);
-        echo '<script>window.location.href="' . BASE_URL . '/daftar_fo";</script>';
+        header("Location: " . BASE_URL . "/daftar_fo"); // Redirect to refresh the page
         exit;
     } catch (PDOException $e) {
         echo "<p>Error archiving order: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -30,7 +29,7 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
     try {
         $stmt = $pdo->prepare("UPDATE orders SET is_archived = 0 WHERE id = ?");
         $stmt->execute([$unarchive_id]);
-        echo '<script>window.location.href="' . BASE_URL . '/daftar_fo?show_archived=true";</script>';
+        header("Location: " . BASE_URL . "/daftar_fo?show_archived=true"); // Redirect to refresh the page, staying on archived view
         exit;
     } catch (PDOException $e) {
         echo "<p>Error unarchiving order: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -107,10 +106,19 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
     <?php endif; ?>
 </h1>
 
+<?php if (!empty($_SESSION['flash_success'])):
+    $flash_msg = $_SESSION['flash_success']; ?>
+    <div id="server_flash_success" class="mb-4 p-3 bg-green-100 border border-green-300 text-green-800">
+        <?= htmlspecialchars($flash_msg) ?>
+    </div>
+    <script>window.__flashSuccess = <?= json_encode($flash_msg) ?>;</script>
+    <?php unset($_SESSION['flash_success']);
+endif; ?>
+
 <form action="daftar_fo" method="get" class="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
     <input type="text" name="search" placeholder="cari FO" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md w-full sm:w-auto">
     <button type="submit" class="px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out rounded-md w-full sm:w-auto">Search</button>
-    <?php if (isset($_GET['show_archived'])):
+    <?php if (isset($_GET['show_archived'])): 
         ?><input type="hidden" name="show_archived" value="<?php echo htmlspecialchars($_GET['show_archived']); ?>">
     <?php endif; ?>
 </form>
@@ -233,6 +241,17 @@ try {
 }
 ?>
 
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
+            <h3 class="text-lg font-semibold mb-2">notif</h3>
+            <p id="successModalMessage" class="mb-4 text-gray-700"></p>
+            <div class="flex justify-end">
+                <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">OK</button>
+            </div>
+        </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const tableContainer = document.querySelector('.table-container');
@@ -292,4 +311,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+
+<script>
+    // Success modal behavior (show when server set window.__flashSuccess)
+    (function(){
+        const successModal = document.getElementById('successModal');
+        const successModalMessage = document.getElementById('successModalMessage');
+        const successModalClose = document.getElementById('successModalClose');
+
+        function showSuccessModal(message) {
+            if (message) successModalMessage.textContent = message;
+            successModal.classList.remove('hidden');
+            successModalClose && successModalClose.focus();
+        }
+
+        function hideSuccessModal(){
+            successModal.classList.add('hidden');
+        }
+
+        // Trigger if server set the global
+        if (window.__flashSuccess) {
+            showSuccessModal(window.__flashSuccess);
+        }
+
+        successModalClose && successModalClose.addEventListener('click', function() {
+            hideSuccessModal();
+            window.location.href = 'daftar_fo';
+        });
+        successModal && successModal.addEventListener('click', function(event){ if (event.target === successModal) hideSuccessModal(); });
+        document.addEventListener('keydown', function(event){ if (event.key === 'Escape' && !successModal.classList.contains('hidden')) hideSuccessModal(); });
+    })();
 </script>

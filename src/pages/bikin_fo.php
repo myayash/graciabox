@@ -76,8 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Use absolute uploads directory so move_uploaded_file/rename use a predictable path
     $upload_dir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($upload_dir)) {
-        // try to create with safe perms; webserver user should own this directory for production
-        @mkdir($upload_dir, 0755, true);
+        mkdir($upload_dir, 0755, true);
+    }
+    if (!is_writable($upload_dir)) {
+        @chmod($upload_dir, 0777);
     }
 
     if (isset($_FILES['dudukan_img']) && !empty(array_filter($_FILES['dudukan_img']['name']))) {
@@ -476,7 +478,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     // Optionally clear session order form
     unset($_SESSION['order_form']);
     $_SESSION['flash_success'] = 'FO SUKSES disimpan';
-    header('Location: ' . BASE_URL . '/bikin_fo');
+    echo '<script>window.location.href="' . BASE_URL . '/daftar_fo";</script>';
     exit();
 }
 
