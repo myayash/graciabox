@@ -13,7 +13,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
 
 // Load config with a protective wrapper so config-time errors are reported back to the feedback page
 try {
-    require 'config.php';
+    require_once __DIR__ . '/../../config/config.php';
 } catch (Throwable $e) {
     // If config fails to load, write to PHP error_log and to a fallback file in logs/ for diagnosis
     $msg = "config.php include failed: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
@@ -22,7 +22,7 @@ try {
     // Provide a user-visible error via session and redirect back to feedback form
     if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     $_SESSION['feedback_error'] = 'Internal config error. Please contact the dev team.';
-    header('Location: feedback.php?status=error');
+    header('Location: index.php?page=feedback&status=error');
     exit();
 }
 
@@ -202,11 +202,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             unset($_SESSION['last_feedback_image']);
         }
         // redirect back to feedback page; any upload errors will still be in session
-        header("Location: feedback.php?status=success");
+        header("Location: index.php?page=feedback&status=success");
     } else {
         // DB insert failed; store error and show
         $_SESSION['feedback_error'] = 'DB error: ' . $stmt->errorInfo()[2];
-        header("Location: feedback.php?status=error");
+        header("Location: index.php?page=feedback&status=error");
     }
 } else {
     header("Location: index.php");

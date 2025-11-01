@@ -61,7 +61,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                 </div>
             </div>
         </div>
-        <form action="process_feedback.php" method="post" enctype="multipart/form-data">
+        <form action="index.php?page=process_feedback" method="post" enctype="multipart/form-data">
             <div class="mb-4">
                 <label for="feedback_text" class="block text-gray-700 text-sm font-bold mb-2">Ada saran atau keluhan?</label>
                 <textarea name="feedback_text" id="feedback_text" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
@@ -139,7 +139,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                     images.slice(0,3).forEach(function(fn){
                         if (!fn) return;
                         const img = document.createElement('img');
-                        img.src = 'uploads/feedback_images/' + fn;
+                        img.src = 'src/pages/uploads/feedback_images/' + fn;
                         img.alt = fn;
                         img.className = 'w-full h-auto rounded border';
                         const wrap = document.createElement('div');

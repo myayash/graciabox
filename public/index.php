@@ -8,7 +8,13 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/config.php';
 
 // Basic routing
-$url = isset($_GET['url']) ? rtrim($_GET['url'], '/') : 'dashboard';
+$url = 'dashboard'; // Default page
+
+if (isset($_GET['page'])) {
+    $url = $_GET['page'];
+} elseif (isset($_GET['url'])) {
+    $url = rtrim($_GET['url'], '/');
+}
 
 // Access control
 $allowed_for_viewer = [
