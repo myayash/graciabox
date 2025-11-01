@@ -50,7 +50,16 @@ $raw_pages = [
     'view_spk_logo_pdf',
     'view_spk_pdf',
     'logout',
-    'process_feedback'
+    'process_feedback',
+    'edit_barang',
+    'edit_aksesoris',
+    'edit_board',
+    'edit_customer',
+    'edit_dudukan',
+    'edit_fo',
+    'edit_karyawan_sales',
+    'edit_kertas',
+    'edit_model_box'
 ];
 
 if (in_array($url, $raw_pages)) {
@@ -79,12 +88,9 @@ if (in_array($url, $raw_pages)) {
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-4 pb-4 sm:px-8 sm:pb-8 font-mono">
 
-<?php
-if ($url !== 'login') {
-    include __DIR__ . '/../src/Views/partials/navbar.php';
-}
+<?php include __DIR__ . '/../src/Views/partials/navbar.php'; ?>
 
-// Load the page content
+<?php
 if (file_exists($page_path)) {
     include $page_path;
 } else {

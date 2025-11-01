@@ -2,12 +2,10 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once __DIR__ . '/../../config/config.php';
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login');
+    header('Location: ' . BASE_URL . '/login');
     exit();
 }
 
@@ -58,9 +56,7 @@ if (isset($_POST['update_kertas']) && $kertas) {
         try {
             $stmt = $pdo->prepare("UPDATE kertas SET supplier = ?, jenis = ?, warna = ?, gsm = ?, ukuran = ? WHERE id = ?");
             $stmt->execute([$supplier, $jenis, $warna, $gsm, $ukuran, $kertas['id']]);
-            $message = "Kertas updated successfully!";
-            $message_type = 'success';
-            header("Location: daftar_kertas");
+            header("Location: " . BASE_URL . "/daftar_kertas");
             exit;
         } catch (PDOException $e) {
             $message = "Error updating kertas: " . htmlspecialchars($e->getMessage());
@@ -72,64 +68,56 @@ if (isset($_POST['update_kertas']) && $kertas) {
     }
 }
 
+$pageTitle = 'Edit Kertas';
+ob_start();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Kertas</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="assets/js/scripts.js"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
+<h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Kertas</h1>
 
-    <?php include __DIR__ . '/../Views/partials/navbar.php'; ?>
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Kertas</h1>
+<?php
+if ($message) {
+    echo "<div class=\"p-4 mb-4 text-sm ". ($message_type == 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') ."\" role=\"alert\">" . $message . "</div>";
+}
 
-    <?php
-    if ($message) {
-        echo "<div class=\"p-4 mb-4 text-sm ". ($message_type == 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') ."\" role=\"alert\">" . $message . "</div>";
-    }
+if ($kertas) {
+?>
+    <form action="" method="POST" class="bg-white p-8 shadow-lg">
+        <input type="hidden" name="id" value="<?php echo htmlspecialchars($kertas['id']); ?>">
+        <div class="mb-4">
+            <label for="supplier" class="block text-gray-800 text-sm font-semibold mb-2">Supplier:</label>
+            <input type="text" name="supplier" id="supplier" value="<?php echo htmlspecialchars($kertas['supplier']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
 
-    if ($kertas) {
-    ?>
-        <form action="" method="POST" class="bg-white p-8 shadow-lg">
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($kertas['id']); ?>">
-            <div class="mb-4">
-                <label for="supplier" class="block text-gray-800 text-sm font-semibold mb-2">Supplier:</label>
-                <input type="text" name="supplier" id="supplier" value="<?php echo htmlspecialchars($kertas['supplier']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-            </div>
+        <div class="mb-4">
+            <label for="jenis" class="block text-gray-800 text-sm font-semibold mb-2">Jenis:</label>
+            <input type="text" name="jenis" id="jenis" value="<?php echo htmlspecialchars($kertas['jenis']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
 
-            <div class="mb-4">
-                <label for="jenis" class="block text-gray-800 text-sm font-semibold mb-2">Jenis:</label>
-                <input type="text" name="jenis" id="jenis" value="<?php echo htmlspecialchars($kertas['jenis']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-            </div>
+        <div class="mb-4">
+            <label for="warna" class="block text-gray-800 text-sm font-semibold mb-2">Warna:</label>
+            <input type="text" name="warna" id="warna" value="<?php echo htmlspecialchars($kertas['warna']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
 
-            <div class="mb-4">
-                <label for="warna" class="block text-gray-800 text-sm font-semibold mb-2">Warna:</label>
-                <input type="text" name="warna" id="warna" value="<?php echo htmlspecialchars($kertas['warna']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-            </div>
+        <div class="mb-4">
+            <label for="gsm" class="block text-gray-800 text-sm font-semibold mb-2">GSM (Optional):</label>
+            <input type="text" name="gsm" id="gsm" value="<?php echo htmlspecialchars($kertas['gsm']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+        </div>
 
-            <div class="mb-4">
-                <label for="gsm" class="block text-gray-800 text-sm font-semibold mb-2">GSM (Optional):</label>
-                <input type="text" name="gsm" id="gsm" value="<?php echo htmlspecialchars($kertas['gsm']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-            </div>
+        <div class="mb-4">
+            <label for="ukuran" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (Optional):</label>
+            <input type="text" name="ukuran" id="ukuran" value="<?php echo htmlspecialchars($kertas['ukuran']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+        </div>
 
-            <div class="mb-4">
-                <label for="ukuran" class="block text-gray-800 text-sm font-semibold mb-2">Ukuran (Optional):</label>
-                <input type="text" name="ukuran" id="ukuran" value="<?php echo htmlspecialchars($kertas['ukuran']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-            </div>
+        <div class="flex items-center justify-start space-x-4">
+            <input type="submit" name="update_kertas" value="Update Kertas" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <a href="<?php echo BASE_URL; ?>/daftar_kertas" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
+        </div>
+    </form>
+<?php
+}
+?>
 
-            <div class="flex items-center justify-start space-x-4">
-                <input type="submit" name="update_kertas" value="Update Kertas" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <a href="daftar_kertas" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
-            </div>
-        </form>
-    <?php
-    }
-    ?>
-
-</body>
-</html>
+<?php
+$content = ob_get_clean();
+include __DIR__ . '/../Views/partials/base.php';
+?>

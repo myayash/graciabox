@@ -3,8 +3,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
-
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . BASE_URL . '/login');
@@ -51,8 +49,6 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
         try {
             $stmt = $pdo->prepare("UPDATE empl_sales SET nama = ? WHERE id = ?");
             $stmt->execute([$nama, $karyawan_sales['id']]);
-            $message = "Karyawan Sales updated successfully!";
-            $message_type = 'success';
             header("Location: " . BASE_URL . "/daftar_karyawan_sales");
             exit;
         } catch (PDOException $e) {
@@ -65,44 +61,36 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
     }
 }
 
+$pageTitle = 'Edit Karyawan Sales';
+ob_start();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Karyawan Sales</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="scripts.js"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
+<h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Karyawan Sales</h1>
 
+<?php
+if ($message) {
+    echo "<div class=\"p-4 mb-4 text-sm ". ($message_type == 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') ."\" role=\"alert\">" . $message . "</div>";
+}
 
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Karyawan Sales</h1>
+if ($karyawan_sales) {
+?>
+    <form action="<?php echo BASE_URL; ?>/edit_karyawan_sales?id=<?php echo htmlspecialchars($karyawan_sales['id']); ?>" method="POST" class="bg-white p-8 shadow-lg">
+        <input type="hidden" name="id" value="<?php echo htmlspecialchars($karyawan_sales['id']); ?>">
+        <div class="mb-4">
+            <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Karyawan Sales:</label>
+            <input type="text" name="nama" id="nama" value="<?php echo htmlspecialchars($karyawan_sales['nama']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
+        </div>
 
-    <?php
-    if ($message) {
-        echo "<div class=\"p-4 mb-4 text-sm ". ($message_type == 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') ."\" role=\"alert\">" . $message . "</div>";
-    }
+        <div class="flex items-center justify-start space-x-4">
+            <input type="submit" name="update_karyawan_sales" value="Update Karyawan Sales" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
+            <a href="<?php echo BASE_URL; ?>/daftar_karyawan_sales" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
+        </div>
+    </form>
+<?php
+}
+?>
 
-    if ($karyawan_sales) {
-    ?>
-        <form action="<?php echo BASE_URL; ?>/edit_karyawan_sales?id=<?php echo htmlspecialchars($karyawan_sales['id']); ?>" method="POST" class="bg-white p-8 shadow-lg">
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($karyawan_sales['id']); ?>">
-            <div class="mb-4">
-                <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Karyawan Sales:</label>
-                <input type="text" name="nama" id="nama" value="<?php echo htmlspecialchars($karyawan_sales['nama']); ?>" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
-            </div>
-
-            <div class="flex items-center justify-start space-x-4">
-                <input type="submit" name="update_karyawan_sales" value="Update Karyawan Sales" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <a href="<?php echo BASE_URL; ?>/daftar_karyawan_sales" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
-            </div>
-        </form>
-    <?php
-    }
-    ?>
-
-</body>
-</html>
+<?php
+$content = ob_get_clean();
+include __DIR__ . '/../Views/partials/base.php';
+?>

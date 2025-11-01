@@ -244,7 +244,7 @@ try {
     <!-- Success Modal -->
     <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
         <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
-            <h3 class="text-lg font-semibold mb-2">notif</h3>
+            <h3 class="text-lg font-semibold mb-2">Berhasil</h3>
             <p id="successModalMessage" class="mb-4 text-gray-700"></p>
             <div class="flex justify-end">
                 <button id="successModalClose" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">OK</button>

@@ -1,4 +1,3 @@
-<?php if (session_status() === PHP_SESSION_NONE) { session_start(); } ?>
 <!-- Menu Bar (Top Navigation) -->
 <nav class="bg-white md:bg-white/90 md:backdrop-blur-md text-gray-800 px-4 py-3 shadow-sm fixed w-full top-0 left-0 z-30 border-b border-gray-200">
     <div class="container mx-auto flex items-center justify-between h-12">
@@ -32,7 +31,16 @@
                 </ul>
             </li>
             <?php endif; ?>
-            <li><a href="daftar_fo" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md transition-colors duration-200">daftar fo</a></li>
+            <li class="relative">
+                <button onclick="toggleDropdown(event, 'fo-menu')" class="flex items-center justify-between w-full md:w-auto text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md transition-colors duration-200 dropdown-toggle">
+                    FO
+                    <svg class="ml-2 w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <ul id="fo-menu" class="absolute bg-white mt-2 shadow-md rounded-lg dropdown-menu p-2 w-max" style="display: none; z-index: 50;">
+                    <li><a href="http://localhost/gbox-deploy/daftar_fo" class="block px-3 py-2 hover:bg-gray-100 rounded-md transition-colors duration-200">daftar fo</a></li>
+                    <li><a href="http://localhost/gbox-deploy/bikin_fo" class="block px-3 py-2 hover:bg-gray-100 rounded-md transition-colors duration-200">bikin fo</a></li>
+                </ul>
+            </li>
         </ul>
         <div class="ml-auto flex md:flex-row space-x-4 lg:space-x-6">
             <?php if (isset($_SESSION['user_id'])): ?>
@@ -76,7 +84,16 @@
                     </ul>
                 </li>
                 <?php endif; ?>
-                <li class="border-t border-gray-200 pt-4 mt-4"><a href="daftar_fo" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md transition-colors duration-200">daftar fo</a></li>
+                <li class="border-t border-gray-200 pt-4 mt-4 relative">
+                    <button onclick="toggleDropdown(event, 'fo-menu-mobile')" class="flex items-center justify-between w-full text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md transition-colors duration-200 dropdown-toggle">
+                        FO
+                        <svg class="ml-2 w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <ul id="fo-menu-mobile" class="bg-white mt-2 dropdown-menu p-2 w-full" style="display: none; z-index: 50;">
+                        <li><a href="http://localhost/gbox-deploy/daftar_fo" class="block px-3 py-2 hover:bg-gray-100 rounded-md transition-colors duration-200">daftar fo</a></li>
+                        <li><a href="http://localhost/gbox-deploy/bikin_fo" class="block px-3 py-2 hover:bg-gray-100 rounded-md transition-colors duration-200">bikin fo</a></li>
+                    </ul>
+                </li>
                 </ul>
                 <div class="flex flex-col space-y-2 mt-4">
                 <?php if (isset($_SESSION['user_id'])): ?>
@@ -130,6 +147,15 @@
 
     function toggleDropdown(event, menuId) {
         event.stopPropagation(); // Prevent document click from immediately closing
+
+        // Close all other dropdowns
+        const allDropdowns = document.querySelectorAll('.dropdown-menu');
+        allDropdowns.forEach(dropdown => {
+            if (dropdown.id !== menuId) { // Don't close the current dropdown
+                dropdown.style.display = 'none';
+            }
+        });
+
         const dropdown = document.getElementById(menuId);
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     }

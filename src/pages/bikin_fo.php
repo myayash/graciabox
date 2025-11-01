@@ -333,7 +333,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
     $ket_aksesoris = $post['ket_aksesoris'] ?? null;
     $jumlah_layer = (isset($post['jumlah_layer']) && is_numeric($post['jumlah_layer'])) ? (int)$post['jumlah_layer'] : null;
     $logo = !empty($post['logo']) ? $post['logo'] : 'Tidak ada';
-    $ukuran_poly = $post['ukuran_poly'] ?? null;
     $lokasi_poly = $post['lokasi_poly'] ?? null;
     $klise = $post['klise'] ?? null;
 
@@ -365,13 +364,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['from_shipping'])) {
         $logo_img_str = $current_images['logo_img'];
         $poly_img_str = $current_images['poly_img'];
 
-        $stmt = $pdo->prepare("UPDATE orders SET nama=?, kode_pisau=?, ukuran=?, model_box=?, jenis_board=?, cover_dlm=?, sales_pj=?, nama_box_lama=?, lokasi=?, quantity=?, feedback_cust=?, keterangan=?, cover_lr=?, aksesoris=?, ket_aksesoris=?, dudukan=?, jumlah_layer=?, logo=?, ukuran_poly=?, lokasi_poly=?, klise=?, tanggal_kirim=?, jam_kirim=?, dikirim_dari=?, tujuan_kirim=?, tanggal_dp=?, pelunasan=?, ongkir=?, packing=?, biaya=? WHERE id=?");
-        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $ukuran_poly, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya, $order_id]);
+        $stmt = $pdo->prepare("UPDATE orders SET nama=?, kode_pisau=?, ukuran=?, model_box=?, jenis_board=?, cover_dlm=?, sales_pj=?, nama_box_lama=?, lokasi=?, quantity=?, feedback_cust=?, keterangan=?, cover_lr=?, aksesoris=?, ket_aksesoris=?, dudukan=?, jumlah_layer=?, logo=?, lokasi_poly=?, klise=?, tanggal_kirim=?, jam_kirim=?, dikirim_dari=?, tujuan_kirim=?, tanggal_dp=?, pelunasan=?, ongkir=?, packing=?, biaya=? WHERE id=?");
+        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $jumlah_layer, $logo, $lokasi_poly, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya, $order_id]);
         $_SESSION['flash_success'] = 'FO SUKSES diupdate';
     } else { // INSERT
         // Insert into orders (include feedback_cust before keterangan)
-        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, ukuran_poly, lokasi_poly, poly_img, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $ukuran_poly, $lokasi_poly, $poly_img_str, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
+        $stmt = $pdo->prepare("INSERT INTO orders (nama, kode_pisau, ukuran, model_box, jenis_board, cover_dlm, sales_pj, nama_box_lama, lokasi, quantity, feedback_cust, keterangan, cover_lr, aksesoris, ket_aksesoris, dudukan, dudukan_img, jumlah_layer, logo, logo_img, lokasi_poly, poly_img, klise, tanggal_kirim, jam_kirim, dikirim_dari, tujuan_kirim, tanggal_dp, pelunasan, ongkir, packing, biaya) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $kode_pisau, $box_ukuran, $box_jenis, $jenis_board, $cover_dlm, $sales_pj, $nama_box_lama_value ?? null, $lokasi, $quantity, $feedback_cust, $keterangan, $cover_lr, $aksesoris, $ket_aksesoris, $dudukan_jenis, $dudukan_img_str, $jumlah_layer, $logo, $logo_img_str, $lokasi_poly, $poly_img_str, $klise, $tanggal_kirim, $jam_kirim, $dikirim_dari, $tujuan_kirim, $tanggal_dp, $pelunasan, $ongkir, $packing, $biaya]);
         $order_id = $pdo->lastInsertId(); // Get the ID of the newly inserted order
         $_SESSION['flash_success'] = 'FO SUKSES disimpan';
     }
@@ -528,7 +527,6 @@ if ($edit_mode) {
         'lokasi' => $order['lokasi'],
         'jumlah_layer' => $order['jumlah_layer'],
         'logo' => $order['logo'],
-        'ukuran_poly' => $order['ukuran_poly'],
         'lokasi_poly' => $order['lokasi_poly'],
         'klise' => $order['klise'],
         'barang_lama' => null,
@@ -631,7 +629,6 @@ $barangs = $pdo->query("SELECT * FROM barang WHERE is_archived = 0")->fetchAll(P
 $aksesoris_jenis = $pdo->query("SELECT DISTINCT jenis FROM aksesoris")->fetchAll(PDO::FETCH_ASSOC);
 $dudukan_options = $pdo->query("SELECT * FROM dudukan")->fetchAll(PDO::FETCH_ASSOC);
 $logo_options = $pdo->query("SELECT DISTINCT jenis FROM logo")->fetchAll(PDO::FETCH_ASSOC);
-$logo_uk_poly_options = $pdo->query("SELECT DISTINCT uk_poly FROM logo")->fetchAll(PDO::FETCH_ASSOC);
 
 $aksesoris_ukuran_options = [];
 $aksesoris_warna_options = [];
@@ -1128,7 +1125,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
 
                                 <div class="mb-4">
                                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                                        <div class="w-full sm:w-1/2">
+                                        <div class="w-full">
                                             <label for="logo" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Logo</label>
                                             <select name="logo" id="logo" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md" required>
                                                 <option value="" disabled <?php echo !isset($order_form['logo']) ? 'selected' : ''; ?>>Pilih Logo</option>
@@ -1138,15 +1135,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                        <div class="w-full sm:w-1/2 mb-4">
-                                            <label for="ukuran_poly" class="block text-gray-800 text-sm sm:text-base font-semibold mb-2">Ukuran Poly</label>
-                                            <select name="ukuran_poly" id="ukuran_poly" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out rounded-md">
-                                                <option value="" disabled <?php echo !isset($order_form['ukuran_poly']) ? 'selected' : ''; ?>>Pilih Ukuran Poly</option>
-                                                <?php foreach ($logo_uk_poly_options as $uk_poly): ?>
-                                                    <option value="<?= $uk_poly['uk_poly'] ?>" <?php echo (isset($order_form['ukuran_poly']) && $order_form['ukuran_poly'] === $uk_poly['uk_poly']) ? 'selected' : ''; ?>><?= $uk_poly['uk_poly'] ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
+
                                       </div>
 
                                       <div class="mb-4">
@@ -1586,8 +1575,7 @@ if (!empty($order_form['cover_luar_supplier_dlm'])) {
                     // Reset Logo dropdown
                     document.getElementById('logo').selectedIndex = 0;
 
-                    // Reset Ukuran Poly dropdown
-                    document.getElementById('ukuran_poly').selectedIndex = 0;
+
 
                     // Reset Lokasi Poly radio buttons
                     const lokasiPolyRadios = document.getElementsByName('lokasi_poly');
