@@ -6,6 +6,14 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
     header('Location: index.php');
     exit();
 }
+
+$upload_dir = __DIR__ . '/uploads/feedback_images';
+if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0755, true);
+}
+if (!is_writable($upload_dir)) {
+    @chmod($upload_dir, 0777);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -115,6 +123,9 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                     const wrap = document.createElement('div');
                     const img = document.createElement('img');
                     img.className = 'w-full h-auto rounded-md border';
+                    img.src = URL.createObjectURL(file);
+                    wrap.appendChild(img);
+                    preview.appendChild(wrap);
                 });
             });
         })();
@@ -137,6 +148,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                         img.src = 'src/pages/uploads/feedback_images/' + fn;
                         img.alt = fn;
                         img.className = 'w-full h-auto rounded-md border';
+                        successModalImages.appendChild(img);
                     });
                 } else {
                     successModalImages.innerHTML = '';
