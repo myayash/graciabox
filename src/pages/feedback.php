@@ -16,10 +16,10 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="scripts.js" defer></script>
 </head>
-<body class="bg-gray-100 font-mono">
+<body class="bg-gray-100">
     <?php include 'navbar.php'; ?>
-    <div class="container mx-auto p-8 mt-20 max-w-4xl">
-        <h1 class="text-sm sm:text-base font-bold mb-4 opacity-25">> feedback</h1>
+    <div class="container mx-auto p-8 mt-2 max-w-4xl">
+        <h1 class="text-xl sm:text-2xl font-bold mb-4">> feedback</h1>
         <?php
         // If redirected after successful submission, pass flash data to client via JS globals
         if (isset($_GET['status']) && $_GET['status'] == 'success') {
@@ -61,7 +61,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                 </div>
             </div>
         </div>
-        <form action="index.php?page=process_feedback" method="post" enctype="multipart/form-data">
+<form action="index.php?page=process_feedback" method="post" enctype="multipart/form-data" class="bg-white p-4 sm:p-6 lg:p-8 shadow-md rounded-lg">
             <div class="mb-4">
                 <label for="feedback_text" class="block text-gray-700 text-sm font-bold mb-2">Ada saran atau keluhan?</label>
                 <textarea name="feedback_text" id="feedback_text" rows="10" class="shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
@@ -114,12 +114,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                     }
                     const wrap = document.createElement('div');
                     const img = document.createElement('img');
-                    img.className = 'w-full h-auto rounded border';
-                    img.alt = file.name;
-                    img.src = URL.createObjectURL(file);
-                    img.onload = function(){ URL.revokeObjectURL(this.src); };
-                    wrap.appendChild(img);
-                    preview.appendChild(wrap);
+                    img.className = 'w-full h-auto rounded-md border';
                 });
             });
         })();
@@ -141,10 +136,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'tester') {
                         const img = document.createElement('img');
                         img.src = 'src/pages/uploads/feedback_images/' + fn;
                         img.alt = fn;
-                        img.className = 'w-full h-auto rounded border';
-                        const wrap = document.createElement('div');
-                        wrap.appendChild(img);
-                        successModalImages.appendChild(wrap);
+                        img.className = 'w-full h-auto rounded-md border';
                     });
                 } else {
                     successModalImages.innerHTML = '';
