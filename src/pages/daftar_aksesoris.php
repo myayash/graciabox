@@ -4,14 +4,14 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 // Handle archive action
 if (isset($_GET['archive_id']) && !empty($_GET['archive_id'])) {
     if (!$is_admin) { // Only allow admin to archive
-        header("Location: daftar_aksesoris.php");
+        header("Location: daftar_aksesoris");
         exit;
     }
     $archive_id = $_GET['archive_id'];
     try {
         $stmt = $pdo->prepare("UPDATE aksesoris SET is_archived = 1 WHERE id = ?");
         $stmt->execute([$archive_id]);
-        header("Location: daftar_aksesoris.php"); // Redirect to refresh the page
+        header("Location: daftar_aksesoris"); // Redirect to refresh the page
         exit;
     } catch (PDOException $e) {
         echo "<p>Error archiving aksesoris: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -21,14 +21,14 @@ if (isset($_GET['archive_id']) && !empty($_GET['archive_id'])) {
 // Handle unarchive action
 if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
     if (!$is_admin) { // Only allow admin to unarchive
-        header("Location: daftar_aksesoris.php");
+        header("Location: daftar_aksesoris");
         exit;
     }
     $unarchive_id = $_GET['unarchive_id'];
     try {
         $stmt = $pdo->prepare("UPDATE aksesoris SET is_archived = 0 WHERE id = ?");
         $stmt->execute([$unarchive_id]);
-        header("Location: daftar_aksesoris.php?show_archived=true"); // Redirect to refresh the page, staying on archived view
+        header("Location: daftar_aksesoris?show_archived=true"); // Redirect to refresh the page, staying on archived view
         exit;
     } catch (PDOException $e) {
         echo "<p>Error unarchiving aksesoris: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -89,17 +89,17 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
 <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar aksesoris
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <div class="inline-flex ml-4">
-        <a href="bikin_aksesoris.php" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Aksesoris</a>
+        <a href="bikin_aksesoris" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Aksesoris</a>
         <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-            <a href="daftar_aksesoris.php" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Aksesoris</a>
+            <a href="daftar_aksesoris" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Aksesoris</a>
         <?php else: ?>
-            <a href="daftar_aksesoris.php?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Aksesoris</a>
+            <a href="daftar_aksesoris?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Aksesoris</a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 </h1>
 
-<form action="daftar_aksesoris.php" method="get" class="mb-4">
+<form action="daftar_aksesoris" method="get" class="mb-4">
     <input type="text" name="search" placeholder="cari data aksesoris" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
     <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
     <?php if (isset($_GET['show_archived'])):
@@ -172,11 +172,11 @@ try {
             }
             if ($is_admin) {
                 echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                echo "<a href=\"edit_aksesoris.php?id=". htmlspecialchars($aksesoris['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                echo "<a href=\"edit_aksesoris?id=". htmlspecialchars($aksesoris['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
                 if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-                    echo "<a href=\"daftar_aksesoris.php?unarchive_id=". htmlspecialchars($aksesoris['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this aksesoris?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                    echo "<a href=\"daftar_aksesoris?unarchive_id=". htmlspecialchars($aksesoris['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this aksesoris?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                 } else {
-                    echo "<a href=\"daftar_aksesoris.php?archive_id=". htmlspecialchars($aksesoris['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this aksesoris?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                    echo "<a href=\"daftar_aksesoris?archive_id=". htmlspecialchars($aksesoris['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this aksesoris?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
                 }
                 echo "</td>";
             }
@@ -186,7 +186,7 @@ try {
         echo "</table>";
         echo "</div>";
     } else {
-        echo "<p class=\"mt-4 text-gray-600\">No aksesoris found in the database.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">No aksesoris found in the database. Click +Aksesoris to create a new one.</p>";
     }
 } catch (PDOException $e) {
     echo "<p class=\"mt-4 text-red-600\">Error: " . htmlspecialchars($e->getMessage()) . "</p>";

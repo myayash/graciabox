@@ -2,12 +2,12 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once 'config.php';
+require_once __DIR__ . '/../../config/config.php';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login');
     exit();
 }
 
@@ -55,7 +55,7 @@ if (isset($_POST['update_aksesoris']) && $aksesoris) {
             $stmt->execute([$jenis, $ukuran, $warna, $aksesoris['id']]);
             $message = "Aksesoris updated successfully!";
             $message_type = 'success';
-            header("Location: daftar_aksesoris.php");
+            header("Location: daftar_aksesoris");
             exit;
         } catch (PDOException $e) {
             $message = "Error updating aksesoris: " . htmlspecialchars($e->getMessage());
@@ -76,11 +76,11 @@ if (isset($_POST['update_aksesoris']) && $aksesoris) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Aksesoris</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="scripts.js"></script>
+    <script src="assets/js/scripts.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
-    <?php include 'navbar.php'; ?>
+    <?php include __DIR__ . '/../Views/partials/navbar.php'; ?>
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Aksesoris</h1>
 
     <?php
@@ -109,7 +109,7 @@ if (isset($_POST['update_aksesoris']) && $aksesoris) {
 
             <div class="flex items-center justify-start space-x-4">
                 <input type="submit" name="update_aksesoris" value="Update Aksesoris" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <a href="daftar_aksesoris.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
+                <a href="daftar_aksesoris" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
             </div>
         </form>
     <?php

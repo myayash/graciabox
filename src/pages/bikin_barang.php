@@ -1,10 +1,10 @@
 <?php
-include 'config.php';
-session_start();
+
+
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . BASE_URL . '/login');
     exit();
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ukuran = $length . ' x ' . $width . ' x ' . $height;
             $stmt = $pdo->prepare("INSERT INTO barang (model_box, ukuran, nama) VALUES (?, ?, ?)");
             $stmt->execute([$model_box, $ukuran, $nama]);
-            header("Location: daftar_barang.php");
+            header("Location: " . BASE_URL . "/daftar_barang");
             exit;
         } catch (PDOException $e) {
             echo "<p class=\"mt-4 text-red-600\">Error adding barang: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -50,10 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
-    <?php include 'navbar.php'; ?>
+
     <h1 class="text-2xl font-bold mb-6 text-gray-800">tambah barang</h1>
 
-    <form action="bikin_barang.php" method="post" class="bg-white p-8 shadow-lg">
+    <form action="<?php echo BASE_URL; ?>/bikin_barang" method="post" class="bg-white p-8 shadow-lg">
         <div class="mb-4">
             <label for="model_box" class="block text-gray-800 text-sm font-semibold mb-2">Model Box:</label>
             <select name="model_box" id="model_box" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="flex items-center justify-start space-x-4">
             <input type="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-            <a href="daftar_barang.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
+            <a href="<?php echo BASE_URL; ?>/daftar_barang" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Cancel
             </a>
         </div>

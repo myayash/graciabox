@@ -1,10 +1,10 @@
 <?php
-include 'config.php';
-session_start();
+
+
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . BASE_URL . '/login');
     exit();
 }
 
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("INSERT INTO board (jenis) VALUES (?)");
             $stmt->execute([$jenis]);
-            header("Location: daftar_board.php");
+            header("Location: " . BASE_URL . "/daftar_board");
             exit;
         } catch (PDOException $e) {
             echo "<p class=\"mt-4 text-red-600\">Error adding board: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -42,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
-    <?php include 'navbar.php'; ?>
+
     <h1 class="text-2xl font-bold mb-6 text-gray-800">tambah jenis board</h1>
 
-    <form action="bikin_board.php" method="post" class="bg-white p-8 shadow-lg">
+    <form action="<?php echo BASE_URL; ?>/bikin_board" method="post" class="bg-white p-8 shadow-lg">
         <div class="mb-4">
             <label for="jenis" class="block text-gray-800 text-sm font-semibold mb-2">Jenis Board:</label>
             <input type="text" name="jenis" id="jenis" class="appearance-none bg-white border border-gray-300 w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out" required>
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="flex items-center justify-start space-x-4">
             <input type="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-            <a href="daftar_board.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
+            <a href="<?php echo BASE_URL; ?>/daftar_board" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-800">
                 Cancel
             </a>
         </div>

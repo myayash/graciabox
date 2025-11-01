@@ -208,7 +208,8 @@ $sql = "SELECT id, nama, ukuran, quantity, dibuat, model_box, logo, ukuran_poly,
         echo "</table>";
         echo "</div>";
     } else {
-        echo "<p class=\"mt-4 text-gray-600\">No SPK found in the database.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">No SPK Logo found in the database. This page fetches data from saved FOs.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">Create a new one in FO —> Bikin FO</p>";
     }
 } catch (PDOException $e) {
     echo "<p class=\"mt-4 text-red-600\">Error: " . htmlspecialchars($e->getMessage()) . "</p>";

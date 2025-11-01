@@ -89,17 +89,17 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
 <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar model box
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <div class="inline-flex ml-4">
-        <a href="bikin_model_box" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Model Box</a>
+        <a href="<?php echo BASE_URL; ?>/bikin_model_box" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Model Box</a>
         <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-            <a href="daftar_model_box" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Model Box</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_model_box" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Model Box</a>
         <?php else: ?>
-            <a href="daftar_model_box?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Model Box</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_model_box?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Model Box</a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 </h1>
 
-<form action="daftar_model_box" method="get" class="mb-4">
+<form action="<?php echo BASE_URL; ?>/daftar_model_box" method="get" class="mb-4">
     <input type="text" name="search" placeholder="cari model box" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
     <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
     <?php if (isset($_GET['show_archived'])):
@@ -170,11 +170,11 @@ try {
             }
             if ($is_admin) {
                 echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                echo "<a href=\"edit_model_box?id=". htmlspecialchars($model_box['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                echo "<a href=\"" . BASE_URL . "/edit_model_box?id=". htmlspecialchars($model_box['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
                 if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-                    echo "<a href=\"daftar_model_box?unarchive_id=". htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this model box?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                    echo "<a href=\"" . BASE_URL . "/daftar_model_box?unarchive_id=". htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this model box?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                 } else {
-                    echo "<a href=\"daftar_model_box?archive_id=". htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this model box?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                    echo "<a href=\"" . BASE_URL . "/daftar_model_box?archive_id=". htmlspecialchars($model_box['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this model box?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
                 }
                 echo "</td>";
             }
@@ -184,7 +184,7 @@ try {
         echo "</table>";
         echo "</div>";
     } else {
-        echo "<p class=\"mt-4 text-gray-600\">No model boxes found in the database.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">No model boxes found in the database. Click +Model Box to create a new one.</p>";
     }
 } catch (PDOException $e) {
     echo "<p class=\"mt-4 text-red-600\">Error: " . htmlspecialchars($e->getMessage()) . "</p>";

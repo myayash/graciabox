@@ -2,12 +2,12 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once 'config.php';
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+
 
 // Check if the user is logged in at all.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . BASE_URL . '/login');
     exit();
 }
 
@@ -53,7 +53,7 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
             $stmt->execute([$nama, $karyawan_sales['id']]);
             $message = "Karyawan Sales updated successfully!";
             $message_type = 'success';
-            header("Location: daftar_karyawan_sales.php");
+            header("Location: " . BASE_URL . "/daftar_karyawan_sales");
             exit;
         } catch (PDOException $e) {
             $message = "Error updating karyawan sales: " . htmlspecialchars($e->getMessage());
@@ -78,7 +78,7 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
-    <?php include 'navbar.php'; ?>
+
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Karyawan Sales</h1>
 
     <?php
@@ -88,7 +88,7 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
 
     if ($karyawan_sales) {
     ?>
-        <form action="" method="POST" class="bg-white p-8 shadow-lg">
+        <form action="<?php echo BASE_URL; ?>/edit_karyawan_sales?id=<?php echo htmlspecialchars($karyawan_sales['id']); ?>" method="POST" class="bg-white p-8 shadow-lg">
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($karyawan_sales['id']); ?>">
             <div class="mb-4">
                 <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Karyawan Sales:</label>
@@ -97,7 +97,7 @@ if (isset($_POST['update_karyawan_sales']) && $karyawan_sales) {
 
             <div class="flex items-center justify-start space-x-4">
                 <input type="submit" name="update_karyawan_sales" value="Update Karyawan Sales" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <a href="daftar_karyawan_sales.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
+                <a href="<?php echo BASE_URL; ?>/daftar_karyawan_sales" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
             </div>
         </form>
     <?php

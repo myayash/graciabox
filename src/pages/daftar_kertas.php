@@ -186,7 +186,7 @@ try {
         echo "</table>";
         echo "</div>";
     } else {
-        echo "<p class=\"mt-4 text-gray-600\">No kertas found in the database.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">No kertas found in the database. Click +Kertas to create a new one.</p>";
     }
 } catch (PDOException $e) {
     echo "<p class=\"mt-4 text-red-600\">Error: " . htmlspecialchars($e->getMessage()) . "</p>";

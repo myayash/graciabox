@@ -89,17 +89,17 @@ if (isset($_GET['unarchive_id']) && !empty($_GET['unarchive_id'])) {
 <h1 class="text-2xl font-bold mb-6 text-gray-800">daftar barang
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <div class="inline-flex ml-4">
-        <a href="bikin_barang" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Barang</a>
+        <a href="<?php echo BASE_URL; ?>/bikin_barang" class="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-150 ease-in-out">+ Barang</a>
         <?php if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true'): ?>
-            <a href="daftar_barang" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Barang</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_barang" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Active Barang</a>
         <?php else: ?>
-            <a href="daftar_barang?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Barang</a>
+            <a href="<?php echo BASE_URL; ?>/daftar_barang?show_archived=true" class="ml-2 px-4 py-2 bg-gray-600 text-white font-bold hover:bg-gray-700 transition duration-150 ease-in-out">Archived Barang</a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 </h1>
 
-<form action="daftar_barang" method="get" class="mb-4">
+<form action="<?php echo BASE_URL; ?>/daftar_barang" method="get" class="mb-4">
     <input type="text" name="search" placeholder="cari data barang" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
     <button type="submit" class="ml-2 px-4 py-2 border border-blue-600 text-blue-600 font-bold hover:bg-blue-100 transition duration-150 ease-in-out">Search</button>
     <?php if (isset($_GET['show_archived'])): 
@@ -171,11 +171,11 @@ try {
             }
             if ($is_admin) {
                 echo "<td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2\">";
-                echo "<a href=\"edit_barang?id=". htmlspecialchars($barang['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
+                echo "<a href=\"" . BASE_URL . "/edit_barang?id=". htmlspecialchars($barang['id']) . "\" class=\"text-indigo-600 hover:text-indigo-900\">Edit</a>";
                 if (isset($_GET['show_archived']) && $_GET['show_archived'] == 'true') {
-                    echo "<a href=\"daftar_barang?unarchive_id=". htmlspecialchars($barang['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this barang?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
+                    echo "<a href=\"" . BASE_URL . "/daftar_barang?unarchive_id=". htmlspecialchars($barang['id']) . "\" onclick=\"return confirm('Are you sure you want to unarchive this barang?');\" class=\"text-green-600 hover:text-green-900\">Unarchive</a>";
                 } else {
-                    echo "<a href=\"daftar_barang?archive_id=". htmlspecialchars($barang['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this barang?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
+                    echo "<a href=\"" . BASE_URL . "/daftar_barang?archive_id=". htmlspecialchars($barang['id']) . "\" onclick=\"return confirm('Are you sure you want to archive this barang?');\" class=\"text-red-600 hover:text-red-900\">Archive</a>";
                 }
                 echo "</td>";
             }
@@ -185,7 +185,7 @@ try {
         echo "</table>";
         echo "</div>";
     } else {
-        echo "<p class=\"mt-4 text-gray-600\">No barang found in the database.</p>";
+        echo "<p class=\"mt-4 text-gray-600\">No barang found in the database. Click +Barang to create a new one.</p>";
     }
 } catch (PDOException $e) {
     echo "<p class=\"mt-4 text-red-600\">Error: " . htmlspecialchars($e->getMessage()) . "</p>";

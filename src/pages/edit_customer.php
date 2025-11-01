@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once 'config.php';
+
 
 
 // Check if the user has the 'admin' role.
@@ -49,7 +49,7 @@ if (isset($_POST['update_customer']) && $customer) {
             $stmt->execute([$nama, $perusahaan, $no_telp, $customer['id']]);
             $message = "Customer updated successfully!";
             $message_type = 'success';
-            header("Location: daftar_customer.php");
+            header("Location: " . BASE_URL . "/daftar_customer");
             exit;
         } catch (PDOException $e) {
             $message = "Error updating customer: " . htmlspecialchars($e->getMessage());
@@ -74,7 +74,7 @@ if (isset($_POST['update_customer']) && $customer) {
 </head>
 <body class="bg-gray-100 text-gray-900 pt-24 px-8 pb-8 font-mono">
 
-    <?php include 'navbar.php'; ?>
+
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Customer</h1>
 
     <?php
@@ -84,7 +84,7 @@ if (isset($_POST['update_customer']) && $customer) {
 
     if ($customer) {
     ?>
-        <form action="" method="POST" class="bg-white p-8 shadow-lg">
+        <form action="<?php echo BASE_URL; ?>/edit_customer?id=<?php echo htmlspecialchars($customer['id']); ?>" method="POST" class="bg-white p-8 shadow-lg">
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($customer['id']); ?>">
             <div class="mb-4">
                 <label for="nama" class="block text-gray-800 text-sm font-semibold mb-2">Nama Customer:</label>
@@ -103,7 +103,7 @@ if (isset($_POST['update_customer']) && $customer) {
 
             <div class="flex items-center justify-start space-x-4">
                 <input type="submit" name="update_customer" value="Update Customer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out">
-                <a href="daftar_customer.php" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
+                <a href="<?php echo BASE_URL; ?>/daftar_customer" class="inline-block align-baseline font-semibold text-sm text-blue-600 hover:text-blue-700">Cancel</a>
             </div>
         </form>
     <?php
